@@ -11,7 +11,7 @@ export default function HomePage() {
         {/* Logo — bigger, no shadow */}
         <div className="mb-6">
           <Image
-            src="/logo-v2.png"
+            src="/logo-v3.png"
             alt="ARTIE"
             width={560}
             height={280}
