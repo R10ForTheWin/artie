@@ -39,3 +39,17 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# SQLite database
+artie.db
+artie.db-shm
+artie.db-wal
+
+# Claude
+.claude/
+
+# Source image files
+*.jpg~
+ChatGPT\ Image*
+39409142*
+r10.jpg
