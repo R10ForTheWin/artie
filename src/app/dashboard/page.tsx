@@ -56,7 +56,7 @@ export default async function DashboardPage() {
     <main className="min-h-screen bg-white flex flex-col">
       <StripeBar />
 
-      <div className="flex-1 px-6 py-10 max-w-5xl mx-auto w-full">
+      <div className="flex-1 px-6 pt-10 pb-0 max-w-5xl mx-auto w-full">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <Link href="/" className="text-navy opacity-50 hover:opacity-100 text-sm font-bold uppercase tracking-wider">
@@ -89,7 +89,7 @@ export default async function DashboardPage() {
         <WorkoutTable workouts={workouts} />
 
         {/* Photos placeholder */}
-        <div className="mt-10 border-2 border-dashed border-navy border-opacity-20 rounded-lg p-8 text-center">
+        <div className="mt-10 mb-10 border-2 border-dashed border-navy border-opacity-20 rounded-lg p-8 text-center">
           <p className="text-navy font-black uppercase tracking-widest text-sm mb-2 opacity-50">Photos</p>
           <p className="text-navy opacity-30 text-sm">Coming soon — iCloud Shared Album integration</p>
         </div>
