@@ -114,7 +114,7 @@ export default function UploadForm() {
                 ) : (
                   <>
                     <p className="text-navy opacity-50">Drop .fit, .gpx, or workout screenshot</p>
-                    <p className="text-gold text-sm mt-1 font-bold">click to browse · or paste screenshot</p>
+                    <p className="text-gold text-sm mt-1 font-bold">click to browse<span className="hidden md:inline"> · or paste screenshot</span></p>
                   </>
                 )}
               </div>

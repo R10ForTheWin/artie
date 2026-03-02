@@ -19,6 +19,7 @@ interface Workout {
   avg_hr: number | null;
   calories: number | null;
   location: string | null;
+  mile_splits: number[] | null;
 }
 
 interface Race {

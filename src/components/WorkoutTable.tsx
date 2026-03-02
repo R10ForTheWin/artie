@@ -1,4 +1,4 @@
-import { formatDate, formatDistance, formatDuration, formatSpeed } from '@/lib/formatters';
+import { formatDate, formatDistance, formatDuration, formatSpeed, formatPace } from '@/lib/formatters';
 
 interface Workout {
   id: number;
@@ -8,6 +8,15 @@ interface Workout {
   duration_s: number | null;
   avg_speed_ms: number | null;
   location: string | null;
+  mile_splits: number[] | null;
+}
+
+function oddMileAvg(splits: number[] | null): number | null {
+  if (!splits || splits.length === 0) return null;
+  // miles 1, 3, 5, 7... → indices 0, 2, 4, 6...
+  const odd = splits.filter((_, i) => i % 2 === 0);
+  if (odd.length === 0) return null;
+  return odd.reduce((a, b) => a + b, 0) / odd.length;
 }
 
 export default function WorkoutTable({ workouts }: { workouts: Workout[] }) {
@@ -24,7 +33,7 @@ export default function WorkoutTable({ workouts }: { workouts: Workout[] }) {
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b-2 border-navy border-opacity-20 bg-cream-light">
-            {['Athlete', 'Date', 'Location', 'Distance', 'Duration', 'Avg Speed'].map((h) => (
+            {['Athlete', 'Date', 'Location', 'Distance', 'Duration', 'Avg Speed', 'Odd Mile Avg'].map((h) => (
               <th key={h} className="px-4 py-3 text-left text-navy font-black uppercase tracking-wider text-xs opacity-70">
                 {h}
               </th>
@@ -40,6 +49,7 @@ export default function WorkoutTable({ workouts }: { workouts: Workout[] }) {
               <td className="px-4 py-3 text-gold font-bold">{formatDistance(w.distance_m)}</td>
               <td className="px-4 py-3 text-navy opacity-70">{formatDuration(w.duration_s)}</td>
               <td className="px-4 py-3 text-navy opacity-70">{formatSpeed(w.avg_speed_ms)}</td>
+              <td className="px-4 py-3 text-navy opacity-70">{formatPace(oddMileAvg(w.mile_splits))}</td>
             </tr>
           ))}
         </tbody>

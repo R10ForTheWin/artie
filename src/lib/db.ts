@@ -33,6 +33,8 @@ export async function initSchema() {
       created_at  TIMESTAMPTZ DEFAULT NOW()
     );
 
+    ALTER TABLE workouts ADD COLUMN IF NOT EXISTS mile_splits JSONB;
+
     INSERT INTO races (name, race_date, location, logo)
     SELECT 'Catalina Classic', '2026-08-30', 'Catalina Island to Manhattan Beach', '/logos/catalina-classic.jpg'
     WHERE NOT EXISTS (SELECT 1 FROM races WHERE name = 'Catalina Classic');

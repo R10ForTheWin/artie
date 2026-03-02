@@ -28,6 +28,13 @@ export function formatCalories(cal: number | null): string {
   return cal ? `${cal} cal` : '—';
 }
 
+export function formatPace(secondsPerMile: number | null): string {
+  if (!secondsPerMile) return '—';
+  const m = Math.floor(secondsPerMile / 60);
+  const s = Math.round(secondsPerMile % 60).toString().padStart(2, '0');
+  return `${m}:${s} /mi`;
+}
+
 export function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString('en-US', {
     month: 'short', day: 'numeric', year: 'numeric',

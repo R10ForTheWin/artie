@@ -18,7 +18,7 @@ export default function UploadPage() {
         </div>
 
         <h1 className="text-navy font-black uppercase tracking-widest text-3xl mb-2">
-          Upload Garmin File
+          Upload Workout
         </h1>
 
         <div className="mb-8" />
