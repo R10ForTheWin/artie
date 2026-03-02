@@ -26,7 +26,7 @@ export default function UploadPage() {
         <UploadForm />
       </div>
 
-      <StripeBar />
+      <StripeBar side="bottom" />
     </main>
   );
 }

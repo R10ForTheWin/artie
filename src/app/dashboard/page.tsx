@@ -95,7 +95,7 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      <StripeBar />
+      <StripeBar side="bottom" />
     </main>
   );
 }
