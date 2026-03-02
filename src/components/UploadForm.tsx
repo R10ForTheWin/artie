@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { TEAMMATES } from '@/lib/teammates';
 import { COURSES } from '@/lib/courses';
 import { formatDistance, formatDuration, formatSpeed, formatHr, formatCalories } from '@/lib/formatters';
@@ -22,6 +22,25 @@ export default function UploadForm() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<WorkoutResult | null>(null);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    function handlePaste(e: ClipboardEvent) {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+      for (const item of items) {
+        if (item.type.startsWith('image/')) {
+          const blob = item.getAsFile();
+          if (blob) {
+            const ext = item.type === 'image/png' ? 'png' : 'jpg';
+            setFile(new File([blob], `screenshot.${ext}`, { type: item.type }));
+          }
+          break;
+        }
+      }
+    }
+    window.addEventListener('paste', handlePaste);
+    return () => window.removeEventListener('paste', handlePaste);
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -70,7 +89,7 @@ export default function UploadForm() {
 
           <div>
             <label className="block text-navy font-black uppercase tracking-widest text-sm mb-2">
-              Course <span className="text-navy opacity-40 font-normal normal-case tracking-normal text-xs">(optional)</span>
+              Location <span className="text-navy opacity-40 font-normal normal-case tracking-normal text-xs">(optional)</span>
             </label>
             <select
               value={location}
@@ -95,7 +114,7 @@ export default function UploadForm() {
                 ) : (
                   <>
                     <p className="text-navy opacity-50">Drop .fit, .gpx, or workout screenshot</p>
-                    <p className="text-gold text-sm mt-1 font-bold">or click to browse</p>
+                    <p className="text-gold text-sm mt-1 font-bold">click to browse · or paste screenshot</p>
                   </>
                 )}
               </div>
