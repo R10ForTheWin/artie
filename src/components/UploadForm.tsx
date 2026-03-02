@@ -86,7 +86,7 @@ export default function UploadForm() {
 
           <div>
             <label className="block text-navy font-black uppercase tracking-widest text-sm mb-2">
-              Garmin File (.fit or .gpx)
+              Workout File
             </label>
             <label className="flex flex-col items-center justify-center w-full h-36 border-2 border-dashed border-navy border-opacity-30 rounded-lg cursor-pointer hover:border-gold transition-colors bg-cream-light">
               <div className="text-center">
@@ -94,14 +94,14 @@ export default function UploadForm() {
                   <span className="text-navy font-semibold">{file.name}</span>
                 ) : (
                   <>
-                    <p className="text-navy opacity-50">Drop .fit or .gpx file here</p>
+                    <p className="text-navy opacity-50">Drop .fit, .gpx, or workout screenshot</p>
                     <p className="text-gold text-sm mt-1 font-bold">or click to browse</p>
                   </>
                 )}
               </div>
               <input
                 type="file"
-                accept=".fit,.gpx"
+                accept=".fit,.gpx,.heic,.jpg,.jpeg,.png,.webp"
                 className="hidden"
                 onChange={(e) => setFile(e.target.files?.[0] ?? null)}
               />
@@ -117,7 +117,11 @@ export default function UploadForm() {
             disabled={loading || !name || !file}
             className="w-full bg-navy text-white font-black uppercase tracking-widest py-4 rounded-lg text-lg hover:bg-terracotta transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            {loading ? 'Parsing...' : 'Upload Garmin File'}
+            {loading
+              ? file && /\.(heic|jpe?g|png|webp)$/i.test(file.name)
+                ? 'Analyzing screenshot...'
+                : 'Parsing...'
+              : 'Upload Workout File'}
           </button>
         </form>
       ) : (

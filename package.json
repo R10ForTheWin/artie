@@ -8,6 +8,7 @@
     "start": "next start"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.78.0",
     "fast-xml-parser": "^5.4.1",
     "fit-file-parser": "^2.3.3",
     "next": "16.1.6",

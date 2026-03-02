@@ -25,16 +25,26 @@ export async function POST(req: NextRequest) {
     }
 
     const fileName = file.name.toLowerCase();
-    const ext = fileName.endsWith('.fit') ? 'fit' : fileName.endsWith('.gpx') ? 'gpx' : null;
+    const imageExts = ['.heic', '.jpg', '.jpeg', '.png', '.webp'];
+    const ext = fileName.endsWith('.fit')
+      ? 'fit'
+      : fileName.endsWith('.gpx')
+      ? 'gpx'
+      : imageExts.some((e) => fileName.endsWith(e))
+      ? 'image'
+      : null;
 
     if (!ext) {
-      return NextResponse.json({ error: 'Only .fit and .gpx files are supported' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Only .fit, .gpx, or workout screenshot files are supported' },
+        { status: 400 }
+      );
     }
 
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    const parsed = await parseWorkoutFile(buffer, ext as 'fit' | 'gpx');
+    const parsed = await parseWorkoutFile(buffer, ext as 'fit' | 'gpx' | 'image', file.type);
 
     await initSchema();
     const result = await pool.query(
