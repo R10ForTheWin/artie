@@ -10,13 +10,14 @@ export default function StripeBar({ side = 'top' }: { side?: 'top' | 'bottom' })
   const H = 110;
   const sw = H / displayStripes.length;
   const curl = 140;
+  const viewH = side === 'bottom' ? H + curl : H;
 
   return (
     <svg
-      viewBox={`0 0 ${W} ${H}`}
+      viewBox={`0 0 ${W} ${viewH}`}
       preserveAspectRatio="none"
       className="w-full block"
-      style={{ height: `${H}px` }}
+      style={{ height: `${viewH}px` }}
     >
       {displayStripes.map((color, i) => {
         const y1 = i * sw;
