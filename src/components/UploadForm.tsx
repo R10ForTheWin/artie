@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { TEAMMATES } from '@/lib/teammates';
+import { COURSES } from '@/lib/courses';
 import { formatDistance, formatDuration, formatSpeed, formatHr, formatCalories } from '@/lib/formatters';
 
 interface WorkoutResult {
@@ -69,15 +70,18 @@ export default function UploadForm() {
 
           <div>
             <label className="block text-navy font-black uppercase tracking-widest text-sm mb-2">
-              Location <span className="text-navy opacity-40 font-normal normal-case tracking-normal text-xs">(optional)</span>
+              Course <span className="text-navy opacity-40 font-normal normal-case tracking-normal text-xs">(optional)</span>
             </label>
-            <input
-              type="text"
+            <select
               value={location}
               onChange={(e) => setLocation(e.target.value)}
-              placeholder="e.g. Lake Tahoe, Newport Beach"
-              className="w-full bg-white border-2 border-navy text-navy rounded-lg px-4 py-3 focus:outline-none focus:border-gold placeholder-navy placeholder-opacity-30"
-            />
+              className="w-full bg-white border-2 border-navy text-navy rounded-lg px-4 py-3 font-semibold focus:outline-none focus:border-gold appearance-none"
+            >
+              <option value="">— Choose course —</option>
+              {COURSES.map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
           </div>
 
           <div>
