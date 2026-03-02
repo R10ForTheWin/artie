@@ -96,7 +96,7 @@ export default function UploadForm() {
               onChange={(e) => setLocation(e.target.value)}
               className="w-full bg-white border-2 border-navy text-navy rounded-lg px-4 py-3 font-semibold focus:outline-none focus:border-gold appearance-none"
             >
-              <option value="">— Choose course —</option>
+              <option value="">— Choose location —</option>
               {COURSES.map((c) => (
                 <option key={c} value={c}>{c}</option>
               ))}
