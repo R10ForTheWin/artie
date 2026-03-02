@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { getDb } from '@/lib/db';
+import { pool, initSchema } from '@/lib/db';
 import { formatDistanceMiles } from '@/lib/formatters';
 import { TEAMMATES } from '@/lib/teammates';
 import MileageChart from '@/components/MileageChart';
@@ -29,10 +29,14 @@ interface Race {
   logo: string | null;
 }
 
-export default function DashboardPage() {
-  const db = getDb();
-  const workouts = db.prepare('SELECT * FROM workouts ORDER BY distance_m DESC').all() as Workout[];
-  const races = db.prepare('SELECT * FROM races ORDER BY race_date ASC').all() as Race[];
+export default async function DashboardPage() {
+  await initSchema();
+  const [workoutsResult, racesResult] = await Promise.all([
+    pool.query('SELECT * FROM workouts ORDER BY distance_m DESC'),
+    pool.query('SELECT * FROM races ORDER BY race_date ASC'),
+  ]);
+  const workouts = workoutsResult.rows as Workout[];
+  const races = racesResult.rows as Race[];
 
   const mileageMap = Object.fromEntries(TEAMMATES.map((t) => [t, 0]));
   for (const w of workouts) {

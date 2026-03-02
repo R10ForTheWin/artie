@@ -1,14 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDb } from '@/lib/db';
+import { pool, initSchema } from '@/lib/db';
 import { parseWorkoutFile } from '@/lib/parsers';
 import { TEAMMATES } from '@/lib/teammates';
 
 export async function GET() {
-  const db = getDb();
-  const workouts = db.prepare(
-    'SELECT * FROM workouts ORDER BY workout_date DESC'
-  ).all();
-  return NextResponse.json(workouts);
+  await initSchema();
+  const result = await pool.query('SELECT * FROM workouts ORDER BY workout_date DESC');
+  return NextResponse.json(result.rows);
 }
 
 export async function POST(req: NextRequest) {
@@ -38,27 +36,28 @@ export async function POST(req: NextRequest) {
 
     const parsed = await parseWorkoutFile(buffer, ext as 'fit' | 'gpx');
 
-    const db = getDb();
-    const result = db.prepare(`
-      INSERT INTO workouts (name, file_name, file_type, workout_date, duration_s, distance_m, avg_speed_ms, max_speed_ms, avg_hr, max_hr, calories, location)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(
-      name,
-      file.name,
-      ext,
-      parsed.workout_date,
-      parsed.duration_s,
-      parsed.distance_m,
-      parsed.avg_speed_ms,
-      parsed.max_speed_ms,
-      parsed.avg_hr,
-      parsed.max_hr,
-      parsed.calories,
-      location
+    await initSchema();
+    const result = await pool.query(
+      `INSERT INTO workouts (name, file_name, file_type, workout_date, duration_s, distance_m, avg_speed_ms, max_speed_ms, avg_hr, max_hr, calories, location)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+       RETURNING *`,
+      [
+        name,
+        file.name,
+        ext,
+        parsed.workout_date,
+        parsed.duration_s,
+        parsed.distance_m,
+        parsed.avg_speed_ms,
+        parsed.max_speed_ms,
+        parsed.avg_hr,
+        parsed.max_hr,
+        parsed.calories,
+        location,
+      ]
     );
 
-    const saved = db.prepare('SELECT * FROM workouts WHERE id = ?').get(result.lastInsertRowid);
-    return NextResponse.json(saved, { status: 201 });
+    return NextResponse.json(result.rows[0], { status: 201 });
   } catch (err) {
     console.error('Upload error:', err);
     return NextResponse.json({ error: 'Failed to parse workout file' }, { status: 500 });

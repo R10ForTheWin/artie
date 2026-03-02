@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: artie
+    runtime: node
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: artie-db
+          property: connectionString
+
+databases:
+  - name: artie-db
+    plan: free

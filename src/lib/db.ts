@@ -1,23 +1,14 @@
-import Database from 'better-sqlite3';
-import path from 'path';
+import { Pool } from 'pg';
 
-const DB_PATH = process.env.DATABASE_PATH || path.join(process.cwd(), 'artie.db');
+export const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+});
 
-let db: Database.Database;
-
-export function getDb(): Database.Database {
-  if (!db) {
-    db = new Database(DB_PATH);
-    db.pragma('journal_mode = WAL');
-    initSchema(db);
-  }
-  return db;
-}
-
-function initSchema(db: Database.Database) {
-  db.exec(`
+export async function initSchema() {
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS workouts (
-      id            INTEGER PRIMARY KEY AUTOINCREMENT,
+      id            SERIAL PRIMARY KEY,
       name          TEXT    NOT NULL,
       file_name     TEXT    NOT NULL,
       file_type     TEXT    NOT NULL,
@@ -30,16 +21,16 @@ function initSchema(db: Database.Database) {
       max_hr        INTEGER,
       calories      INTEGER,
       location      TEXT,
-      created_at    TEXT DEFAULT (datetime('now'))
+      created_at    TIMESTAMPTZ DEFAULT NOW()
     );
 
     CREATE TABLE IF NOT EXISTS races (
-      id          INTEGER PRIMARY KEY AUTOINCREMENT,
+      id          SERIAL PRIMARY KEY,
       name        TEXT NOT NULL,
       race_date   TEXT NOT NULL,
       location    TEXT,
       logo        TEXT,
-      created_at  TEXT DEFAULT (datetime('now'))
+      created_at  TIMESTAMPTZ DEFAULT NOW()
     );
   `);
 }
