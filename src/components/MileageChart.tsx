@@ -12,13 +12,16 @@ export default function MileageChart({ data }: Props) {
       <h2 className="text-navy font-black uppercase tracking-widest text-lg mb-6">
         Total Miles by Athlete
       </h2>
-      <ResponsiveContainer width="100%" height={260}>
-        <BarChart data={data} margin={{ top: 4, right: 16, left: 0, bottom: 4 }}>
+      <ResponsiveContainer width="100%" height={280}>
+        <BarChart data={data} margin={{ top: 4, right: 16, left: 0, bottom: 48 }}>
           <XAxis
             dataKey="name"
-            tick={{ fill: '#1B2A4A', fontWeight: 700, fontSize: 13 }}
+            tick={{ fill: '#1B2A4A', fontWeight: 700, fontSize: 12 }}
             axisLine={{ stroke: '#1B2A4A', strokeOpacity: 0.3 }}
             tickLine={false}
+            interval={0}
+            angle={-35}
+            textAnchor="end"
           />
           <YAxis
             tick={{ fill: '#1B2A4A', fontSize: 12, opacity: 0.6 }}
