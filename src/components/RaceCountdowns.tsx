@@ -37,11 +37,11 @@ export default function RaceCountdowns({ races }: { races: Race[] }) {
           const days = daysUntil(race.race_date);
           return (
             <div key={race.id} className="flex items-center gap-4 border-2 border-navy border-opacity-10 rounded-xl px-4 py-4 bg-cream-light">
-              <div className="flex-shrink-0 w-[72px] h-[72px] rounded-full overflow-hidden bg-navy flex items-center justify-center">
+              <div className="flex-shrink-0 w-[72px] h-[72px] rounded-xl overflow-hidden bg-white border border-navy border-opacity-10 flex items-center justify-center p-1">
                 {race.logo ? (
-                  <Image src={race.logo} alt={race.name} width={72} height={72} className="object-cover w-full h-full" />
+                  <Image src={race.logo} alt={race.name} width={72} height={72} className="object-contain w-full h-full" />
                 ) : (
-                  <span className="text-cream font-black text-lg">{race.name.charAt(0)}</span>
+                  <span className="text-navy font-black text-lg">{race.name.charAt(0)}</span>
                 )}
               </div>
               <div className="flex-1 min-w-0">
