@@ -88,10 +88,18 @@ export default async function DashboardPage() {
         {/* Workout Feed */}
         <WorkoutTable workouts={workouts} />
 
-        {/* Photos placeholder */}
-        <div className="mt-10 mb-10 border-2 border-dashed border-navy border-opacity-20 rounded-lg p-8 text-center">
-          <p className="text-navy font-black uppercase tracking-widest text-sm mb-2 opacity-50">Photos</p>
-          <p className="text-navy opacity-30 text-sm">Coming soon — iCloud Shared Album integration</p>
+        {/* Team Photos */}
+        <div className="mt-10 mb-10 border-2 border-navy border-opacity-20 rounded-lg p-6 bg-white">
+          <h2 className="text-navy font-black uppercase tracking-widest text-lg mb-2">Team Photos</h2>
+          <p className="text-navy opacity-50 text-sm mb-4">Team Topaz shared album — add yours from the Photos app</p>
+          <a
+            href="https://www.icloud.com/sharedalbum/#B275VaUrzGG4pHH"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block bg-navy text-white font-black uppercase tracking-wider text-sm px-5 py-2 rounded-lg hover:bg-terracotta transition-colors"
+          >
+            Open Album →
+          </a>
         </div>
       </div>
 

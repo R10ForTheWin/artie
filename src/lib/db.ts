@@ -48,7 +48,13 @@ export async function initSchema() {
     WHERE NOT EXISTS (SELECT 1 FROM races WHERE name = 'Malibu Downwinder');
 
     INSERT INTO races (name, race_date, location, logo)
-    SELECT 'South Bay Paddle', '2026-06-09', null, '/logos/south-bay-paddle.jpg'
+    SELECT 'South Bay Paddle', '2026-06-20', null, '/logos/south-bay-paddle.jpg'
     WHERE NOT EXISTS (SELECT 1 FROM races WHERE name = 'South Bay Paddle');
+
+    UPDATE races SET race_date = '2026-06-20' WHERE name = 'South Bay Paddle';
+
+    INSERT INTO races (name, race_date, location, logo)
+    SELECT 'R10 Paddleboard Race', '2026-06-06', null, '/logos/r10-race.jpg'
+    WHERE NOT EXISTS (SELECT 1 FROM races WHERE name = 'R10 Paddleboard Race');
   `);
 }
