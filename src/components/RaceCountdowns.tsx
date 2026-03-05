@@ -38,11 +38,7 @@ export default function RaceCountdowns({ races }: { races: Race[] }) {
           return (
             <div key={race.id} className="flex items-center gap-4 border-2 border-navy border-opacity-10 rounded-xl px-4 py-4 bg-cream-light">
               <div className="flex-shrink-0 w-[72px] h-[72px] rounded-xl overflow-hidden bg-white border border-navy border-opacity-10 flex items-center justify-center p-2">
-                {race.logo ? (
-                  <Image src={race.logo} alt={race.name} width={72} height={72} className="object-contain w-full h-full" />
-                ) : (
-                  <span className="text-navy font-black text-lg">{race.name.charAt(0)}</span>
-                )}
+                <Image src={race.logo ?? '/default-race.jpg'} alt={race.name} width={72} height={72} className="object-cover w-full h-full" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-navy font-bold text-lg">{race.name}</p>
@@ -69,9 +65,7 @@ export default function RaceCountdowns({ races }: { races: Race[] }) {
             {past.map((race) => (
               <div key={race.id} className="flex items-center gap-3 px-4 py-2 opacity-30">
                 <div className="w-8 h-8 rounded-full overflow-hidden bg-navy flex items-center justify-center flex-shrink-0">
-                {race.logo
-                  ? <Image src={race.logo} alt={race.name} width={32} height={32} className="object-cover w-full h-full" />
-                  : <span className="text-cream font-black text-xs">{race.name.charAt(0)}</span>}
+                <Image src={race.logo ?? '/default-race.jpg'} alt={race.name} width={32} height={32} className="object-cover w-full h-full" />
               </div>
                 <div className="flex-1">
                   <p className="text-navy text-sm">{race.name}</p>

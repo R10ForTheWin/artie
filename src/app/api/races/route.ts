@@ -17,9 +17,13 @@ export async function POST(req: NextRequest) {
 
     await initSchema();
     const result = await pool.query(
-      'INSERT INTO races (name, race_date, location, logo) VALUES ($1, $2, $3, $4) RETURNING *',
+      'INSERT INTO races (name, race_date, location, logo) VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING RETURNING *',
       [name, race_date, location ?? null, logo ?? null]
     );
+
+    if (result.rows.length === 0) {
+      return NextResponse.json({ error: 'A race with that name already exists' }, { status: 409 });
+    }
 
     return NextResponse.json(result.rows[0], { status: 201 });
   } catch (err) {
