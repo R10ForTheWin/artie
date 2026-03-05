@@ -5,7 +5,7 @@ import "./globals.css";
 const geist = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "ARTIE - Team Topaz Mileage Tracker",
+  title: "Artie",
   description: "Team Topaz mileage tracker",
   icons: {
     apple: "/apple-touch-icon.png",
