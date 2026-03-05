@@ -26,7 +26,7 @@ export default function NewRacePage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to add race');
-      router.push('/dashboard');
+      router.push('/races');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong');
       setLoading(false);
@@ -38,8 +38,8 @@ export default function NewRacePage() {
       <StripeBar side="top" />
       <div className="flex-1 px-6 py-10 max-w-lg mx-auto w-full">
         <div className="flex items-center justify-between mb-8">
-          <Link href="/dashboard" className="text-navy opacity-50 hover:opacity-100 text-sm font-bold uppercase tracking-wider">
-            ← Dashboard
+          <Link href="/races" className="text-navy opacity-50 hover:opacity-100 text-sm font-bold uppercase tracking-wider">
+            ← Races
           </Link>
         </div>
 

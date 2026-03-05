@@ -19,23 +19,28 @@ export default function HomePage() {
           />
         </div>
 
-        <p className="text-navy font-black uppercase tracking-widest text-sm mb-10">
-          Artie
-        </p>
 
         <div className="flex flex-col gap-2 w-full max-w-xs">
           <Link
             href="/dashboard"
             className="bg-navy text-white font-bold uppercase tracking-widest text-center py-2.5 px-6 rounded-lg text-xs hover:bg-terracotta transition-colors"
           >
-            Dashboard
+            Mileage Tracker
           </Link>
           <Link
-            href="/upload"
+            href="/races"
             className="border-2 border-navy text-navy font-bold uppercase tracking-widest text-center py-2.5 px-6 rounded-lg text-xs hover:bg-navy hover:text-white transition-colors"
           >
-            Upload Garmin File
+            Races
           </Link>
+          <a
+            href="https://www.icloud.com/sharedalbum/#B275VaUrzGG4pHH"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="border-2 border-navy text-navy font-bold uppercase tracking-widest text-center py-2.5 px-6 rounded-lg text-xs hover:bg-navy hover:text-white transition-colors"
+          >
+            Photos
+          </a>
         </div>
       </div>
 
