@@ -33,14 +33,12 @@ export default function HomePage() {
           >
             Races
           </Link>
-          <a
-            href="https://www.icloud.com/sharedalbum/#B275VaUrzGG4pHH"
-            target="_blank"
-            rel="noopener noreferrer"
+          <Link
+            href="/photos"
             className="bg-terracotta text-white font-bold uppercase tracking-widest text-center py-2.5 px-6 rounded-lg text-xs hover:opacity-80 transition-opacity"
           >
             Photos
-          </a>
+          </Link>
         </div>
       </div>
 
