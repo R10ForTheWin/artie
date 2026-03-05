@@ -20,7 +20,7 @@ export default function HomePage() {
         </div>
 
         <p className="text-navy font-black uppercase tracking-widest text-sm mb-10">
-          Team Topaz Mileage Tracker
+          Artie
         </p>
 
         <div className="flex flex-col gap-2 w-full max-w-xs">
