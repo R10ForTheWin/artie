@@ -44,30 +44,44 @@ function generateRouteSvg(lats: number[], lons: number[], mileLats: number[], mi
   const mileXY = mileLats.map((lat, i) => toXY(lat, mileLons[i]));
   const allPoints = [start, ...mileXY]; // start + each mile boundary
 
-  // Dots: just the circle + mile number, no pace
+  // Mile dots: white circle with bold navy number inside
   const mileDots = mileXY.map(({ x, y }, i) =>
-    `<circle cx="${x}" cy="${y}" r="4" fill="white" stroke="#1B2A4A" stroke-width="1.5"/>
-     <text x="${x}" y="${y - 8}" text-anchor="middle" font-size="8" font-family="sans-serif" font-weight="bold" fill="#1B2A4A">${i + 1}</text>`
+    `<circle cx="${x}" cy="${y}" r="9" fill="white" stroke="#1B2A4A" stroke-width="2"/>
+     <text x="${x}" y="${y + 4}" text-anchor="middle" font-size="9" font-family="sans-serif" font-weight="bold" fill="#1B2A4A">${i + 1}</text>`
   ).join('');
 
-  // Pace labels: midpoint between consecutive markers, near the line
+  // Pace labels: gold pill badges midway between consecutive markers
   const paceLabels = mileSplits.map((split, i) => {
     const p1 = allPoints[i];
     const p2 = allPoints[i + 1];
     if (!p1 || !p2) return '';
     const mx = parseFloat(((p1.x + p2.x) / 2).toFixed(1));
     const my = parseFloat(((p1.y + p2.y) / 2).toFixed(1));
-    return `<text x="${mx}" y="${my - 5}" text-anchor="middle" font-size="7" font-family="sans-serif" font-weight="bold" fill="#1B2A4A">${fmtPace(split)}</text>`;
+    const label = fmtPace(split);
+    const pw = 30, ph = 14, pr = 4;
+    return `<rect x="${mx - pw / 2}" y="${my - ph - 6}" width="${pw}" height="${ph}" rx="${pr}" fill="#1B2A4A"/>
+            <text x="${mx}" y="${my - 6 - ph / 2 + 5}" text-anchor="middle" font-size="8" font-family="sans-serif" font-weight="bold" fill="white">${label}</text>`;
   }).join('');
 
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}">
-    <rect width="${W}" height="${H}" fill="#ddeef6"/>
-    <polyline points="${points}" fill="none" stroke="#C9922A" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" opacity="0.9"/>
-    ${mileDots}
+    <defs>
+      <linearGradient id="water" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#d8eaf5"/>
+        <stop offset="100%" stop-color="#b8d4e8"/>
+      </linearGradient>
+    </defs>
+    <rect width="${W}" height="${H}" fill="url(#water)"/>
+    <polyline points="${points}" fill="none" stroke="#C9922A" stroke-width="4" stroke-linejoin="round" stroke-linecap="round" opacity="0.95"/>
     ${paceLabels}
-    <circle cx="${start.x}" cy="${start.y}" r="5" fill="#1B2A4A"/>
-    <text x="${start.x}" y="${start.y - 8}" text-anchor="middle" font-size="8" font-family="sans-serif" font-weight="bold" fill="#1B2A4A">Start</text>
-    <circle cx="${end.x}" cy="${end.y}" r="5" fill="#C4532A"/>
+    ${mileDots}
+    <circle cx="28" cy="${H - 28}" r="18" fill="white" fill-opacity="0.85" stroke="#1B2A4A" stroke-width="1" stroke-opacity="0.3"/>
+    <polygon points="28,${H - 44} 31,${H - 32} 28,${H - 35} 25,${H - 32}" fill="#1B2A4A"/>
+    <polygon points="28,${H - 12} 31,${H - 24} 28,${H - 21} 25,${H - 24}" fill="#1B2A4A" opacity="0.3"/>
+    <text x="28" y="${H - 46}" text-anchor="middle" font-size="7" font-family="sans-serif" font-weight="bold" fill="#1B2A4A">N</text>
+    <circle cx="${start.x}" cy="${start.y}" r="7" fill="#1B2A4A"/>
+    <circle cx="${start.x}" cy="${start.y}" r="3" fill="white"/>
+    <circle cx="${end.x}" cy="${end.y}" r="7" fill="#C4532A"/>
+    <circle cx="${end.x}" cy="${end.y}" r="3" fill="white"/>
   </svg>`;
 }
 
