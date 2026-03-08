@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { pool, initSchema } from '@/lib/db';
 import { parseWorkoutFile } from '@/lib/parsers';
+import { injectMapLocation } from '@/lib/parsers/gpxParser';
 import { parseLapsImage } from '@/lib/parsers/imageParser';
 import { TEAMMATES } from '@/lib/teammates';
 
@@ -196,7 +197,7 @@ export async function POST(req: NextRequest) {
         location,
         mile_splits ? JSON.stringify(mile_splits) : null,
         parsed.avg_temp_c ?? null,
-        parsed.map_svg ?? null,
+        parsed.map_svg && location ? injectMapLocation(parsed.map_svg, location) : (parsed.map_svg ?? null),
       ]
     );
 

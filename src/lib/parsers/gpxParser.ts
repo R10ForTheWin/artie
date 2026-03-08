@@ -7,7 +7,7 @@ function fmtPace(s: number): string {
   return `${m}:${sec}`;
 }
 
-function generateRouteSvg(lats: number[], lons: number[], mileLats: number[], mileLons: number[], mileSplits: number[]): string {
+function generateRouteSvg(lats: number[], lons: number[], mileLats: number[], mileLons: number[], mileSplits: number[], meta: { date: string; distanceMi: number; location?: string | null }): string {
   if (lats.length < 2) return '';
   // Downsample to max 300 points
   const step = Math.max(1, Math.floor(lats.length / 300));
@@ -82,6 +82,9 @@ function generateRouteSvg(lats: number[], lons: number[], mileLats: number[], mi
     <circle cx="${start.x}" cy="${start.y}" r="3" fill="white"/>
     <circle cx="${end.x}" cy="${end.y}" r="7" fill="#C4532A"/>
     <circle cx="${end.x}" cy="${end.y}" r="3" fill="white"/>
+    <rect x="0" y="${H - 24}" width="${W}" height="24" fill="#1B2A4A" fill-opacity="0.75"/>
+    <text x="10" y="${H - 9}" font-size="9" font-family="sans-serif" font-weight="bold" fill="white">${meta.date}${meta.location ? ` · ${meta.location}` : ''}</text>
+    <text x="${W - 10}" y="${H - 9}" text-anchor="end" font-size="9" font-family="sans-serif" font-weight="bold" fill="#C9922A">${meta.distanceMi.toFixed(2)} mi</text>
   </svg>`;
 }
 
@@ -170,8 +173,12 @@ export function parseGpx(buffer: Buffer): Promise<ParsedWorkout> {
     ? Math.round(tempValues.reduce((a: number, b: number) => a + b, 0) / tempValues.length * 10) / 10
     : null;
 
+  const workout_date = times[0] ? new Date(times[0]).toISOString() : new Date().toISOString();
+  const [year, month, day] = workout_date.split('T')[0].split('-').map(Number);
+  const dateStr = new Date(year, month - 1, day).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
   return Promise.resolve({
-    workout_date: times[0] ? new Date(times[0]).toISOString() : new Date().toISOString(),
+    workout_date,
     duration_s,
     distance_m,
     avg_speed_ms,
@@ -181,6 +188,15 @@ export function parseGpx(buffer: Buffer): Promise<ParsedWorkout> {
     calories: null,
     mile_splits: mile_splits.length > 0 ? mile_splits : null,
     avg_temp_c,
-    map_svg: generateRouteSvg(lats, lons, mileLats, mileLons, mile_splits),
+    map_svg: generateRouteSvg(lats, lons, mileLats, mileLons, mile_splits, {
+      date: dateStr,
+      distanceMi: distance_m * 0.000621371,
+    }),
   });
+}
+
+export function injectMapLocation(svg: string, location: string): string {
+  return svg.replace(/(<text[^>]*font-weight="bold" fill="white">)([^<]*)(<\/text>\s*<text[^>]*text-anchor="end")/,
+    `$1${location ? `${location} · ` : ''}$2$3`
+  );
 }
