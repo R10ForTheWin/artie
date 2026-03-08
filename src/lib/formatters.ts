@@ -10,6 +10,11 @@ export function formatDistance(meters: number | null): string {
   return `${(meters * 0.000621371).toFixed(2)} mi`;
 }
 
+export function formatDistanceShort(meters: number | null): string {
+  if (!meters) return '—';
+  return (meters * 0.000621371).toFixed(2);
+}
+
 export function formatDistanceMiles(meters: number | null): number {
   if (!meters) return 0;
   return parseFloat((meters * 0.000621371).toFixed(2));

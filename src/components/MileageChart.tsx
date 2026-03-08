@@ -8,15 +8,16 @@ interface Props {
 }
 
 export default function MileageChart({ data }: Props) {
+  const chartData = data.map(d => ({ ...d, label: d.name.length > 8 ? d.name.slice(0, 8) : d.name }));
   return (
     <div className="border-2 border-navy border-opacity-20 rounded-lg p-6 bg-white">
       <h2 className="text-navy font-black uppercase tracking-widest text-lg mb-6">
         Total Miles Since March 1, 2026
       </h2>
       <ResponsiveContainer width="100%" height={280}>
-        <BarChart data={data} margin={{ top: 4, right: 16, left: 0, bottom: 72 }}>
+        <BarChart data={chartData} margin={{ top: 4, right: 16, left: 0, bottom: 72 }}>
           <XAxis
-            dataKey="name"
+            dataKey="label"
             tick={{ fill: '#1B2A4A', fontWeight: 700, fontSize: 11 }}
             axisLine={{ stroke: '#1B2A4A', strokeOpacity: 0.3 }}
             tickLine={false}
@@ -39,7 +40,7 @@ export default function MileageChart({ data }: Props) {
           <Bar dataKey="miles" radius={[4, 4, 0, 0]}>
             {data.map((entry, index) => {
               const colors = ['#1B2A4A', '#5B8DB8', '#C4532A', '#C9922A', '#EDD9A3', '#1B2A4A', '#5B8DB8', '#C4532A'];
-              return <Cell key={entry.name} fill={entry.miles > 0 ? colors[index % colors.length] : '#f0f0f0'} />;
+              return <Cell key={entry.label} fill={entry.miles > 0 ? colors[index % colors.length] : '#f0f0f0'} />;
             })}
           </Bar>
         </BarChart>
