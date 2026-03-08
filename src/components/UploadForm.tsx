@@ -219,6 +219,20 @@ export default function UploadForm() {
 
               {mode === 'computer' && (
                 <>
+                  {/* Location */}
+                  <div>
+                    <select
+                      value={location}
+                      onChange={(e) => setLocation(e.target.value)}
+                      className="w-full bg-white border-2 border-navy text-navy rounded-lg px-4 py-3 font-semibold focus:outline-none focus:border-gold appearance-none"
+                    >
+                      <option value="">Select Location</option>
+                      {COURSES.map((c) => (
+                        <option key={c} value={c}>{c}</option>
+                      ))}
+                    </select>
+                  </div>
+
                   {/* .fit / .gpx */}
                   <div>
                     <label className="block text-navy font-black uppercase tracking-widest text-sm mb-2">
