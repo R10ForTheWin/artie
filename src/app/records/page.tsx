@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { pool, initSchema } from '@/lib/db';
-import { formatPace } from '@/lib/formatters';
+import { formatPace, formatSpeed } from '@/lib/formatters';
 import StripeBar from '@/components/StripeBar';
 
 export const dynamic = 'force-dynamic';
@@ -61,7 +61,10 @@ export default async function RecordsPage() {
                       </p>
                     </div>
                   </div>
-                  <p className="text-gold font-black text-xl">{formatPace(row.split_s)}</p>
+                  <div className="text-right">
+                    <p className="text-gold font-black text-xl">{formatPace(row.split_s)}</p>
+                    <p className="text-navy opacity-50 text-xs mt-0.5">{formatSpeed(1609.344 / row.split_s)}</p>
+                  </div>
                 </Link>
               ))}
             </div>
