@@ -49,8 +49,15 @@ function generateRouteSvg(lats: number[], lons: number[], mileLats: number[], mi
   const r10InBounds = R10_LAT >= minLat && R10_LAT <= maxLat && R10_LON >= minLon && R10_LON <= maxLon;
   const r10Marker = r10InBounds ? (() => {
     const { x, y } = toXY(R10_LAT, R10_LON);
-    return `<polygon points="${x},${y - 10} ${x + 7},${y} ${x},${y + 10} ${x - 7},${y}" fill="#C4532A" stroke="white" stroke-width="1.5"/>
-            <text x="${x}" y="${y - 13}" text-anchor="middle" font-size="8" font-family="sans-serif" font-weight="bold" fill="#C4532A">R10</text>`;
+    return `
+      <ellipse cx="${x}" cy="${y + 2}" rx="9" ry="4" fill="#C4532A"/>
+      <line x1="${x - 5}" y1="${y - 1}" x2="${x - 3}" y2="${y - 16}" stroke="#C4532A" stroke-width="1.5"/>
+      <line x1="${x + 5}" y1="${y - 1}" x2="${x + 3}" y2="${y - 16}" stroke="#C4532A" stroke-width="1.5"/>
+      <line x1="${x - 4}" y1="${y - 7}" x2="${x + 4}" y2="${y - 11}" stroke="#C4532A" stroke-width="1"/>
+      <line x1="${x - 4}" y1="${y - 11}" x2="${x + 4}" y2="${y - 7}" stroke="#C4532A" stroke-width="1"/>
+      <rect x="${x - 8}" y="${y - 28}" width="16" height="13" rx="1" fill="#C4532A" stroke="white" stroke-width="1"/>
+      <text x="${x}" y="${y - 19}" text-anchor="middle" font-size="7" font-family="sans-serif" font-weight="bold" fill="white">R10</text>
+    `;
   })() : '';
 
   // Mile dots: white circle with bold navy number inside
