@@ -165,16 +165,14 @@ export default function RouteMap({ svg, date, location, distance, highlightMile,
                   key={i}
                   data-mile={mileNum}
                   onClick={() => setActiveSegment(isActive ? null : mileNum)}
-                  className={`flex items-center justify-between rounded-lg px-3 py-1.5 text-left transition-all ${
-                    isActive
-                      ? 'bg-gold'
-                      : isDimmed
-                        ? 'bg-white bg-opacity-5 opacity-40'
-                        : 'bg-white bg-opacity-10 hover:bg-opacity-20'
-                  }`}
+                  className="flex items-center justify-between rounded-lg px-3 py-1.5 text-left transition-all"
+                  style={{
+                    background: isActive ? '#C9922A' : 'rgba(255,255,255,0.12)',
+                    opacity: isDimmed ? 0.4 : 1,
+                  }}
                 >
-                  <span className="text-white text-xs font-bold opacity-70">Mile {mileNum}</span>
-                  <span className="text-white text-sm font-black">{fmtSplit(split)}</span>
+                  <span style={{ color: 'white', fontSize: '10px', fontWeight: 700, opacity: 0.7 }}>Mile {mileNum}</span>
+                  <span style={{ color: 'white', fontSize: '13px', fontWeight: 900 }}>{fmtSplit(split)}</span>
                 </button>
               );
             })}
