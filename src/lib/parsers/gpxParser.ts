@@ -44,6 +44,21 @@ function generateRouteSvg(lats: number[], lons: number[], mileLats: number[], mi
   const mileXY = mileLats.map((lat, i) => toXY(lat, mileLons[i]));
   const allPoints = [start, ...mileXY]; // start + each mile boundary
 
+  // Topaz start sign (hardcoded) — show if within map bounds
+  const TOPAZ_LAT = 33.83238, TOPAZ_LON = -118.39028;
+  const topazInBounds = TOPAZ_LAT >= minLat && TOPAZ_LAT <= maxLat && TOPAZ_LON >= minLon && TOPAZ_LON <= maxLon;
+  const topazMarker = topazInBounds ? (() => {
+    const { x, y } = toXY(TOPAZ_LAT, TOPAZ_LON);
+    return `
+      <line x1="${x}" y1="${y}" x2="${x}" y2="${y - 10}" stroke="#555" stroke-width="1.5"/>
+      <rect x="${x - 22}" y="${y - 26}" width="44" height="16" rx="2" fill="#2E7D32"/>
+      <rect x="${x - 20.5}" y="${y - 24.5}" width="41" height="13" rx="1" fill="none" stroke="white" stroke-width="0.75"/>
+      <polygon points="${x - 17},${y - 14} ${x - 13},${y - 14} ${x - 15},${y - 21}" fill="white"/>
+      <line x1="${x - 15}" y1="${y - 21}" x2="${x - 11.5}" y2="${y - 17}" stroke="white" stroke-width="0.75"/>
+      <text x="${x + 4}" y="${y - 15}" text-anchor="middle" font-size="7" font-family="sans-serif" font-weight="bold" fill="white" letter-spacing="0.5">TOPAZ</text>
+    `;
+  })() : '';
+
   // R10 buoy marker (hardcoded) — show if within map bounds
   const R10_LAT = 33.77335, R10_LON = -118.44535;
   const r10InBounds = R10_LAT >= minLat && R10_LAT <= maxLat && R10_LON >= minLon && R10_LON <= maxLon;
@@ -91,13 +106,12 @@ function generateRouteSvg(lats: number[], lons: number[], mileLats: number[], mi
     ${paceLabels}
     ${mileDots}
     ${r10Marker}
+    ${topazMarker}
     <circle cx="28" cy="${H - 28}" r="18" fill="white" fill-opacity="0.85" stroke="#1B2A4A" stroke-width="1" stroke-opacity="0.3"/>
     <polygon points="28,${H - 44} 31,${H - 32} 28,${H - 35} 25,${H - 32}" fill="#1B2A4A"/>
     <polygon points="28,${H - 12} 31,${H - 24} 28,${H - 21} 25,${H - 24}" fill="#1B2A4A" opacity="0.3"/>
     <text x="28" y="${H - 46}" text-anchor="middle" font-size="7" font-family="sans-serif" font-weight="bold" fill="#1B2A4A">N</text>
-    <circle cx="${start.x}" cy="${start.y}" r="7" fill="#1B2A4A"/>
-    <circle cx="${start.x}" cy="${start.y}" r="3" fill="white"/>
-    <circle cx="${end.x}" cy="${end.y}" r="7" fill="#C4532A"/>
+    <circle cx="${end.x}" cy="${end.y}" r="7" fill="#1B2A4A"/>
     <circle cx="${end.x}" cy="${end.y}" r="3" fill="white"/>
     <rect x="0" y="${H - 24}" width="${W}" height="24" fill="#1B2A4A" fill-opacity="0.75"/>
     <text x="10" y="${H - 9}" font-size="9" font-family="sans-serif" font-weight="bold" fill="white">${meta.date}${meta.location ? ` · ${meta.location}` : ''}</text>
