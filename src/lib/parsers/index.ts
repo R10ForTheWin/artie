@@ -13,6 +13,7 @@ export interface ParsedWorkout {
   calories: number | null;
   mile_splits?: number[] | null;
   avg_temp_c?: number | null;
+  map_svg?: string | null;
 }
 
 export async function parseWorkoutFile(

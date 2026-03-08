@@ -17,6 +17,7 @@ interface Workout {
   location: string | null;
   mile_splits: number[] | null;
   map_image_url: string | null;
+  map_svg: string | null;
 }
 
 export default async function WorkoutDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -53,9 +54,12 @@ export default async function WorkoutDetailPage({ params }: { params: Promise<{ 
         </div>
 
         {/* Route map */}
-        {w.map_image_url && (
-          <div className="mt-6 rounded-xl overflow-hidden border-2 border-navy border-opacity-20">
-            <img src={w.map_image_url} alt="Route map" className="w-full object-cover" />
+        {(w.map_image_url || w.map_svg) && (
+          <div className="mt-6 rounded-xl overflow-hidden border-2 border-navy border-opacity-20 bg-cream-light">
+            {w.map_image_url
+              ? <img src={w.map_image_url} alt="Route map" className="w-full object-cover" />
+              : <div className="p-4" dangerouslySetInnerHTML={{ __html: w.map_svg! }} />
+            }
           </div>
         )}
 

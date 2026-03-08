@@ -1,6 +1,32 @@
 import { XMLParser } from 'fast-xml-parser';
 import { ParsedWorkout } from './index';
 
+function generateRouteSvg(lats: number[], lons: number[]): string {
+  if (lats.length < 2) return '';
+  // Downsample to max 300 points
+  const step = Math.max(1, Math.floor(lats.length / 300));
+  const sLats = lats.filter((_, i) => i % step === 0);
+  const sLons = lons.filter((_, i) => i % step === 0);
+
+  const minLat = Math.min(...sLats), maxLat = Math.max(...sLats);
+  const minLon = Math.min(...sLons), maxLon = Math.max(...sLons);
+  const latRange = maxLat - minLat || 0.0001;
+  const lonRange = maxLon - minLon || 0.0001;
+
+  // Correct for longitude compression at this latitude
+  const lonScale = Math.cos(((minLat + maxLat) / 2) * Math.PI / 180);
+  const W = 400, H = 250, pad = 20;
+  const scale = Math.min((W - pad * 2) / (lonRange * lonScale), (H - pad * 2) / latRange);
+
+  const points = sLats.map((lat, i) => {
+    const x = pad + (sLons[i] - minLon) * lonScale * scale;
+    const y = H - pad - (lat - minLat) * scale;
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(' ');
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}"><polyline points="${points}" fill="none" stroke="#1a2744" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/></svg>`;
+}
+
 function haversine(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371000;
   const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -93,5 +119,6 @@ export function parseGpx(buffer: Buffer): Promise<ParsedWorkout> {
     calories: null,
     mile_splits: mile_splits.length > 0 ? mile_splits : null,
     avg_temp_c,
+    map_svg: generateRouteSvg(lats, lons),
   });
 }
