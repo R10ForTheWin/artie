@@ -12,6 +12,30 @@ interface Props {
   workout_date: string;
 }
 
+function DeleteButton({ id }: { id: number }) {
+  const [confirming, setConfirming] = useState(false);
+  const router = useRouter();
+
+  async function handleDelete() {
+    await fetch(`/api/workouts/${id}`, { method: 'DELETE' });
+    router.push('/dashboard');
+  }
+
+  if (confirming) {
+    return (
+      <div className="flex gap-3">
+        <button onClick={handleDelete} className="text-terracotta font-bold text-sm uppercase tracking-wider hover:opacity-70">Confirm Delete</button>
+        <button onClick={() => setConfirming(false)} className="text-navy opacity-40 hover:opacity-100 font-bold text-sm uppercase tracking-wider">Cancel</button>
+      </div>
+    );
+  }
+  return (
+    <button onClick={() => setConfirming(true)} className="text-terracotta opacity-60 hover:opacity-100 font-bold text-sm uppercase tracking-wider transition-opacity">
+      Delete Workout
+    </button>
+  );
+}
+
 export default function WorkoutEditForm({ id, name, location, workout_date }: Props) {
   const [editing, setEditing] = useState(false);
   const [editName, setEditName] = useState(name);
@@ -74,6 +98,9 @@ export default function WorkoutEditForm({ id, name, location, workout_date }: Pr
           className="text-navy opacity-40 hover:opacity-100 font-bold text-sm uppercase tracking-wider">
           Cancel
         </button>
+      </div>
+      <div className="border-t border-navy border-opacity-10 pt-3 mt-1">
+        <DeleteButton id={id} />
       </div>
     </div>
   );

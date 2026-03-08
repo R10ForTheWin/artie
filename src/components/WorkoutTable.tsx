@@ -2,7 +2,6 @@
 
 import { useRouter } from 'next/navigation';
 import { formatDate, formatDistance, formatDuration, formatPace, formatSpeed } from '@/lib/formatters';
-import DeleteWorkoutButton from './DeleteWorkoutButton';
 
 interface Workout {
   id: number;
@@ -56,7 +55,6 @@ export default function WorkoutTable({ workouts }: { workouts: Workout[] }) {
             <th className="px-4 py-3 text-left text-navy font-black uppercase tracking-wider text-xs opacity-70 hidden md:table-cell">Odd Mile Avg</th>
             <th className="px-4 py-3 text-left text-navy font-black uppercase tracking-wider text-xs opacity-70 hidden md:table-cell">Avg Speed</th>
             <th className="px-4 py-3 text-left text-navy font-black uppercase tracking-wider text-xs opacity-70 hidden md:table-cell">Location</th>
-            <th className="px-4 py-3 hidden md:table-cell"></th>
           </tr>
         </thead>
         <tbody>
@@ -73,7 +71,6 @@ export default function WorkoutTable({ workouts }: { workouts: Workout[] }) {
               <td className="px-4 py-3 text-navy opacity-70 hidden md:table-cell">{formatPace(oddMileAvg(w.mile_splits))}</td>
               <td className="px-4 py-3 text-navy opacity-70 hidden md:table-cell">{formatSpeed(w.avg_speed_ms)}</td>
               <td className="px-4 py-3 text-navy opacity-60 italic hidden md:table-cell">{w.location || '—'}</td>
-              <td className="px-4 py-3 hidden md:table-cell" onClick={(e) => e.stopPropagation()}><DeleteWorkoutButton id={w.id} /></td>
             </tr>
           ))}
         </tbody>
