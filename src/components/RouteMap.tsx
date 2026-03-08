@@ -2,7 +2,7 @@
 
 import { useRef, useState, useCallback } from 'react';
 
-export default function RouteMap({ svg }: { svg: string }) {
+export default function RouteMap({ svg, date, location, distance }: { svg: string; date?: string; location?: string | null; distance?: string }) {
   const [scale, setScale] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const dragging = useRef(false);
@@ -103,6 +103,14 @@ export default function RouteMap({ svg }: { svg: string }) {
           dangerouslySetInnerHTML={{ __html: svg }}
         />
       </div>
+
+      {/* Info bar — outside zoom container */}
+      {(date || location || distance) && (
+        <div className="flex justify-between items-center px-3 py-2 rounded-b-xl bg-navy bg-opacity-75 -mt-0.5">
+          <span className="text-white text-xs font-bold">{date}{location ? ` · ${location}` : ''}</span>
+          <span className="text-gold text-xs font-bold">{distance}</span>
+        </div>
+      )}
 
       {/* Zoom controls */}
       <div className="absolute top-2 right-2 flex flex-col gap-1">

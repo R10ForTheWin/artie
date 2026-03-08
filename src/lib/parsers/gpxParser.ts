@@ -46,7 +46,7 @@ function generateRouteSvg(lats: number[], lons: number[], mileLats: number[], mi
 
   // Topaz start sign (hardcoded) — show if within map bounds
   const TOPAZ_LAT = 33.83238, TOPAZ_LON = -118.39028;
-  const topazInBounds = TOPAZ_LAT >= minLat && TOPAZ_LAT <= maxLat && TOPAZ_LON >= minLon && TOPAZ_LON <= maxLon;
+  const topazInBounds = TOPAZ_LAT >= minLat - 0.01 && TOPAZ_LAT <= maxLat + 0.01 && TOPAZ_LON >= minLon - 0.01 && TOPAZ_LON <= maxLon + 0.01;
   const topazMarker = topazInBounds ? (() => {
     const { x, y } = toXY(TOPAZ_LAT, TOPAZ_LON);
     return `
@@ -96,7 +96,7 @@ function generateRouteSvg(lats: number[], lons: number[], mileLats: number[], mi
      <text x="${x}" y="${y + 4}" text-anchor="middle" font-size="9" font-family="sans-serif" font-weight="bold" fill="#1B2A4A">${i + 1}</text>`
   ).join('');
 
-  // Pace labels: gold pill badges midway between consecutive markers
+  // Pace labels: alternating left/right with leader lines to segment midpoint
   const paceLabels = mileSplits.map((split, i) => {
     const p1 = allPoints[i];
     const p2 = allPoints[i + 1];
@@ -105,8 +105,12 @@ function generateRouteSvg(lats: number[], lons: number[], mileLats: number[], mi
     const my = parseFloat(((p1.y + p2.y) / 2).toFixed(1));
     const label = fmtPace(split);
     const pw = 30, ph = 14, pr = 4;
-    return `<rect x="${mx - pw / 2}" y="${my - ph - 6}" width="${pw}" height="${ph}" rx="${pr}" fill="#1B2A4A"/>
-            <text x="${mx}" y="${my - 6 - ph / 2 + 5}" text-anchor="middle" font-size="8" font-family="sans-serif" font-weight="bold" fill="white">${label}</text>`;
+    const side = i % 2 === 0 ? -1 : 1;
+    const px = mx + side * 42;
+    const py = my - 6;
+    return `<line x1="${mx}" y1="${my}" x2="${px}" y2="${py}" stroke="#1B2A4A" stroke-width="0.8" opacity="0.5"/>
+            <rect x="${px - pw / 2}" y="${py - ph / 2}" width="${pw}" height="${ph}" rx="${pr}" fill="#1B2A4A"/>
+            <text x="${px}" y="${py + 4}" text-anchor="middle" font-size="8" font-family="sans-serif" font-weight="bold" fill="white">${label}</text>`;
   }).join('');
 
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}">
@@ -129,9 +133,6 @@ function generateRouteSvg(lats: number[], lons: number[], mileLats: number[], mi
     <text x="28" y="${H - 46}" text-anchor="middle" font-size="7" font-family="sans-serif" font-weight="bold" fill="#1B2A4A">N</text>
     <circle cx="${end.x}" cy="${end.y}" r="7" fill="#1B2A4A"/>
     <circle cx="${end.x}" cy="${end.y}" r="3" fill="white"/>
-    <rect x="0" y="${H - 24}" width="${W}" height="24" fill="#1B2A4A" fill-opacity="0.75"/>
-    <text x="10" y="${H - 9}" font-size="9" font-family="sans-serif" font-weight="bold" fill="white">${meta.date}${meta.location ? ` · ${meta.location}` : ''}</text>
-    <text x="${W - 10}" y="${H - 9}" text-anchor="end" font-size="9" font-family="sans-serif" font-weight="bold" fill="#C9922A">${meta.distanceMi.toFixed(2)} mi</text>
   </svg>`;
 }
 
