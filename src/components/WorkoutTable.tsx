@@ -1,4 +1,8 @@
+'use client';
+
+import { useRouter } from 'next/navigation';
 import { formatDate, formatDistance, formatDuration, formatSpeed, formatPace } from '@/lib/formatters';
+import DeleteWorkoutButton from './DeleteWorkoutButton';
 
 interface Workout {
   id: number;
@@ -20,6 +24,7 @@ function oddMileAvg(splits: number[] | null): number | null {
 }
 
 export default function WorkoutTable({ workouts }: { workouts: Workout[] }) {
+  const router = useRouter();
   if (workouts.length === 0) {
     return (
       <div className="border-2 border-navy border-opacity-20 rounded-lg p-8 text-center text-navy opacity-40">
@@ -29,11 +34,20 @@ export default function WorkoutTable({ workouts }: { workouts: Workout[] }) {
   }
 
   return (
+    <>
+    <div className="flex items-center gap-2 mb-2 md:hidden text-navy opacity-40">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="4" y="2" width="10" height="16" rx="2" transform="rotate(0 4 2)"/>
+        <path d="M17 8l3 3-3 3"/>
+        <path d="M20 11H14"/>
+      </svg>
+      <span className="text-xs font-bold uppercase tracking-wider">Rotate for more data</span>
+    </div>
     <div className="border-2 border-navy border-opacity-20 rounded-lg overflow-hidden">
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b-2 border-navy border-opacity-20 bg-cream-light">
-            {['Athlete', 'Date', 'Location', 'Distance', 'Duration', 'Avg Speed', 'Odd Mile Avg'].map((h) => (
+            {['Athlete', 'Date', 'Location', 'Distance', 'Duration', 'Avg Speed', 'Odd Mile Avg', ''].map((h) => (
               <th key={h} className="px-4 py-3 text-left text-navy font-black uppercase tracking-wider text-xs opacity-70">
                 {h}
               </th>
@@ -42,7 +56,7 @@ export default function WorkoutTable({ workouts }: { workouts: Workout[] }) {
         </thead>
         <tbody>
           {workouts.map((w, i) => (
-            <tr key={w.id} className={`border-b border-navy border-opacity-10 ${i % 2 === 0 ? 'bg-white' : 'bg-cream-light'}`}>
+            <tr key={w.id} onClick={() => router.push(`/dashboard/workout/${w.id}`)} className={`border-b border-navy border-opacity-10 cursor-pointer hover:bg-gold hover:bg-opacity-10 transition-colors ${i % 2 === 0 ? 'bg-white' : 'bg-cream-light'}`}>
               <td className="px-4 py-3 text-navy font-bold">{w.name}</td>
               <td className="px-4 py-3 text-navy opacity-70">{formatDate(w.workout_date)}</td>
               <td className="px-4 py-3 text-navy opacity-60 italic">{w.location || '—'}</td>
@@ -50,10 +64,12 @@ export default function WorkoutTable({ workouts }: { workouts: Workout[] }) {
               <td className="px-4 py-3 text-navy opacity-70">{formatDuration(w.duration_s)}</td>
               <td className="px-4 py-3 text-navy opacity-70">{formatSpeed(w.avg_speed_ms)}</td>
               <td className="px-4 py-3 text-navy opacity-70">{formatPace(oddMileAvg(w.mile_splits))}</td>
+              <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}><DeleteWorkoutButton id={w.id} /></td>
             </tr>
           ))}
         </tbody>
       </table>
     </div>
+    </>
   );
 }

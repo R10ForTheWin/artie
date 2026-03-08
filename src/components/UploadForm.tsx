@@ -22,7 +22,7 @@ export default function UploadForm() {
   const [lapsFiles, setLapsFiles] = useState<File[]>([]);
   const [fitFile, setFitFile] = useState<File | null>(null);
   const [garminUrl, setGarminUrl] = useState('');
-  const [workoutDate, setWorkoutDate] = useState('');
+  const [workoutDate, setWorkoutDate] = useState(new Date().toLocaleDateString('en-CA'));
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<WorkoutResult | null>(null);
   const [error, setError] = useState('');
