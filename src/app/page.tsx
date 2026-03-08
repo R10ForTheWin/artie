@@ -34,6 +34,12 @@ export default function HomePage() {
             Races
           </Link>
           <Link
+            href="/records"
+            className="bg-gold text-white font-bold uppercase tracking-widest text-center py-2.5 px-6 rounded-lg text-xs hover:opacity-80 transition-opacity"
+          >
+            Records
+          </Link>
+          <Link
             href="/photos"
             className="bg-terracotta text-white font-bold uppercase tracking-widest text-center py-2.5 px-6 rounded-lg text-xs hover:opacity-80 transition-opacity"
           >
