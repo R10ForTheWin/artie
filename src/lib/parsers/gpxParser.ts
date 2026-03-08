@@ -59,6 +59,20 @@ function generateRouteSvg(lats: number[], lons: number[], mileLats: number[], mi
     `;
   })() : '';
 
+  // Roundhouse Aquarium at Manhattan Beach Pier (hardcoded)
+  const RH_LAT = 33.88433, RH_LON = -118.41393;
+  const rhInBounds = RH_LAT >= minLat && RH_LAT <= maxLat && RH_LON >= minLon && RH_LON <= maxLon;
+  const rhMarker = rhInBounds ? (() => {
+    const { x, y } = toXY(RH_LAT, RH_LON);
+    return `
+      <line x1="${x - 12}" y1="${y - 2}" x2="${x}" y2="${y - 2}" stroke="#1B2A4A" stroke-width="1.5" opacity="0.6"/>
+      <line x1="${x - 12}" y1="${y + 2}" x2="${x}" y2="${y + 2}" stroke="#1B2A4A" stroke-width="1.5" opacity="0.6"/>
+      <circle cx="${x}" cy="${y}" r="7" fill="#5B8DB8" stroke="white" stroke-width="1.5"/>
+      <text x="${x}" y="${y + 3}" text-anchor="middle" font-size="6" font-family="sans-serif" font-weight="bold" fill="white">RH</text>
+      <text x="${x}" y="${y - 11}" text-anchor="middle" font-size="7" font-family="sans-serif" font-weight="bold" fill="#1B2A4A">Roundhouse</text>
+    `;
+  })() : '';
+
   // R10 buoy marker (hardcoded) — show if within map bounds
   const R10_LAT = 33.77335, R10_LON = -118.44535;
   const r10InBounds = R10_LAT >= minLat && R10_LAT <= maxLat && R10_LON >= minLon && R10_LON <= maxLon;
@@ -106,6 +120,7 @@ function generateRouteSvg(lats: number[], lons: number[], mileLats: number[], mi
     ${paceLabels}
     ${mileDots}
     ${r10Marker}
+    ${rhMarker}
     ${topazMarker}
     <circle cx="28" cy="${H - 28}" r="18" fill="white" fill-opacity="0.85" stroke="#1B2A4A" stroke-width="1" stroke-opacity="0.3"/>
     <polygon points="28,${H - 44} 31,${H - 32} 28,${H - 35} 25,${H - 32}" fill="#1B2A4A"/>
