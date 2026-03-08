@@ -22,7 +22,7 @@ function parseDurationToSeconds(str: string): number | null {
   return null;
 }
 
-async function fetchGarminActivityFromPage(activityId: string, workoutDate: string): Promise<import('@/lib/parsers').ParsedWorkout> {
+async function fetchGarminActivityFromPage(activityId: string, workoutDate: string): Promise<import('@/lib/parsers').ParsedWorkout & { map_image_url: string | null }> {
   const pageUrl = `https://connect.garmin.com/modern/activity/${activityId}`;
   const res = await fetch(pageUrl, {
     headers: {
@@ -38,6 +38,7 @@ async function fetchGarminActivityFromPage(activityId: string, workoutDate: stri
 
   const titleMatch = html.match(/<meta property="og:title" content="([^"]+)"/);
   const descMatch = html.match(/<meta property="og:description" content="([^"]+)"/);
+  const imageMatch = html.match(/<meta property="og:image" content="([^"]+)"/);
 
   if (!descMatch) throw new Error('Could not find workout data on Garmin activity page');
 
@@ -64,6 +65,7 @@ async function fetchGarminActivityFromPage(activityId: string, workoutDate: stri
     avg_hr: null,
     max_hr: null,
     calories: null,
+    map_image_url: imageMatch ? imageMatch[1] : null,
   };
 }
 
@@ -108,8 +110,8 @@ export async function POST(req: NextRequest) {
 
         await initSchema();
         const result = await pool.query(
-          `INSERT INTO workouts (name, file_name, file_type, workout_date, duration_s, distance_m, avg_speed_ms, max_speed_ms, avg_hr, max_hr, calories, location, mile_splits)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+          `INSERT INTO workouts (name, file_name, file_type, workout_date, duration_s, distance_m, avg_speed_ms, max_speed_ms, avg_hr, max_hr, calories, location, mile_splits, map_image_url)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
            RETURNING *`,
           [
             name,
@@ -125,6 +127,7 @@ export async function POST(req: NextRequest) {
             null,
             location,
             mile_splits ? JSON.stringify(mile_splits) : null,
+            parsed.map_image_url ?? null,
           ]
         );
         return NextResponse.json(result.rows[0], { status: 201 });

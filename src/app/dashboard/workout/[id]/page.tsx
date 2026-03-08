@@ -17,6 +17,7 @@ interface Workout {
   calories: number | null;
   location: string | null;
   mile_splits: number[] | null;
+  map_image_url: string | null;
 }
 
 export default async function WorkoutDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -51,6 +52,13 @@ export default async function WorkoutDetailPage({ params }: { params: Promise<{ 
             {formatDate(w.workout_date)}{w.location ? ` · ${w.location}` : ''}
           </p>
         </div>
+
+        {/* Route map */}
+        {w.map_image_url && (
+          <div className="mt-6 rounded-xl overflow-hidden border-2 border-navy border-opacity-20">
+            <img src={w.map_image_url} alt="Route map" className="w-full object-cover" />
+          </div>
+        )}
 
         {/* Stats grid */}
         <div className="grid grid-cols-2 gap-3 mt-6">
