@@ -2,7 +2,7 @@
 
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
-function CustomXTick({ x, y, payload }: { x?: number; y?: number; payload?: { value: string } }) {
+function CustomXTick({ x, y, payload }: { x?: string | number; y?: string | number; payload?: { value: string } }) {
   const words = (payload?.value ?? '').split(' ');
   return (
     <g transform={`translate(${x},${y})`}>
