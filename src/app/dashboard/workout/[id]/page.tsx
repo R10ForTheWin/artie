@@ -30,11 +30,17 @@ export default async function WorkoutDetailPage({ params, searchParams }: { para
   if (result.rows.length === 0) notFound();
   const w = result.rows[0] as Workout;
 
+  const oddSplits = w.mile_splits ? w.mile_splits.filter((_, i) => i % 2 === 0) : [];
+  const oddMileAvg = oddSplits.length > 0
+    ? oddSplits.reduce((a, b) => a + b, 0) / oddSplits.length
+    : null;
+
   const stats = [
     { label: 'Distance', value: formatDistance(w.distance_m) },
     { label: 'Duration', value: formatDuration(w.duration_s) },
     { label: 'Avg Speed', value: formatSpeed(w.avg_speed_ms) },
     { label: 'Pace', value: formatPace(w.avg_speed_ms ? 1609.344 / w.avg_speed_ms : null) },
+    { label: 'Odd Mile Avg', value: formatPace(oddMileAvg) },
   ];
 
   return (
