@@ -44,6 +44,15 @@ function generateRouteSvg(lats: number[], lons: number[], mileLats: number[], mi
   const mileXY = mileLats.map((lat, i) => toXY(lat, mileLons[i]));
   const allPoints = [start, ...mileXY]; // start + each mile boundary
 
+  // R10 buoy marker (hardcoded) — show if within map bounds
+  const R10_LAT = 33.77335, R10_LON = -118.44535;
+  const r10InBounds = R10_LAT >= minLat && R10_LAT <= maxLat && R10_LON >= minLon && R10_LON <= maxLon;
+  const r10Marker = r10InBounds ? (() => {
+    const { x, y } = toXY(R10_LAT, R10_LON);
+    return `<polygon points="${x},${y - 10} ${x + 7},${y} ${x},${y + 10} ${x - 7},${y}" fill="#C4532A" stroke="white" stroke-width="1.5"/>
+            <text x="${x}" y="${y - 13}" text-anchor="middle" font-size="8" font-family="sans-serif" font-weight="bold" fill="#C4532A">R10</text>`;
+  })() : '';
+
   // Mile dots: white circle with bold navy number inside
   const mileDots = mileXY.map(({ x, y }, i) =>
     `<circle cx="${x}" cy="${y}" r="9" fill="white" stroke="#1B2A4A" stroke-width="2"/>
@@ -74,6 +83,7 @@ function generateRouteSvg(lats: number[], lons: number[], mileLats: number[], mi
     <polyline points="${points}" fill="none" stroke="#C9922A" stroke-width="4" stroke-linejoin="round" stroke-linecap="round" opacity="0.95"/>
     ${paceLabels}
     ${mileDots}
+    ${r10Marker}
     <circle cx="28" cy="${H - 28}" r="18" fill="white" fill-opacity="0.85" stroke="#1B2A4A" stroke-width="1" stroke-opacity="0.3"/>
     <polygon points="28,${H - 44} 31,${H - 32} 28,${H - 35} 25,${H - 32}" fill="#1B2A4A"/>
     <polygon points="28,${H - 12} 31,${H - 24} 28,${H - 21} 25,${H - 24}" fill="#1B2A4A" opacity="0.3"/>
