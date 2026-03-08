@@ -53,6 +53,12 @@ export default async function WorkoutDetailPage({ params }: { params: Promise<{ 
           </p>
         </div>
 
+        {/* DEBUG — remove after testing */}
+        <div className="mt-4 p-3 bg-gray-100 rounded text-xs font-mono text-gray-700 space-y-1">
+          <p>map_image_url: {w.map_image_url ? w.map_image_url.slice(0, 60) + '…' : 'null'}</p>
+          <p>map_svg: {w.map_svg ? `present (${w.map_svg.length} chars)` : 'null'}</p>
+        </div>
+
         {/* Route map */}
         {(w.map_image_url || w.map_svg) && (
           <div className="mt-6 rounded-xl overflow-hidden border-2 border-navy border-opacity-20 bg-cream-light">
