@@ -179,8 +179,8 @@ export async function POST(req: NextRequest) {
 
     await initSchema();
     const result = await pool.query(
-      `INSERT INTO workouts (name, file_name, file_type, workout_date, duration_s, distance_m, avg_speed_ms, max_speed_ms, avg_hr, max_hr, calories, location, mile_splits, avg_temp_c, map_svg)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+      `INSERT INTO workouts (name, file_name, file_type, workout_date, duration_s, distance_m, avg_speed_ms, max_speed_ms, avg_hr, max_hr, calories, location, mile_splits, avg_temp_c, map_svg, mile_bearings)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
        RETURNING *`,
       [
         name,
@@ -198,6 +198,7 @@ export async function POST(req: NextRequest) {
         mile_splits ? JSON.stringify(mile_splits) : null,
         parsed.avg_temp_c ?? null,
         parsed.map_svg && location ? injectMapLocation(parsed.map_svg, location) : (parsed.map_svg ?? null),
+        parsed.mile_bearings ? JSON.stringify(parsed.mile_bearings) : null,
       ]
     );
 

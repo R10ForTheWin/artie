@@ -36,6 +36,7 @@ export async function initSchema() {
     CREATE UNIQUE INDEX IF NOT EXISTS races_name_unique ON races (LOWER(name));
 
     ALTER TABLE workouts ADD COLUMN IF NOT EXISTS mile_splits JSONB;
+    ALTER TABLE workouts ADD COLUMN IF NOT EXISTS mile_bearings JSONB;
     ALTER TABLE workouts ADD COLUMN IF NOT EXISTS avg_temp_c REAL;
     ALTER TABLE workouts ADD COLUMN IF NOT EXISTS map_image_url TEXT;
     ALTER TABLE workouts ADD COLUMN IF NOT EXISTS map_svg TEXT;

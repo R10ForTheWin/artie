@@ -12,6 +12,7 @@ export interface ParsedWorkout {
   max_hr: number | null;
   calories: number | null;
   mile_splits?: number[] | null;
+  mile_bearings?: number[] | null;
   avg_temp_c?: number | null;
   map_svg?: string | null;
 }

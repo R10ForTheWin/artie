@@ -17,6 +17,7 @@ interface Workout {
   avg_speed_ms: number | null;
   location: string | null;
   mile_splits: number[] | null;
+  mile_bearings: number[] | null;
   map_image_url: string | null;
   map_svg: string | null;
 }
@@ -29,6 +30,13 @@ export default async function WorkoutDetailPage({ params, searchParams }: { para
   const result = await pool.query('SELECT * FROM workouts WHERE id = $1', [id]);
   if (result.rows.length === 0) notFound();
   const w = result.rows[0] as Workout;
+
+  function bearingToCompass(deg: number): string {
+    const dirs = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+    const arrows = ['↑', '↗', '→', '↘', '↓', '↙', '←', '↖'];
+    const i = Math.round(deg / 45) % 8;
+    return `${arrows[i]} ${dirs[i]}`;
+  }
 
   const oddSplits = w.mile_splits ? w.mile_splits.filter((_, i) => i % 2 === 0) : [];
   const evenSplits = w.mile_splits ? w.mile_splits.filter((_, i) => i % 2 === 1) : [];
@@ -99,6 +107,7 @@ export default async function WorkoutDetailPage({ params, searchParams }: { para
                   <tr className="border-b-2 border-navy border-opacity-20 bg-white">
                     <th className="px-4 py-2 text-left text-navy font-black uppercase tracking-wider text-xs opacity-70">Mile</th>
                     <th className="px-4 py-2 text-left text-navy font-black uppercase tracking-wider text-xs opacity-70">Split</th>
+                    {w.mile_bearings && <th className="px-4 py-2 text-left text-navy font-black uppercase tracking-wider text-xs opacity-70">Dir</th>}
                   </tr>
                 </thead>
                 <tbody>
@@ -108,6 +117,7 @@ export default async function WorkoutDetailPage({ params, searchParams }: { para
                       <tr key={i} className={`border-b border-navy border-opacity-10 ${isHighlight ? 'bg-gold bg-opacity-20' : i % 2 === 0 ? 'bg-white' : 'bg-cream-light'}`}>
                         <td className={`px-4 py-2 font-bold ${isHighlight ? 'text-gold' : 'text-navy'}`}>{i + 1}</td>
                         <td className={`px-4 py-2 ${isHighlight ? 'text-gold font-bold' : 'text-navy opacity-70'}`}>{formatPace(s)}</td>
+                        {w.mile_bearings && <td className={`px-4 py-2 font-mono text-xs ${isHighlight ? 'text-gold' : 'text-navy opacity-50'}`}>{w.mile_bearings[i] != null ? bearingToCompass(w.mile_bearings[i]) : '—'}</td>}
                       </tr>
                     );
                   })}

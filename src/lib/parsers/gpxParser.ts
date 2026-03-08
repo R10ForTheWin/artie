@@ -161,6 +161,15 @@ function generateRouteSvg(lats: number[], lons: number[], cumDist: number[], mil
   </svg>`;
 }
 
+function bearing(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const φ1 = lat1 * Math.PI / 180;
+  const φ2 = lat2 * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const y = Math.sin(dLon) * Math.cos(φ2);
+  const x = Math.cos(φ1) * Math.sin(φ2) - Math.sin(φ1) * Math.cos(φ2) * Math.cos(dLon);
+  return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+}
+
 function haversine(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371000;
   const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -225,6 +234,13 @@ export function parseGpx(buffer: Buffer): Promise<ParsedWorkout> {
     }
   }
 
+  // Bearing for each mile segment (from previous marker/start to current marker)
+  const mile_bearings: number[] = mileLats.map((lat, i) => {
+    const prevLat = i === 0 ? lats[0] : mileLats[i - 1];
+    const prevLon = i === 0 ? lons[0] : mileLons[i - 1];
+    return Math.round(bearing(prevLat, prevLon, lat, mileLons[i]));
+  });
+
   const duration_s = times.length > 1 ? (times[times.length - 1] - times[0]) / 1000 : null;
   const avg_speed_ms = duration_s && distance_m ? distance_m / duration_s : null;
 
@@ -261,6 +277,7 @@ export function parseGpx(buffer: Buffer): Promise<ParsedWorkout> {
     max_hr,
     calories: null,
     mile_splits: mile_splits.length > 0 ? mile_splits : null,
+    mile_bearings: mile_bearings.length > 0 ? mile_bearings : null,
     avg_temp_c,
     map_svg: generateRouteSvg(lats, lons, cumDist, mileLats, mileLons, mile_splits, {
       date: dateStr,
