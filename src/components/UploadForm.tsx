@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { TEAMMATES } from '@/lib/teammates';
 import { COURSES } from '@/lib/courses';
-import { formatDistance, formatDuration, formatSpeed, formatCalories } from '@/lib/formatters';
+import { formatDistance, formatDuration, formatSpeed } from '@/lib/formatters';
 
 interface WorkoutResult {
   name: string;
@@ -11,7 +11,6 @@ interface WorkoutResult {
   distance_m: number | null;
   duration_s: number | null;
   avg_speed_ms: number | null;
-  calories: number | null;
 }
 
 export default function UploadForm() {
@@ -285,7 +284,6 @@ export default function UploadForm() {
                 { label: 'Distance', value: formatDistance(result.distance_m) },
                 { label: 'Duration', value: formatDuration(result.duration_s) },
                 { label: 'Avg Speed', value: formatSpeed(result.avg_speed_ms) },
-                { label: 'Calories', value: formatCalories(result.calories) },
               ].map(({ label, value }) => (
                 <div key={label} className="border border-navy border-opacity-20 rounded p-3 bg-white">
                   <p className="text-navy text-xs uppercase tracking-wider opacity-50">{label}</p>
