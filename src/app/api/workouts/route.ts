@@ -94,10 +94,22 @@ export async function POST(req: NextRequest) {
 
       try {
         const parsed = await fetchGarminActivityFromPage(activityId, workoutDate);
+
+        let mile_splits: number[] | null = null;
+        if (lapsFiles.length > 0) {
+          const allSplits: number[] = [];
+          for (const lapsFile of lapsFiles) {
+            const lapsBuffer = Buffer.from(await lapsFile.arrayBuffer());
+            const splits = await parseLapsImage(lapsBuffer, lapsFile.type);
+            allSplits.push(...splits);
+          }
+          if (allSplits.length > 0) mile_splits = allSplits;
+        }
+
         await initSchema();
         const result = await pool.query(
-          `INSERT INTO workouts (name, file_name, file_type, workout_date, duration_s, distance_m, avg_speed_ms, max_speed_ms, avg_hr, max_hr, calories, location)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+          `INSERT INTO workouts (name, file_name, file_type, workout_date, duration_s, distance_m, avg_speed_ms, max_speed_ms, avg_hr, max_hr, calories, location, mile_splits)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
            RETURNING *`,
           [
             name,
@@ -112,6 +124,7 @@ export async function POST(req: NextRequest) {
             null,
             null,
             location,
+            mile_splits ? JSON.stringify(mile_splits) : null,
           ]
         );
         return NextResponse.json(result.rows[0], { status: 201 });

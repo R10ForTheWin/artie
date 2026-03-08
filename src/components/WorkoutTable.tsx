@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { formatDate, formatDistance, formatDuration, formatSpeed, formatPace } from '@/lib/formatters';
+import { formatDate, formatDistance, formatDuration, formatPace, formatSpeed } from '@/lib/formatters';
 import DeleteWorkoutButton from './DeleteWorkoutButton';
 
 interface Workout {
@@ -47,11 +47,15 @@ export default function WorkoutTable({ workouts }: { workouts: Workout[] }) {
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b-2 border-navy border-opacity-20 bg-cream-light">
-            {['Athlete', 'Date', 'Location', 'Distance', 'Duration', 'Avg Speed', 'Odd Mile Avg', ''].map((h) => (
-              <th key={h} className="px-4 py-3 text-left text-navy font-black uppercase tracking-wider text-xs opacity-70">
-                {h}
-              </th>
-            ))}
+            <th className="px-4 py-3 text-left text-navy font-black uppercase tracking-wider text-xs opacity-70">Athlete</th>
+            <th className="px-4 py-3 text-left text-navy font-black uppercase tracking-wider text-xs opacity-70">Date</th>
+            <th className="px-4 py-3 text-left text-navy font-black uppercase tracking-wider text-xs opacity-70">Distance</th>
+            <th className="px-4 py-3 text-left text-navy font-black uppercase tracking-wider text-xs opacity-70">Mile Time Avg</th>
+            <th className="px-4 py-3 text-left text-navy font-black uppercase tracking-wider text-xs opacity-70">Duration</th>
+            <th className="px-4 py-3 text-left text-navy font-black uppercase tracking-wider text-xs opacity-70 hidden md:table-cell">Odd Mile Avg</th>
+            <th className="px-4 py-3 text-left text-navy font-black uppercase tracking-wider text-xs opacity-70 hidden md:table-cell">Avg Speed</th>
+            <th className="px-4 py-3 text-left text-navy font-black uppercase tracking-wider text-xs opacity-70 hidden md:table-cell">Location</th>
+            <th className="px-4 py-3 hidden md:table-cell"></th>
           </tr>
         </thead>
         <tbody>
@@ -59,12 +63,13 @@ export default function WorkoutTable({ workouts }: { workouts: Workout[] }) {
             <tr key={w.id} onClick={() => router.push(`/dashboard/workout/${w.id}`)} className={`border-b border-navy border-opacity-10 cursor-pointer hover:bg-gold hover:bg-opacity-10 transition-colors ${i % 2 === 0 ? 'bg-white' : 'bg-cream-light'}`}>
               <td className="px-4 py-3 text-navy font-bold">{w.name}</td>
               <td className="px-4 py-3 text-navy opacity-70">{formatDate(w.workout_date)}</td>
-              <td className="px-4 py-3 text-navy opacity-60 italic">{w.location || '—'}</td>
               <td className="px-4 py-3 text-gold font-bold">{formatDistance(w.distance_m)}</td>
+              <td className="px-4 py-3 text-navy opacity-70">{formatPace(w.avg_speed_ms ? 1609.344 / w.avg_speed_ms : null)}</td>
               <td className="px-4 py-3 text-navy opacity-70">{formatDuration(w.duration_s)}</td>
-              <td className="px-4 py-3 text-navy opacity-70">{formatSpeed(w.avg_speed_ms)}</td>
-              <td className="px-4 py-3 text-navy opacity-70">{formatPace(oddMileAvg(w.mile_splits))}</td>
-              <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}><DeleteWorkoutButton id={w.id} /></td>
+              <td className="px-4 py-3 text-navy opacity-70 hidden md:table-cell">{formatPace(oddMileAvg(w.mile_splits))}</td>
+              <td className="px-4 py-3 text-navy opacity-70 hidden md:table-cell">{formatSpeed(w.avg_speed_ms)}</td>
+              <td className="px-4 py-3 text-navy opacity-60 italic hidden md:table-cell">{w.location || '—'}</td>
+              <td className="px-4 py-3 hidden md:table-cell" onClick={(e) => e.stopPropagation()}><DeleteWorkoutButton id={w.id} /></td>
             </tr>
           ))}
         </tbody>

@@ -3,13 +3,14 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-export default function DeleteWorkoutButton({ id }: { id: number }) {
+export default function DeleteWorkoutButton({ id, redirectTo }: { id: number; redirectTo?: string }) {
   const [confirming, setConfirming] = useState(false);
   const router = useRouter();
 
   async function handleDelete() {
     await fetch(`/api/workouts/${id}`, { method: 'DELETE' });
-    router.refresh();
+    if (redirectTo) router.push(redirectTo);
+    else router.refresh();
   }
 
   if (confirming) {

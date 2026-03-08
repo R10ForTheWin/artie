@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { pool, initSchema } from '@/lib/db';
 import { formatDate, formatDistance, formatDuration, formatSpeed, formatPace, formatCalories } from '@/lib/formatters';
 import StripeBar from '@/components/StripeBar';
+import DeleteWorkoutButton from '@/components/DeleteWorkoutButton';
 import { notFound } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
@@ -13,17 +14,9 @@ interface Workout {
   distance_m: number | null;
   duration_s: number | null;
   avg_speed_ms: number | null;
-  max_speed_ms: number | null;
   calories: number | null;
   location: string | null;
   mile_splits: number[] | null;
-  avg_temp_c: number | null;
-}
-
-function formatTemp(c: number | null): string {
-  if (c === null) return '—';
-  const f = Math.round(c * 9 / 5 + 32);
-  return `${f}°F`;
 }
 
 export default async function WorkoutDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -37,9 +30,7 @@ export default async function WorkoutDetailPage({ params }: { params: Promise<{ 
     { label: 'Distance', value: formatDistance(w.distance_m) },
     { label: 'Duration', value: formatDuration(w.duration_s) },
     { label: 'Avg Speed', value: formatSpeed(w.avg_speed_ms) },
-    { label: 'Max Speed', value: formatSpeed(w.max_speed_ms) },
     { label: 'Calories', value: formatCalories(w.calories) },
-    { label: 'Avg Temp', value: formatTemp(w.avg_temp_c) },
   ];
 
   return (
@@ -47,9 +38,12 @@ export default async function WorkoutDetailPage({ params }: { params: Promise<{ 
       <StripeBar />
 
       <div className="flex-1 px-6 pt-10 pb-10 max-w-2xl mx-auto w-full">
-        <Link href="/dashboard" className="text-navy opacity-50 hover:opacity-100 text-sm font-bold uppercase tracking-wider">
-          ← Dashboard
-        </Link>
+        <div className="flex items-center justify-between">
+          <Link href="/dashboard" className="text-navy opacity-50 hover:opacity-100 text-sm font-bold uppercase tracking-wider">
+            ← Dashboard
+          </Link>
+          <DeleteWorkoutButton id={w.id} redirectTo="/dashboard" />
+        </div>
 
         <div className="mt-6 mb-2">
           <h1 className="text-navy font-black uppercase tracking-widest text-2xl">{w.name}</h1>

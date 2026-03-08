@@ -39,8 +39,9 @@ export default function UploadForm() {
         if (target === 'garminUrl' && item.types.includes('text/plain')) {
           const blob = await item.getType('text/plain');
           const text = await blob.text();
-          if (text.includes('connect.garmin.com')) {
-            setGarminUrl(text.trim());
+          const urlMatch = text.match(/https:\/\/connect\.garmin\.com\/(?:modern|app)\/activity\/\d+/);
+          if (urlMatch) {
+            setGarminUrl(urlMatch[0]);
             return;
           }
           setError('No Garmin Connect link found in clipboard');
@@ -180,7 +181,7 @@ export default function UploadForm() {
                   {/* Garmin Connect URL */}
                   <div>
                     <input
-                      type="url"
+                      type="text"
                       value={garminUrl}
                       onChange={(e) => setGarminUrl(e.target.value)}
                       placeholder="Paste Garmin weblink URL here"
