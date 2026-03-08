@@ -98,11 +98,11 @@ export default async function WorkoutDetailPage({ params, searchParams }: { para
                 <thead>
                   <tr className="border-b border-navy border-opacity-20 bg-cream-light">
                     <th className="px-4 py-2 text-left text-navy font-black uppercase tracking-wider text-xs opacity-70">Odd Mile Avg</th>
-                    <th className="px-4 py-2 text-right text-gold font-black text-sm">{formatPace(oddMileAvg)}</th>
+                    <th className="px-4 py-2 text-right text-gold font-black text-sm" colSpan={w.mile_bearings ? 2 : 1}>{formatPace(oddMileAvg)}</th>
                   </tr>
                   <tr className="border-b-2 border-navy border-opacity-20 bg-cream-light">
                     <th className="px-4 py-2 text-left text-navy font-black uppercase tracking-wider text-xs opacity-70">Even Mile Avg</th>
-                    <th className="px-4 py-2 text-right text-gold font-black text-sm">{formatPace(evenMileAvg)}</th>
+                    <th className="px-4 py-2 text-right text-gold font-black text-sm" colSpan={w.mile_bearings ? 2 : 1}>{formatPace(evenMileAvg)}</th>
                   </tr>
                   <tr className="border-b-2 border-navy border-opacity-20 bg-white">
                     <th className="px-4 py-2 text-left text-navy font-black uppercase tracking-wider text-xs opacity-70">Mile</th>
