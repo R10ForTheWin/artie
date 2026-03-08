@@ -11,6 +11,8 @@ export interface ParsedWorkout {
   avg_hr: number | null;
   max_hr: number | null;
   calories: number | null;
+  mile_splits?: number[] | null;
+  avg_temp_c?: number | null;
 }
 
 export async function parseWorkoutFile(

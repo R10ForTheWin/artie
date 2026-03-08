@@ -1,1 +1,1 @@
-export const COURSES = ['Topaz', 'MDR', 'Catalina', 'Cabrillo', 'Newport', 'Malibu', 'Coronado', 'Naples', 'Other'];
+export const COURSES = ['Topaz', 'MDR', 'Catalina', 'Cabrillo', 'Newport', 'Malibu', 'Coronado', 'Naples', 'King Harbor', 'Other'];

@@ -15,7 +15,6 @@ interface Workout {
   distance_m: number | null;
   duration_s: number | null;
   avg_speed_ms: number | null;
-  avg_hr: number | null;
   calories: number | null;
   location: string | null;
   mile_splits: number[] | null;

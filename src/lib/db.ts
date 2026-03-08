@@ -36,6 +36,7 @@ export async function initSchema() {
     CREATE UNIQUE INDEX IF NOT EXISTS races_name_unique ON races (LOWER(name));
 
     ALTER TABLE workouts ADD COLUMN IF NOT EXISTS mile_splits JSONB;
+    ALTER TABLE workouts ADD COLUMN IF NOT EXISTS avg_temp_c REAL;
 
     INSERT INTO races (name, race_date, location, logo)
     SELECT 'Catalina Classic', '2026-08-30', 'Catalina Island to Manhattan Beach', '/logos/catalina-classic.jpg'
