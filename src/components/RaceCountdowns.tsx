@@ -38,7 +38,7 @@ export default function RaceCountdowns({ races }: { races: Race[] }) {
           return (
             <div key={race.id} className="flex items-center gap-4 border-2 border-navy border-opacity-10 rounded-xl px-4 py-4 bg-cream-light">
               <div className="flex-shrink-0 w-[72px] h-[72px] rounded-xl overflow-hidden bg-white border border-navy border-opacity-10 flex items-center justify-center p-2">
-                <Image src={race.logo ?? '/default-race.jpg'} alt={race.name} width={72} height={72} className="object-cover w-full h-full" />
+                <Image src={race.logo ?? '/default-race.jpg'} alt={race.name} width={72} height={72} className="object-contain w-full h-full" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-navy font-bold text-lg">{race.name}</p>
