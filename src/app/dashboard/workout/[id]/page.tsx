@@ -31,16 +31,15 @@ export default async function WorkoutDetailPage({ params, searchParams }: { para
   const w = result.rows[0] as Workout;
 
   const oddSplits = w.mile_splits ? w.mile_splits.filter((_, i) => i % 2 === 0) : [];
-  const oddMileAvg = oddSplits.length > 0
-    ? oddSplits.reduce((a, b) => a + b, 0) / oddSplits.length
-    : null;
+  const evenSplits = w.mile_splits ? w.mile_splits.filter((_, i) => i % 2 === 1) : [];
+  const oddMileAvg = oddSplits.length > 0 ? oddSplits.reduce((a, b) => a + b, 0) / oddSplits.length : null;
+  const evenMileAvg = evenSplits.length > 0 ? evenSplits.reduce((a, b) => a + b, 0) / evenSplits.length : null;
 
   const stats = [
     { label: 'Distance', value: formatDistance(w.distance_m) },
     { label: 'Duration', value: formatDuration(w.duration_s) },
     { label: 'Avg Speed', value: formatSpeed(w.avg_speed_ms) },
     { label: 'Pace', value: formatPace(w.avg_speed_ms ? 1609.344 / w.avg_speed_ms : null) },
-    { label: 'Odd Mile Avg', value: formatPace(oddMileAvg) },
   ];
 
   return (
@@ -89,7 +88,15 @@ export default async function WorkoutDetailPage({ params, searchParams }: { para
             <div className="border-2 border-navy border-opacity-20 rounded-lg overflow-hidden">
               <table className="w-full text-sm">
                 <thead>
+                  <tr className="border-b border-navy border-opacity-20 bg-cream-light">
+                    <th className="px-4 py-2 text-left text-navy font-black uppercase tracking-wider text-xs opacity-70">Odd Mile Avg</th>
+                    <th className="px-4 py-2 text-right text-gold font-black text-sm">{formatPace(oddMileAvg)}</th>
+                  </tr>
                   <tr className="border-b-2 border-navy border-opacity-20 bg-cream-light">
+                    <th className="px-4 py-2 text-left text-navy font-black uppercase tracking-wider text-xs opacity-70">Even Mile Avg</th>
+                    <th className="px-4 py-2 text-right text-gold font-black text-sm">{formatPace(evenMileAvg)}</th>
+                  </tr>
+                  <tr className="border-b-2 border-navy border-opacity-20 bg-white">
                     <th className="px-4 py-2 text-left text-navy font-black uppercase tracking-wider text-xs opacity-70">Mile</th>
                     <th className="px-4 py-2 text-left text-navy font-black uppercase tracking-wider text-xs opacity-70">Split</th>
                   </tr>
