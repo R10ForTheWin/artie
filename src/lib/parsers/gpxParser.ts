@@ -62,12 +62,34 @@ function generateRouteSvg(lats: number[], lons: number[], cumDist: number[], mil
     return `<polyline id="segment-${seg + 1}" points="${pts.map(p => `${p.x},${p.y}`).join(' ')}" fill="none" stroke="#C9922A" stroke-width="4" stroke-linejoin="round" stroke-linecap="round" opacity="0.95"/>`;
   }).join('\n    ');
 
+  // Resolve landmark position: if within 26px of any mile marker, push away from it
+  function landmarkPos(gx: number, gy: number): { x: number; y: number; leader: string } {
+    const THRESHOLD = 26, OFFSET = 32;
+    let closest = { dist: Infinity, mx: gx, my: gy };
+    for (const m of mileXY) {
+      const d = Math.hypot(m.x - gx, m.y - gy);
+      if (d < closest.dist) closest = { dist: d, mx: m.x, my: m.y };
+    }
+    if (closest.dist >= THRESHOLD) return { x: gx, y: gy, leader: '' };
+    // Push away from closest mile marker
+    const dx = gx - closest.mx, dy = gy - closest.my;
+    const len = Math.hypot(dx, dy) || 1;
+    const nx = dx / len || (gx < W / 2 ? -1 : 1);
+    const ny = dy / len;
+    const x = parseFloat((gx + nx * OFFSET).toFixed(1));
+    const y = parseFloat((gy + ny * OFFSET).toFixed(1));
+    const leader = `<line x1="${gx}" y1="${gy}" x2="${x}" y2="${y}" stroke="#555" stroke-width="1" stroke-dasharray="3,2" opacity="0.45"/>`;
+    return { x, y, leader };
+  }
+
   // Topaz start sign (hardcoded) — show if within map bounds
   const TOPAZ_LAT = 33.83238, TOPAZ_LON = -118.39028;
   const topazInBounds = TOPAZ_LAT >= minLat - 0.01 && TOPAZ_LAT <= maxLat + 0.01 && TOPAZ_LON >= minLon - 0.01 && TOPAZ_LON <= maxLon + 0.01;
   const topazMarker = topazInBounds ? (() => {
-    const { x, y } = toXY(TOPAZ_LAT, TOPAZ_LON);
+    const gps = toXY(TOPAZ_LAT, TOPAZ_LON);
+    const { x, y, leader } = landmarkPos(gps.x, gps.y);
     return `
+      ${leader}
       <line x1="${x}" y1="${y}" x2="${x}" y2="${y - 10}" stroke="#555" stroke-width="1.5"/>
       <rect x="${x - 22}" y="${y - 26}" width="44" height="16" rx="2" fill="#2E7D32"/>
       <rect x="${x - 20.5}" y="${y - 24.5}" width="41" height="13" rx="1" fill="none" stroke="white" stroke-width="0.75"/>
@@ -81,8 +103,10 @@ function generateRouteSvg(lats: number[], lons: number[], cumDist: number[], mil
   const RH_LAT = 33.88433, RH_LON = -118.41393;
   const rhInBounds = RH_LAT >= minLat && RH_LAT <= maxLat && RH_LON >= minLon && RH_LON <= maxLon;
   const rhMarker = rhInBounds ? (() => {
-    const { x, y } = toXY(RH_LAT, RH_LON);
+    const gps = toXY(RH_LAT, RH_LON);
+    const { x, y, leader } = landmarkPos(gps.x, gps.y);
     return `
+      ${leader}
       <line x1="${x - 12}" y1="${y - 2}" x2="${x}" y2="${y - 2}" stroke="#1B2A4A" stroke-width="1.5" opacity="0.6"/>
       <line x1="${x - 12}" y1="${y + 2}" x2="${x}" y2="${y + 2}" stroke="#1B2A4A" stroke-width="1.5" opacity="0.6"/>
       <circle cx="${x}" cy="${y}" r="7" fill="#5B8DB8" stroke="white" stroke-width="1.5"/>
@@ -96,11 +120,10 @@ function generateRouteSvg(lats: number[], lons: number[], cumDist: number[], mil
   const R10_LAT = 33.77335, R10_LON = -118.44535;
   const r10InBounds = R10_LAT >= minLat && R10_LAT <= maxLat && R10_LON >= minLon && R10_LON <= maxLon;
   const r10Marker = r10InBounds ? (() => {
-    const { x: rx, y: ry } = toXY(R10_LAT, R10_LON);
-    // Offset icon leftward so it doesn't overlap nearby mile markers
-    const x = rx - 22, y = ry - 10;
+    const gps = toXY(R10_LAT, R10_LON);
+    const { x, y, leader } = landmarkPos(gps.x, gps.y);
     return `
-      <line x1="${rx}" y1="${ry}" x2="${x}" y2="${y + 2}" stroke="#C4532A" stroke-width="1" opacity="0.4"/>
+      ${leader}
       <ellipse cx="${x}" cy="${y + 2}" rx="9" ry="4" fill="#C4532A"/>
       <line x1="${x - 5}" y1="${y - 1}" x2="${x - 3}" y2="${y - 16}" stroke="#C4532A" stroke-width="1.5"/>
       <line x1="${x + 5}" y1="${y - 1}" x2="${x + 3}" y2="${y - 16}" stroke="#C4532A" stroke-width="1.5"/>
