@@ -24,9 +24,15 @@ function generateRouteSvg(lats: number[], lons: number[], mileLats: number[], mi
   const W = 400, H = 250, pad = 20;
   const scale = Math.min((W - pad * 2) / (lonRange * lonScale), (H - pad * 2) / latRange);
 
+  // Center the route in the canvas
+  const routeW = lonRange * lonScale * scale;
+  const routeH = latRange * scale;
+  const ox = (W - routeW) / 2;
+  const oy = (H - routeH) / 2;
+
   const toXY = (lat: number, lon: number) => ({
-    x: parseFloat((pad + (lon - minLon) * lonScale * scale).toFixed(1)),
-    y: parseFloat((H - pad - (lat - minLat) * scale).toFixed(1)),
+    x: parseFloat((ox + (lon - minLon) * lonScale * scale).toFixed(1)),
+    y: parseFloat((H - oy - (lat - minLat) * scale).toFixed(1)),
   });
 
   const coords = sLats.map((lat, i) => toXY(lat, sLons[i]));
