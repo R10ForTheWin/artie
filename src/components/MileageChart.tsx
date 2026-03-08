@@ -2,19 +2,6 @@
 
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
-function CustomXTick({ x, y, payload }: { x?: string | number; y?: string | number; payload?: { value: string } }) {
-  const words = (payload?.value ?? '').split(' ');
-  return (
-    <g transform={`translate(${x},${y})`}>
-      {words.map((word, i) => (
-        <text key={i} x={0} y={0} dy={14 + i * 13} textAnchor="middle"
-          fill="#1B2A4A" fontWeight={700} fontSize={11}>
-          {word}
-        </text>
-      ))}
-    </g>
-  );
-}
 
 interface Props {
   data: { name: string; miles: number }[];
@@ -27,13 +14,17 @@ export default function MileageChart({ data }: Props) {
         Total Miles by Athlete
       </h2>
       <ResponsiveContainer width="100%" height={280}>
-        <BarChart data={data} margin={{ top: 4, right: 16, left: 0, bottom: 48 }}>
+        <BarChart data={data} margin={{ top: 4, right: 16, left: 0, bottom: 72 }}>
           <XAxis
             dataKey="name"
-            tick={CustomXTick}
+            tick={{ fill: '#1B2A4A', fontWeight: 700, fontSize: 11 }}
             axisLine={{ stroke: '#1B2A4A', strokeOpacity: 0.3 }}
             tickLine={false}
             interval={0}
+            angle={-45}
+            textAnchor="end"
+            dx={-4}
+            dy={4}
           />
           <YAxis
             tick={{ fill: '#1B2A4A', fontSize: 12, opacity: 0.6 }}
