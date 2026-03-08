@@ -96,7 +96,7 @@ function generateRouteSvg(lats: number[], lons: number[], mileLats: number[], mi
      <text x="${x}" y="${y + 4}" text-anchor="middle" font-size="9" font-family="sans-serif" font-weight="bold" fill="#1B2A4A">${i + 1}</text>`
   ).join('');
 
-  // Pace labels: alternating left/right with leader lines to segment midpoint
+  // Pace labels: offset perpendicular to each segment, alternating sides
   const paceLabels = mileSplits.map((split, i) => {
     const p1 = allPoints[i];
     const p2 = allPoints[i + 1];
@@ -105,9 +105,16 @@ function generateRouteSvg(lats: number[], lons: number[], mileLats: number[], mi
     const my = parseFloat(((p1.y + p2.y) / 2).toFixed(1));
     const label = fmtPace(split);
     const pw = 30, ph = 14, pr = 4;
-    const side = i % 2 === 0 ? -1 : 1;
-    const px = mx + side * 42;
-    const py = my - 6;
+    // Perpendicular to segment direction
+    const dx = p2.x - p1.x;
+    const dy = p2.y - p1.y;
+    const len = Math.hypot(dx, dy) || 1;
+    const nx = -dy / len;
+    const ny = dx / len;
+    const side = i % 2 === 0 ? 1 : -1;
+    const dist = 44;
+    const px = parseFloat((mx + nx * dist * side).toFixed(1));
+    const py = parseFloat((my + ny * dist * side).toFixed(1));
     return `<line x1="${mx}" y1="${my}" x2="${px}" y2="${py}" stroke="#1B2A4A" stroke-width="0.8" opacity="0.5"/>
             <rect x="${px - pw / 2}" y="${py - ph / 2}" width="${pw}" height="${ph}" rx="${pr}" fill="#1B2A4A"/>
             <text x="${px}" y="${py + 4}" text-anchor="middle" font-size="8" font-family="sans-serif" font-weight="bold" fill="white">${label}</text>`;
