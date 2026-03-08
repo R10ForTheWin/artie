@@ -38,6 +38,8 @@ export async function initSchema() {
     ALTER TABLE workouts ADD COLUMN IF NOT EXISTS mile_splits JSONB;
     ALTER TABLE workouts ADD COLUMN IF NOT EXISTS avg_temp_c REAL;
 
+    UPDATE workouts SET workout_date = REPLACE(workout_date, '2024', '2026') WHERE workout_date LIKE '%2024%';
+
     INSERT INTO races (name, race_date, location, logo)
     SELECT 'Catalina Classic', '2026-08-30', 'Catalina Island to Manhattan Beach', '/logos/catalina-classic.jpg'
     WHERE NOT EXISTS (SELECT 1 FROM races WHERE LOWER(name) = 'catalina classic');
