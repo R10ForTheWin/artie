@@ -66,7 +66,7 @@ export default function WorkoutTable({ workouts }: { workouts: Workout[] }) {
               <td className="px-4 py-3 text-navy opacity-70">{formatDate(w.workout_date)}</td>
               <td className="px-4 py-3 text-gold font-bold">{formatDistance(w.distance_m)}</td>
               <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
-                <button onClick={() => router.push(`/dashboard/workout/${w.id}`)} className="bg-navy text-white font-black uppercase tracking-wider text-xs px-3 py-1.5 rounded-lg hover:bg-terracotta transition-colors whitespace-nowrap">Details</button>
+                <button onClick={() => router.push(`/dashboard/workout/${w.id}`)} className="bg-navy text-white font-black uppercase tracking-wider text-xs px-2 py-1 rounded hover:bg-terracotta transition-colors whitespace-nowrap" style={{fontSize: '10px'}}>Details</button>
               </td>
               <td className="px-4 py-3 text-navy opacity-70 hidden md:table-cell">{formatPace(w.avg_speed_ms ? 1609.344 / w.avg_speed_ms : null)}</td>
               <td className="px-4 py-3 text-navy opacity-70 hidden md:table-cell">{formatDuration(w.duration_s)}</td>
