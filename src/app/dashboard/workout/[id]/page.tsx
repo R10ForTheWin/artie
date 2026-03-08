@@ -21,8 +21,10 @@ interface Workout {
   map_svg: string | null;
 }
 
-export default async function WorkoutDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function WorkoutDetailPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ mile?: string }> }) {
   const { id } = await params;
+  const { mile } = await searchParams;
+  const highlightMile = mile ? parseInt(mile, 10) : undefined;
   await initSchema();
   const result = await pool.query('SELECT * FROM workouts WHERE id = $1', [id]);
   if (result.rows.length === 0) notFound();
@@ -59,7 +61,7 @@ export default async function WorkoutDetailPage({ params }: { params: Promise<{ 
           <div className="mt-6">
             {w.map_image_url
               ? <div className="rounded-xl overflow-hidden border-2 border-navy border-opacity-20"><img src={w.map_image_url} alt="Route map" className="w-full object-cover" /></div>
-              : <RouteMap svg={w.map_svg!} date={formatDate(w.workout_date)} location={w.location} distance={formatDistance(w.distance_m)} />
+              : <RouteMap svg={w.map_svg!} date={formatDate(w.workout_date)} location={w.location} distance={formatDistance(w.distance_m)} highlightMile={highlightMile} />
             }
           </div>
         )}
@@ -87,12 +89,15 @@ export default async function WorkoutDetailPage({ params }: { params: Promise<{ 
                   </tr>
                 </thead>
                 <tbody>
-                  {w.mile_splits.map((s, i) => (
-                    <tr key={i} className={`border-b border-navy border-opacity-10 ${i % 2 === 0 ? 'bg-white' : 'bg-cream-light'}`}>
-                      <td className="px-4 py-2 text-navy font-bold">{i + 1}</td>
-                      <td className="px-4 py-2 text-navy opacity-70">{formatPace(s)}</td>
-                    </tr>
-                  ))}
+                  {w.mile_splits.map((s, i) => {
+                    const isHighlight = highlightMile === i + 1;
+                    return (
+                      <tr key={i} className={`border-b border-navy border-opacity-10 ${isHighlight ? 'bg-gold bg-opacity-20' : i % 2 === 0 ? 'bg-white' : 'bg-cream-light'}`}>
+                        <td className={`px-4 py-2 font-bold ${isHighlight ? 'text-gold' : 'text-navy'}`}>{i + 1}</td>
+                        <td className={`px-4 py-2 ${isHighlight ? 'text-gold font-bold' : 'text-navy opacity-70'}`}>{formatPace(s)}</td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

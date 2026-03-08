@@ -92,7 +92,7 @@ function generateRouteSvg(lats: number[], lons: number[], mileLats: number[], mi
 
   // Mile dots: white circle with bold navy number inside
   const mileDots = mileXY.map(({ x, y }, i) =>
-    `<circle cx="${x}" cy="${y}" r="9" fill="white" stroke="#1B2A4A" stroke-width="2"/>
+    `<circle id="mile-${i + 1}" cx="${x}" cy="${y}" r="9" fill="white" stroke="#1B2A4A" stroke-width="2"/>
      <text x="${x}" y="${y + 4}" text-anchor="middle" font-size="9" font-family="sans-serif" font-weight="bold" fill="#1B2A4A">${i + 1}</text>`
   ).join('');
 

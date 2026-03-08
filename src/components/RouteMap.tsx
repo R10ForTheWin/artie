@@ -1,8 +1,8 @@
 'use client';
 
-import { useRef, useState, useCallback } from 'react';
+import { useRef, useState, useCallback, useEffect } from 'react';
 
-export default function RouteMap({ svg, date, location, distance }: { svg: string; date?: string; location?: string | null; distance?: string }) {
+export default function RouteMap({ svg, date, location, distance, highlightMile }: { svg: string; date?: string; location?: string | null; distance?: string; highlightMile?: number }) {
   const [scale, setScale] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const dragging = useRef(false);
@@ -30,6 +30,36 @@ export default function RouteMap({ svg, date, location, distance }: { svg: strin
   }, [clampOffset]);
 
   const reset = () => { setScale(1); setOffset({ x: 0, y: 0 }); };
+
+  // Highlight the specified mile marker with a pulsing gold ring
+  useEffect(() => {
+    if (!highlightMile) return;
+    const el = containerRef.current?.querySelector(`#mile-${highlightMile}`) as SVGCircleElement | null;
+    if (!el) return;
+    const ns = 'http://www.w3.org/2000/svg';
+    const ring = document.createElementNS(ns, 'circle');
+    ring.setAttribute('cx', el.getAttribute('cx')!);
+    ring.setAttribute('cy', el.getAttribute('cy')!);
+    ring.setAttribute('r', '14');
+    ring.setAttribute('fill', 'none');
+    ring.setAttribute('stroke', '#C9922A');
+    ring.setAttribute('stroke-width', '3');
+    ring.setAttribute('opacity', '0.9');
+    const anim = document.createElementNS(ns, 'animate');
+    anim.setAttribute('attributeName', 'r');
+    anim.setAttribute('values', '11;17;11');
+    anim.setAttribute('dur', '1.4s');
+    anim.setAttribute('repeatCount', 'indefinite');
+    const animOp = document.createElementNS(ns, 'animate');
+    animOp.setAttribute('attributeName', 'opacity');
+    animOp.setAttribute('values', '0.9;0.3;0.9');
+    animOp.setAttribute('dur', '1.4s');
+    animOp.setAttribute('repeatCount', 'indefinite');
+    ring.appendChild(anim);
+    ring.appendChild(animOp);
+    el.parentNode!.insertBefore(ring, el);
+    return () => { ring.remove(); };
+  }, [highlightMile]);
 
   // Mouse drag
   const onMouseDown = (e: React.MouseEvent) => {

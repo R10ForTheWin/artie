@@ -20,6 +20,7 @@ interface SplitRow {
   workout_date: string;
   location: string | null;
   split_s: number;
+  mile_index: number;
 }
 
 export default async function RecordsPage() {
@@ -27,9 +28,9 @@ export default async function RecordsPage() {
 
   // Unnest mile_splits array and find top 3 fastest individual miles
   const result = await pool.query<SplitRow>(`
-    SELECT w.id, w.name, w.workout_date, w.location, s.split_s
+    SELECT w.id, w.name, w.workout_date, w.location, s.split_s, s.ord as mile_index
     FROM workouts w,
-    LATERAL jsonb_array_elements_text(w.mile_splits) AS s(split_s)
+    LATERAL jsonb_array_elements_text(w.mile_splits) WITH ORDINALITY AS s(split_s, ord)
     WHERE w.mile_splits IS NOT NULL
     ORDER BY s.split_s::numeric ASC
     LIMIT 3
@@ -70,7 +71,7 @@ export default async function RecordsPage() {
           ) : (
             <div className="space-y-3">
               {top3.map((row, i) => (
-                <Link key={i} href={`/dashboard/workout/${row.id}`}
+                <Link key={i} href={`/dashboard/workout/${row.id}?mile=${row.mile_index}`}
                   className="flex items-center justify-between border-2 border-navy border-opacity-20 rounded-xl px-5 py-4 bg-white hover:border-gold transition-colors">
                   <div className="flex items-center gap-4">
                     <span className="text-2xl">{medals[i]}</span>
