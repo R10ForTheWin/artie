@@ -69,7 +69,8 @@ function generateRouteSvg(lats: number[], lons: number[], mileLats: number[], mi
       <line x1="${x - 12}" y1="${y + 2}" x2="${x}" y2="${y + 2}" stroke="#1B2A4A" stroke-width="1.5" opacity="0.6"/>
       <circle cx="${x}" cy="${y}" r="7" fill="#5B8DB8" stroke="white" stroke-width="1.5"/>
       <text x="${x}" y="${y + 3}" text-anchor="middle" font-size="6" font-family="sans-serif" font-weight="bold" fill="white">RH</text>
-      <text x="${x}" y="${y - 11}" text-anchor="middle" font-size="7" font-family="sans-serif" font-weight="bold" fill="#1B2A4A">Roundhouse</text>
+      <polygon points="${x - 8},${y - 7} ${x},${y - 15} ${x + 8},${y - 7}" fill="#C4532A"/>
+      <text x="${x}" y="${y - 18}" text-anchor="middle" font-size="7" font-family="sans-serif" font-weight="bold" fill="#1B2A4A">Roundhouse</text>
     `;
   })() : '';
 
