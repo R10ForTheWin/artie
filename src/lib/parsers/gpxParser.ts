@@ -96,8 +96,11 @@ function generateRouteSvg(lats: number[], lons: number[], cumDist: number[], mil
   const R10_LAT = 33.77335, R10_LON = -118.44535;
   const r10InBounds = R10_LAT >= minLat && R10_LAT <= maxLat && R10_LON >= minLon && R10_LON <= maxLon;
   const r10Marker = r10InBounds ? (() => {
-    const { x, y } = toXY(R10_LAT, R10_LON);
+    const { x: rx, y: ry } = toXY(R10_LAT, R10_LON);
+    // Offset icon leftward so it doesn't overlap nearby mile markers
+    const x = rx - 22, y = ry - 10;
     return `
+      <line x1="${rx}" y1="${ry}" x2="${x}" y2="${y + 2}" stroke="#C4532A" stroke-width="1" opacity="0.4"/>
       <ellipse cx="${x}" cy="${y + 2}" rx="9" ry="4" fill="#C4532A"/>
       <line x1="${x - 5}" y1="${y - 1}" x2="${x - 3}" y2="${y - 16}" stroke="#C4532A" stroke-width="1.5"/>
       <line x1="${x + 5}" y1="${y - 1}" x2="${x + 3}" y2="${y - 16}" stroke="#C4532A" stroke-width="1.5"/>
@@ -114,29 +117,6 @@ function generateRouteSvg(lats: number[], lons: number[], cumDist: number[], mil
      <text x="${x}" y="${y + 4}" text-anchor="middle" font-size="9" font-family="sans-serif" font-weight="bold" fill="#1B2A4A">${i + 1}</text>`
   ).join('');
 
-  // Pace labels: offset perpendicular to each segment, alternating sides
-  const paceLabels = mileSplits.map((split, i) => {
-    const p1 = allPoints[i];
-    const p2 = allPoints[i + 1];
-    if (!p1 || !p2) return '';
-    const mx = parseFloat(((p1.x + p2.x) / 2).toFixed(1));
-    const my = parseFloat(((p1.y + p2.y) / 2).toFixed(1));
-    const label = fmtPace(split);
-    const pw = 30, ph = 14, pr = 4;
-    // Perpendicular to segment direction
-    const dx = p2.x - p1.x;
-    const dy = p2.y - p1.y;
-    const len = Math.hypot(dx, dy) || 1;
-    const nx = -dy / len;
-    const ny = dx / len;
-    const side = i % 2 === 0 ? 1 : -1;
-    const dist = 44;
-    const px = parseFloat((mx + nx * dist * side).toFixed(1));
-    const py = parseFloat((my + ny * dist * side).toFixed(1));
-    return `<line x1="${mx}" y1="${my}" x2="${px}" y2="${py}" stroke="#1B2A4A" stroke-width="0.8" opacity="0.5"/>
-            <rect x="${px - pw / 2}" y="${py - ph / 2}" width="${pw}" height="${ph}" rx="${pr}" fill="#1B2A4A"/>
-            <text x="${px}" y="${py + 4}" text-anchor="middle" font-size="8" font-family="sans-serif" font-weight="bold" fill="white">${label}</text>`;
-  }).join('');
 
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}">
     <defs>
@@ -147,7 +127,6 @@ function generateRouteSvg(lats: number[], lons: number[], cumDist: number[], mil
     </defs>
     <rect width="${W}" height="${H}" fill="url(#water)"/>
     ${segmentPolylines}
-    ${paceLabels}
     ${mileDots}
     ${r10Marker}
     ${rhMarker}
