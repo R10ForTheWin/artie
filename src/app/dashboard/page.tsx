@@ -25,9 +25,10 @@ export default async function DashboardPage() {
   const workoutsResult = await pool.query('SELECT * FROM workouts ORDER BY distance_m DESC');
   const workouts = workoutsResult.rows as Workout[];
 
+  const CHART_START = '2026-03-01';
   const mileageMap = Object.fromEntries(TEAMMATES.map((t) => [t, 0]));
   for (const w of workouts) {
-    if (w.name in mileageMap && w.distance_m) {
+    if (w.name in mileageMap && w.distance_m && w.workout_date >= CHART_START) {
       mileageMap[w.name] += formatDistanceMiles(w.distance_m);
     }
   }

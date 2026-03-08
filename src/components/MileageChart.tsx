@@ -11,7 +11,7 @@ export default function MileageChart({ data }: Props) {
   return (
     <div className="border-2 border-navy border-opacity-20 rounded-lg p-6 bg-white">
       <h2 className="text-navy font-black uppercase tracking-widest text-lg mb-6">
-        Total Miles by Athlete
+        Total Miles Since March 1, 2026
       </h2>
       <ResponsiveContainer width="100%" height={280}>
         <BarChart data={data} margin={{ top: 4, right: 16, left: 0, bottom: 72 }}>
