@@ -56,7 +56,6 @@ export default async function DashboardPage() {
           </Link>
         </div>
 
-        <h1 className="text-navy font-black uppercase tracking-widest text-3xl mb-1">Mileage Tracker</h1>
         <p className="text-navy opacity-40 text-sm mb-6">
           {workouts.length} workouts · {totalMiles.toFixed(1)} total miles
         </p>
