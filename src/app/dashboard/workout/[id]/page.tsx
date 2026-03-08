@@ -41,7 +41,7 @@ export default async function WorkoutDetailPage({ params }: { params: Promise<{ 
       <div className="flex-1 px-6 pt-10 pb-10 max-w-2xl mx-auto w-full">
         <div className="flex items-center justify-between">
           <Link href="/dashboard" className="text-navy opacity-50 hover:opacity-100 text-sm font-bold uppercase tracking-wider">
-            ← Dashboard
+            ← Back
           </Link>
           <WorkoutEditForm id={w.id} name={w.name} location={w.location} workout_date={w.workout_date} />
         </div>
