@@ -31,7 +31,7 @@ export default function PhotosPage() {
         <div className="border-2 border-navy border-opacity-10 rounded-xl p-5 bg-white">
           <p className="text-navy font-bold text-sm mb-2">How to add photos</p>
           <ol className="text-navy opacity-50 text-sm space-y-1 list-decimal list-inside">
-            <li>Open the Photos app on your iPhone</li>
+            <li>Text DJ and request an invite to the shared album</li>
             <li>Find your photo and tap Share</li>
             <li>Select "Add to Shared Album"</li>
             <li>Choose the Team Topaz album</li>
