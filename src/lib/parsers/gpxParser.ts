@@ -1,7 +1,13 @@
 import { XMLParser } from 'fast-xml-parser';
 import { ParsedWorkout } from './index';
 
-function generateRouteSvg(lats: number[], lons: number[]): string {
+function fmtPace(s: number): string {
+  const m = Math.floor(s / 60);
+  const sec = Math.round(s % 60).toString().padStart(2, '0');
+  return `${m}:${sec}`;
+}
+
+function generateRouteSvg(lats: number[], lons: number[], mileLats: number[], mileLons: number[], mileSplits: number[]): string {
   if (lats.length < 2) return '';
   // Downsample to max 300 points
   const step = Math.max(1, Math.floor(lats.length / 300));
@@ -18,13 +24,32 @@ function generateRouteSvg(lats: number[], lons: number[]): string {
   const W = 400, H = 250, pad = 20;
   const scale = Math.min((W - pad * 2) / (lonRange * lonScale), (H - pad * 2) / latRange);
 
-  const points = sLats.map((lat, i) => {
-    const x = pad + (sLons[i] - minLon) * lonScale * scale;
-    const y = H - pad - (lat - minLat) * scale;
-    return `${x.toFixed(1)},${y.toFixed(1)}`;
-  }).join(' ');
+  const toXY = (lat: number, lon: number) => ({
+    x: parseFloat((pad + (lon - minLon) * lonScale * scale).toFixed(1)),
+    y: parseFloat((H - pad - (lat - minLat) * scale).toFixed(1)),
+  });
 
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}"><polyline points="${points}" fill="none" stroke="#1a2744" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/></svg>`;
+  const coords = sLats.map((lat, i) => toXY(lat, sLons[i]));
+  const points = coords.map(p => `${p.x},${p.y}`).join(' ');
+  const start = coords[0];
+  const end = coords[coords.length - 1];
+
+  const mileDots = mileLats.map((lat, i) => {
+    const { x, y } = toXY(lat, mileLons[i]);
+    const pace = mileSplits[i] ? fmtPace(mileSplits[i]) : '';
+    return `<circle cx="${x}" cy="${y}" r="4" fill="white" stroke="#1B2A4A" stroke-width="1.5"/>
+            <text x="${x}" y="${y - 8}" text-anchor="middle" font-size="8" font-family="sans-serif" font-weight="bold" fill="#1B2A4A">${i + 1}</text>
+            ${pace ? `<text x="${x}" y="${y - 18}" text-anchor="middle" font-size="7" font-family="sans-serif" fill="#C9922A">${pace}</text>` : ''}`;
+  }).join('');
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}">
+    <rect width="${W}" height="${H}" fill="#ddeef6"/>
+    <polyline points="${points}" fill="none" stroke="#C9922A" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" opacity="0.9"/>
+    ${mileDots}
+    <circle cx="${start.x}" cy="${start.y}" r="5" fill="#1B2A4A"/>
+    <text x="${start.x}" y="${start.y - 8}" text-anchor="middle" font-size="8" font-family="sans-serif" font-weight="bold" fill="#1B2A4A">Start</text>
+    <circle cx="${end.x}" cy="${end.y}" r="5" fill="#C4532A"/>
+  </svg>`;
 }
 
 function haversine(lat1: number, lon1: number, lat2: number, lon2: number): number {
@@ -63,6 +88,8 @@ export function parseGpx(buffer: Buffer): Promise<ParsedWorkout> {
   let distance_m = 0;
   let max_speed_ms = 0;
   const mile_splits: number[] = [];
+  const mileLats: number[] = [];
+  const mileLons: number[] = [];
   let lastMileDistance = 0;
   let lastMileTime = times[0];
 
@@ -77,11 +104,13 @@ export function parseGpx(buffer: Buffer): Promise<ParsedWorkout> {
       if (speed > max_speed_ms) max_speed_ms = speed;
     }
 
-    // Mile splits — record time for each completed full mile
+    // Mile splits — record time and coordinates for each completed full mile
     while (distance_m - lastMileDistance >= MILE_M) {
       lastMileDistance += MILE_M;
       const splitTime = Math.round((times[i] - lastMileTime) / 1000);
       mile_splits.push(splitTime);
+      mileLats.push(lats[i]);
+      mileLons.push(lons[i]);
       lastMileTime = times[i];
     }
   }
@@ -119,6 +148,6 @@ export function parseGpx(buffer: Buffer): Promise<ParsedWorkout> {
     calories: null,
     mile_splits: mile_splits.length > 0 ? mile_splits : null,
     avg_temp_c,
-    map_svg: generateRouteSvg(lats, lons),
+    map_svg: generateRouteSvg(lats, lons, mileLats, mileLons, mile_splits),
   });
 }

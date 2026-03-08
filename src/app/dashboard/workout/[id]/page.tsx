@@ -3,6 +3,7 @@ import { pool, initSchema } from '@/lib/db';
 import { formatDate, formatDistance, formatDuration, formatSpeed, formatPace } from '@/lib/formatters';
 import StripeBar from '@/components/StripeBar';
 import WorkoutEditForm from '@/components/WorkoutEditForm';
+import RouteMap from '@/components/RouteMap';
 import { notFound } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
@@ -55,10 +56,10 @@ export default async function WorkoutDetailPage({ params }: { params: Promise<{ 
 
         {/* Route map */}
         {(w.map_image_url || w.map_svg) && (
-          <div className="mt-6 rounded-xl overflow-hidden border-2 border-navy border-opacity-20 bg-cream-light">
+          <div className="mt-6">
             {w.map_image_url
-              ? <img src={w.map_image_url} alt="Route map" className="w-full object-cover" />
-              : <div className="p-4" dangerouslySetInnerHTML={{ __html: w.map_svg! }} />
+              ? <div className="rounded-xl overflow-hidden border-2 border-navy border-opacity-20"><img src={w.map_image_url} alt="Route map" className="w-full object-cover" /></div>
+              : <RouteMap svg={w.map_svg!} />
             }
           </div>
         )}

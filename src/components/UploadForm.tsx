@@ -275,37 +275,44 @@ export default function UploadForm() {
           )}
         </>
       ) : (
-        <div className="space-y-6">
-          <div className="border-2 border-gold rounded-lg p-6 bg-cream-light">
-            <p className="text-gold font-black uppercase tracking-widest text-sm mb-4">Workout Saved!</p>
-            <p className="text-navy text-xl font-bold mb-4">{result.name}</p>
-            <div className="grid grid-cols-2 gap-4">
-              {[
-                { label: 'Distance', value: formatDistance(result.distance_m) },
-                { label: 'Duration', value: formatDuration(result.duration_s) },
-                { label: 'Avg Speed', value: formatSpeed(result.avg_speed_ms) },
-              ].map(({ label, value }) => (
-                <div key={label} className="border border-navy border-opacity-20 rounded p-3 bg-white">
-                  <p className="text-navy text-xs uppercase tracking-wider opacity-50">{label}</p>
-                  <p className="text-gold font-bold text-lg">{value}</p>
-                </div>
-              ))}
-            </div>
+        <div className="flex flex-col items-center text-center space-y-6 py-4">
+          <div className="w-16 h-16 rounded-full bg-gold flex items-center justify-center">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
           </div>
 
-          <div className="flex gap-3">
+          <div>
+            <p className="text-gold font-black uppercase tracking-widest text-xs mb-1">Workout Saved</p>
+            <p className="text-navy font-black uppercase tracking-widest text-3xl">{result.name}</p>
+          </div>
+
+          <div className="w-full grid grid-cols-3 gap-3">
+            {[
+              { label: 'Distance', value: formatDistance(result.distance_m) },
+              { label: 'Duration', value: formatDuration(result.duration_s) },
+              { label: 'Avg Speed', value: formatSpeed(result.avg_speed_ms) },
+            ].map(({ label, value }) => (
+              <div key={label} className="border-2 border-navy border-opacity-20 rounded-lg p-3 bg-white">
+                <p className="text-navy text-xs uppercase tracking-wider opacity-50 mb-1">{label}</p>
+                <p className="text-gold font-black text-base leading-tight">{value}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="w-full flex flex-col gap-3 pt-2">
+            <a
+              href="/dashboard"
+              className="w-full bg-navy text-white font-black uppercase tracking-wider py-3 rounded-lg text-center hover:bg-terracotta transition-colors"
+            >
+              Done
+            </a>
             <button
               onClick={() => { setResult(null); setOverviewFile(null); setLapsFiles([]); setFitFile(null); setGarminUrl(''); setWorkoutDate(''); setName(''); setLocation(''); }}
-              className="flex-1 border-2 border-navy text-navy font-black uppercase tracking-wider py-3 rounded-lg hover:bg-navy hover:text-white transition-colors"
+              className="w-full border-2 border-navy border-opacity-30 text-navy font-black uppercase tracking-wider py-3 rounded-lg hover:border-opacity-100 transition-colors"
             >
               Upload Another
             </button>
-            <a
-              href="/dashboard"
-              className="flex-1 bg-navy text-white font-black uppercase tracking-wider py-3 rounded-lg text-center hover:bg-terracotta transition-colors"
-            >
-              View Dashboard
-            </a>
           </div>
         </div>
       )}
