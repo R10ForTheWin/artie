@@ -19,7 +19,7 @@ export default function SwipeBack({ children }: { children: React.ReactNode }) {
       const dx = e.changedTouches[0].clientX - startX.current;
       const dy = e.changedTouches[0].clientY - startY.current;
       // Swipe left: dx < -60, more horizontal than vertical
-      if (dx < -60 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+      if (dx < -40 && Math.abs(dx) > Math.abs(dy)) {
         router.back();
       }
       startX.current = null;
