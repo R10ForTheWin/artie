@@ -19,7 +19,7 @@ export default function UploadForm() {
   const [name, setName] = useState('');
   const [location, setLocation] = useState('');
   const [overviewFile, setOverviewFile] = useState<File | null>(null);
-  const [lapsFile, setLapsFile] = useState<File | null>(null);
+  const [lapsFiles, setLapsFiles] = useState<File[]>([]);
   const [fitFile, setFitFile] = useState<File | null>(null);
   const [garminUrl, setGarminUrl] = useState('');
   const [workoutDate, setWorkoutDate] = useState('');
@@ -49,7 +49,7 @@ export default function UploadForm() {
         const imageType = item.types.find((t) => t.startsWith('image/'));
         if (imageType && target === 'laps') {
           const blob = await item.getType(imageType);
-          setLapsFile(imageFileFromBlob(blob, imageType, 'laps'));
+          setLapsFiles((prev) => prev.length < 4 ? [...prev, imageFileFromBlob(blob, imageType, `laps-${prev.length + 1}`)] : prev);
           return;
         }
       }
@@ -72,7 +72,7 @@ export default function UploadForm() {
           const blob = item.getAsFile();
           if (blob) {
             const ext = item.type === 'image/png' ? 'png' : 'jpg';
-            setLapsFile(new File([blob], `laps.${ext}`, { type: item.type }));
+            setLapsFiles((prev) => prev.length < 4 ? [...prev, new File([blob], `laps-${prev.length + 1}.${ext}`, { type: item.type })] : prev);
           }
           break;
         }
@@ -98,7 +98,7 @@ export default function UploadForm() {
     if (garminUrl) {
       formData.append('garminUrl', garminUrl);
       if (workoutDate) formData.append('workoutDate', new Date(workoutDate).toISOString());
-      if (lapsFile) formData.append('lapsFile', lapsFile);
+      lapsFiles.forEach((f) => formData.append('lapsFile', f));
     } else if (fitFile) {
       formData.append('file', fitFile);
     }
@@ -140,7 +140,7 @@ export default function UploadForm() {
               {/* Back button */}
               <button
                 type="button"
-                onClick={() => { setMode(null); setOverviewFile(null); setLapsFile(null); setFitFile(null); setGarminUrl(''); setWorkoutDate(''); setError(''); }}
+                onClick={() => { setMode(null); setOverviewFile(null); setLapsFiles([]); setFitFile(null); setGarminUrl(''); setWorkoutDate(''); setError(''); }}
                 className="text-navy opacity-50 text-sm font-bold uppercase tracking-widest hover:opacity-100 transition-opacity"
               >
                 ← Back
@@ -188,12 +188,23 @@ export default function UploadForm() {
                     />
                   </div>
 
-                  {/* Laps Screenshot */}
-                  <div>
-                    <button type="button" onClick={() => pasteFromClipboard('laps')}
-                      className="w-full border-2 border-dashed border-navy border-opacity-30 text-navy font-black uppercase tracking-widest py-4 rounded-lg hover:border-gold hover:text-gold transition-colors text-sm">
-                      {lapsFile ? `Laps: ${lapsFile.name}` : 'Paste Screenshot of Laps Tab if you want split data (optional)'}
-                    </button>
+                  {/* Laps Screenshots */}
+                  <div className="space-y-2">
+                    {lapsFiles.map((f, i) => (
+                      <div key={i} className="flex items-center justify-between border-2 border-navy border-opacity-20 rounded-lg px-4 py-3 bg-white">
+                        <span className="text-navy font-semibold text-sm">Laps {i + 1}: {f.name}</span>
+                        <button type="button" onClick={() => setLapsFiles((prev) => prev.filter((_, j) => j !== i))}
+                          className="text-navy opacity-40 hover:opacity-100 font-bold text-sm ml-4">✕</button>
+                      </div>
+                    ))}
+                    {lapsFiles.length < 4 && (
+                      <button type="button" onClick={() => pasteFromClipboard('laps')}
+                        className="w-full border-2 border-dashed border-navy border-opacity-30 text-navy font-black uppercase tracking-widest py-4 rounded-lg hover:border-gold hover:text-gold transition-colors text-sm">
+                        {lapsFiles.length === 0
+                          ? 'Paste Screenshot of Laps Tab if you want split data (optional)'
+                          : `Paste Laps Screenshot ${lapsFiles.length + 1} of 4`}
+                      </button>
+                    )}
                   </div>
 
                   {/* Date */}
@@ -263,7 +274,7 @@ export default function UploadForm() {
 
           <div className="flex gap-3">
             <button
-              onClick={() => { setResult(null); setOverviewFile(null); setLapsFile(null); setFitFile(null); setGarminUrl(''); setWorkoutDate(''); setName(''); setLocation(''); }}
+              onClick={() => { setResult(null); setOverviewFile(null); setLapsFiles([]); setFitFile(null); setGarminUrl(''); setWorkoutDate(''); setName(''); setLocation(''); }}
               className="flex-1 border-2 border-navy text-navy font-black uppercase tracking-wider py-3 rounded-lg hover:bg-navy hover:text-white transition-colors"
             >
               Upload Another

@@ -73,7 +73,7 @@ export async function POST(req: NextRequest) {
     const name = formData.get('name') as string;
     const location = (formData.get('location') as string) || null;
     const file = formData.get('file') as File | null;
-    const lapsFile = formData.get('lapsFile') as File | null;
+    const lapsFiles = formData.getAll('lapsFile') as File[];
     const garminUrl = (formData.get('garminUrl') as string) || null;
     const workoutDate = (formData.get('workoutDate') as string) || new Date().toISOString();
 
@@ -148,12 +148,16 @@ export async function POST(req: NextRequest) {
 
     const parsed = await parseWorkoutFile(buffer, ext, mimeType);
 
-    // Mile splits: from parsed file (GPX) or laps screenshot
+    // Mile splits: from parsed file (GPX) or laps screenshots (concatenated)
     let mile_splits: number[] | null = parsed.mile_splits ?? null;
-    if (!mile_splits && lapsFile) {
-      const lapsBuffer = Buffer.from(await lapsFile.arrayBuffer());
-      const fromLaps = await parseLapsImage(lapsBuffer, lapsFile.type);
-      if (fromLaps.length > 0) mile_splits = fromLaps;
+    if (!mile_splits && lapsFiles.length > 0) {
+      const allSplits: number[] = [];
+      for (const lapsFile of lapsFiles) {
+        const lapsBuffer = Buffer.from(await lapsFile.arrayBuffer());
+        const splits = await parseLapsImage(lapsBuffer, lapsFile.type);
+        allSplits.push(...splits);
+      }
+      if (allSplits.length > 0) mile_splits = allSplits;
     }
 
     await initSchema();
