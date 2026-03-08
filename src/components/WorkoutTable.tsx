@@ -43,15 +43,15 @@ export default function WorkoutTable({ workouts }: { workouts: Workout[] }) {
       </svg>
       <span className="text-xs font-bold uppercase tracking-wider">Rotate for more data</span>
     </div>
-    <div className="border-2 border-navy border-opacity-20 rounded-lg overflow-hidden">
+    <div className="border-2 border-navy border-opacity-20 rounded-lg overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b-2 border-navy border-opacity-20 bg-cream-light">
             <th className="px-4 py-3 text-left text-navy font-black uppercase tracking-wider text-xs opacity-70">Athlete</th>
             <th className="px-4 py-3 text-left text-navy font-black uppercase tracking-wider text-xs opacity-70">Date</th>
             <th className="px-4 py-3 text-left text-navy font-black uppercase tracking-wider text-xs opacity-70">Distance</th>
-            <th className="px-4 py-3 text-left text-navy font-black uppercase tracking-wider text-xs opacity-70">Mile Time Avg</th>
-            <th className="px-4 py-3 text-left text-navy font-black uppercase tracking-wider text-xs opacity-70">Duration</th>
+            <th className="px-4 py-3 text-left text-navy font-black uppercase tracking-wider text-xs opacity-70">Pace</th>
+            <th className="px-4 py-3 text-left text-navy font-black uppercase tracking-wider text-xs opacity-70">Time</th>
             <th className="px-4 py-3 text-left text-navy font-black uppercase tracking-wider text-xs opacity-70 hidden md:table-cell">Odd Mile Avg</th>
             <th className="px-4 py-3 text-left text-navy font-black uppercase tracking-wider text-xs opacity-70 hidden md:table-cell">Avg Speed</th>
             <th className="px-4 py-3 text-left text-navy font-black uppercase tracking-wider text-xs opacity-70 hidden md:table-cell">Location</th>

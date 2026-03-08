@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { pool, initSchema } from '@/lib/db';
-import { formatDate, formatDistance, formatDuration, formatSpeed, formatPace, formatCalories } from '@/lib/formatters';
+import { formatDate, formatDistance, formatDuration, formatSpeed, formatPace } from '@/lib/formatters';
 import StripeBar from '@/components/StripeBar';
 import DeleteWorkoutButton from '@/components/DeleteWorkoutButton';
 import { notFound } from 'next/navigation';
@@ -14,7 +14,6 @@ interface Workout {
   distance_m: number | null;
   duration_s: number | null;
   avg_speed_ms: number | null;
-  calories: number | null;
   location: string | null;
   mile_splits: number[] | null;
   map_image_url: string | null;
@@ -31,7 +30,7 @@ export default async function WorkoutDetailPage({ params }: { params: Promise<{ 
     { label: 'Distance', value: formatDistance(w.distance_m) },
     { label: 'Duration', value: formatDuration(w.duration_s) },
     { label: 'Avg Speed', value: formatSpeed(w.avg_speed_ms) },
-    { label: 'Calories', value: formatCalories(w.calories) },
+    { label: 'Pace', value: formatPace(w.avg_speed_ms ? 1609.344 / w.avg_speed_ms : null) },
   ];
 
   return (

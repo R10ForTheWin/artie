@@ -224,7 +224,15 @@ export default function UploadForm() {
                     <label className="block text-navy font-black uppercase tracking-widest text-sm mb-2">
                       Upload .fit or .gpx File
                     </label>
-                    <label className="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-navy border-opacity-30 rounded-lg cursor-pointer hover:border-gold transition-colors bg-cream-light">
+                    <label
+                      className="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-navy border-opacity-30 rounded-lg cursor-pointer hover:border-gold transition-colors bg-cream-light"
+                      onDragOver={(e) => e.preventDefault()}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        const f = e.dataTransfer.files?.[0] ?? null;
+                        if (f) setFitFile(f);
+                      }}
+                    >
                       <div className="text-center px-4">
                         {fitFile
                           ? <span className="text-navy font-semibold text-sm">{fitFile.name}</span>
