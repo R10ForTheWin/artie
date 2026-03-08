@@ -40,7 +40,7 @@ export default function MileageChart({ data }: Props) {
           <Bar dataKey="miles" radius={[4, 4, 0, 0]}>
             {data.map((entry, index) => {
               const colors = ['#1B2A4A', '#5B8DB8', '#C4532A', '#C9922A', '#EDD9A3', '#1B2A4A', '#5B8DB8', '#C4532A'];
-              return <Cell key={entry.label} fill={entry.miles > 0 ? colors[index % colors.length] : '#f0f0f0'} />;
+              return <Cell key={index} fill={entry.miles > 0 ? colors[index % colors.length] : '#f0f0f0'} />;
             })}
           </Bar>
         </BarChart>
