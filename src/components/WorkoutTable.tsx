@@ -55,6 +55,7 @@ export default function WorkoutTable({ workouts }: { workouts: Workout[] }) {
             <th className="px-4 py-3 text-left text-navy font-black uppercase tracking-wider text-xs opacity-70 hidden sm:table-cell">Odd Mile Avg</th>
             <th className="px-4 py-3 text-left text-navy font-black uppercase tracking-wider text-xs opacity-70 hidden sm:table-cell">Avg Speed</th>
             <th className="px-4 py-3 text-left text-navy font-black uppercase tracking-wider text-xs opacity-70 hidden sm:table-cell">Location</th>
+            <th className="px-4 py-3 hidden sm:table-cell"></th>
           </tr>
         </thead>
         <tbody>
@@ -63,7 +64,7 @@ export default function WorkoutTable({ workouts }: { workouts: Workout[] }) {
               <td className="px-4 py-3 text-navy font-bold">{w.name}</td>
               <td className="px-4 py-3 text-navy opacity-70">{formatDate(w.workout_date)}</td>
               <td className="px-4 py-3 text-gold font-bold">{formatDistance(w.distance_m)}</td>
-              <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+              <td className="px-4 py-3 sm:hidden" onClick={(e) => e.stopPropagation()}>
                 <button onClick={() => router.push(`/dashboard/workout/${w.id}`)} className="bg-navy text-white font-black uppercase tracking-wider text-xs px-2 py-1 rounded hover:bg-terracotta transition-colors whitespace-nowrap" style={{fontSize: '10px'}}>Details</button>
               </td>
               <td className="px-4 py-3 text-navy opacity-70 hidden sm:table-cell">{formatPace(w.avg_speed_ms ? 1609.344 / w.avg_speed_ms : null)}</td>
@@ -71,6 +72,9 @@ export default function WorkoutTable({ workouts }: { workouts: Workout[] }) {
               <td className="px-4 py-3 text-navy opacity-70 hidden sm:table-cell">{formatPace(oddMileAvg(w.mile_splits))}</td>
               <td className="px-4 py-3 text-navy opacity-70 hidden sm:table-cell">{formatSpeed(w.avg_speed_ms)}</td>
               <td className="px-4 py-3 text-navy opacity-60 italic hidden sm:table-cell max-w-[120px] truncate">{w.location || '—'}</td>
+              <td className="px-4 py-3 hidden sm:table-cell" onClick={(e) => e.stopPropagation()}>
+                <button onClick={() => router.push(`/dashboard/workout/${w.id}`)} className="bg-navy text-white font-black uppercase tracking-wider text-xs px-2 py-1 rounded hover:bg-terracotta transition-colors whitespace-nowrap" style={{fontSize: '10px'}}>Details</button>
+              </td>
             </tr>
           ))}
         </tbody>
