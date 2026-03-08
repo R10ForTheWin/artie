@@ -3,6 +3,7 @@ import { pool, initSchema } from '@/lib/db';
 import { formatDate, formatDistance, formatDuration, formatSpeed, formatPace } from '@/lib/formatters';
 import StripeBar from '@/components/StripeBar';
 import DeleteWorkoutButton from '@/components/DeleteWorkoutButton';
+import WorkoutEditForm from '@/components/WorkoutEditForm';
 import { notFound } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
@@ -43,7 +44,10 @@ export default async function WorkoutDetailPage({ params }: { params: Promise<{ 
           <Link href="/dashboard" className="text-navy opacity-50 hover:opacity-100 text-sm font-bold uppercase tracking-wider">
             ← Dashboard
           </Link>
-          <DeleteWorkoutButton id={w.id} redirectTo="/dashboard" />
+          <div className="flex items-center gap-4">
+            <WorkoutEditForm id={w.id} name={w.name} location={w.location} workout_date={w.workout_date} />
+            <DeleteWorkoutButton id={w.id} redirectTo="/dashboard" />
+          </div>
         </div>
 
         <div className="mt-6 mb-2">
