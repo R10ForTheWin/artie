@@ -9,6 +9,7 @@ interface SplitRow {
   id: number;
   name: string;
   workout_date: string;
+  location: string | null;
   split_s: number;
 }
 
@@ -17,7 +18,7 @@ export default async function RecordsPage() {
 
   // Unnest mile_splits array and find top 3 fastest individual miles
   const result = await pool.query<SplitRow>(`
-    SELECT w.id, w.name, w.workout_date, s.split_s
+    SELECT w.id, w.name, w.workout_date, w.location, s.split_s
     FROM workouts w,
     LATERAL jsonb_array_elements_text(w.mile_splits) AS s(split_s)
     WHERE w.mile_splits IS NOT NULL
@@ -56,6 +57,7 @@ export default async function RecordsPage() {
                       <p className="text-navy font-black uppercase tracking-wider text-sm">{row.name}</p>
                       <p className="text-navy opacity-40 text-xs mt-0.5">
                         {new Date(row.workout_date.split('T')[0] + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                        {row.location ? ` · ${row.location}` : ''}
                       </p>
                     </div>
                   </div>
