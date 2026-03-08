@@ -50,8 +50,9 @@ export default function WorkoutTable({ workouts }: { workouts: Workout[] }) {
             <th className="px-4 py-3 text-left text-navy font-black uppercase tracking-wider text-xs opacity-70">Athlete</th>
             <th className="px-4 py-3 text-left text-navy font-black uppercase tracking-wider text-xs opacity-70">Date</th>
             <th className="px-4 py-3 text-left text-navy font-black uppercase tracking-wider text-xs opacity-70">Distance</th>
-            <th className="px-4 py-3 text-left text-navy font-black uppercase tracking-wider text-xs opacity-70">Pace</th>
-            <th className="px-4 py-3 text-left text-navy font-black uppercase tracking-wider text-xs opacity-70">Time</th>
+            <th className="px-4 py-3 text-left text-navy font-black uppercase tracking-wider text-xs opacity-70"></th>
+            <th className="px-4 py-3 text-left text-navy font-black uppercase tracking-wider text-xs opacity-70 hidden md:table-cell">Pace</th>
+            <th className="px-4 py-3 text-left text-navy font-black uppercase tracking-wider text-xs opacity-70 hidden md:table-cell">Time</th>
             <th className="px-4 py-3 text-left text-navy font-black uppercase tracking-wider text-xs opacity-70 hidden md:table-cell">Odd Mile Avg</th>
             <th className="px-4 py-3 text-left text-navy font-black uppercase tracking-wider text-xs opacity-70 hidden md:table-cell">Avg Speed</th>
             <th className="px-4 py-3 text-left text-navy font-black uppercase tracking-wider text-xs opacity-70 hidden md:table-cell">Location</th>
@@ -64,8 +65,11 @@ export default function WorkoutTable({ workouts }: { workouts: Workout[] }) {
               <td className="px-4 py-3 text-navy font-bold">{w.name}</td>
               <td className="px-4 py-3 text-navy opacity-70">{formatDate(w.workout_date)}</td>
               <td className="px-4 py-3 text-gold font-bold">{formatDistance(w.distance_m)}</td>
-              <td className="px-4 py-3 text-navy opacity-70">{formatPace(w.avg_speed_ms ? 1609.344 / w.avg_speed_ms : null)}</td>
-              <td className="px-4 py-3 text-navy opacity-70">{formatDuration(w.duration_s)}</td>
+              <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                <button onClick={() => router.push(`/dashboard/workout/${w.id}`)} className="bg-navy text-white font-black uppercase tracking-wider text-xs px-3 py-1.5 rounded-lg hover:bg-terracotta transition-colors whitespace-nowrap">Details</button>
+              </td>
+              <td className="px-4 py-3 text-navy opacity-70 hidden md:table-cell">{formatPace(w.avg_speed_ms ? 1609.344 / w.avg_speed_ms : null)}</td>
+              <td className="px-4 py-3 text-navy opacity-70 hidden md:table-cell">{formatDuration(w.duration_s)}</td>
               <td className="px-4 py-3 text-navy opacity-70 hidden md:table-cell">{formatPace(oddMileAvg(w.mile_splits))}</td>
               <td className="px-4 py-3 text-navy opacity-70 hidden md:table-cell">{formatSpeed(w.avg_speed_ms)}</td>
               <td className="px-4 py-3 text-navy opacity-60 italic hidden md:table-cell">{w.location || '—'}</td>
