@@ -61,7 +61,7 @@ export default async function WorkoutDetailPage({ params, searchParams }: { para
           <div className="mt-6">
             {w.map_image_url
               ? <div className="rounded-xl overflow-hidden border-2 border-navy border-opacity-20"><img src={w.map_image_url} alt="Route map" className="w-full object-cover" /></div>
-              : <RouteMap svg={w.map_svg!} date={formatDate(w.workout_date)} location={w.location} distance={formatDistance(w.distance_m)} highlightMile={highlightMile} />
+              : <RouteMap svg={w.map_svg!} date={formatDate(w.workout_date)} location={w.location} distance={formatDistance(w.distance_m)} highlightMile={highlightMile} mileSplits={w.mile_splits} />
             }
           </div>
         )}

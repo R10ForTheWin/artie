@@ -7,12 +7,15 @@ function fmtPace(s: number): string {
   return `${m}:${sec}`;
 }
 
-function generateRouteSvg(lats: number[], lons: number[], mileLats: number[], mileLons: number[], mileSplits: number[], meta: { date: string; distanceMi: number; location?: string | null }): string {
+const MILE_M = 1609.344;
+
+function generateRouteSvg(lats: number[], lons: number[], cumDist: number[], mileLats: number[], mileLons: number[], mileSplits: number[], meta: { date: string; distanceMi: number; location?: string | null }): string {
   if (lats.length < 2) return '';
   // Downsample to max 300 points
   const step = Math.max(1, Math.floor(lats.length / 300));
   const sLats = lats.filter((_, i) => i % step === 0);
   const sLons = lons.filter((_, i) => i % step === 0);
+  const sCumDist = cumDist.filter((_, i) => i % step === 0);
 
   const minLat = Math.min(...sLats), maxLat = Math.max(...sLats);
   const minLon = Math.min(...sLons), maxLon = Math.max(...sLons);
@@ -35,14 +38,29 @@ function generateRouteSvg(lats: number[], lons: number[], mileLats: number[], mi
     y: parseFloat((H - oy - (lat - minLat) * scale).toFixed(1)),
   });
 
-  const coords = sLats.map((lat, i) => toXY(lat, sLons[i]));
-  const points = coords.map(p => `${p.x},${p.y}`).join(' ');
-  const start = coords[0];
-  const end = coords[coords.length - 1];
+  const start = toXY(sLats[0], sLons[0]);
+  const end = toXY(sLats[sLats.length - 1], sLons[sLons.length - 1]);
 
   // Build XY positions for each mile marker, with start prepended
   const mileXY = mileLats.map((lat, i) => toXY(lat, mileLons[i]));
   const allPoints = [start, ...mileXY]; // start + each mile boundary
+
+  // Per-segment polylines — one per mile, plus a final partial segment
+  const numSegments = mileLats.length + 1;
+  const segmentPolylines = Array.from({ length: numSegments }, (_, seg) => {
+    const segStartDist = seg * MILE_M;
+    const segEndDist = (seg + 1) * MILE_M;
+    const pts: { x: number; y: number }[] = [];
+    pts.push(seg === 0 ? start : toXY(mileLats[seg - 1], mileLons[seg - 1]));
+    for (let i = 0; i < sLats.length; i++) {
+      if (sCumDist[i] > segStartDist && sCumDist[i] < segEndDist) {
+        pts.push(toXY(sLats[i], sLons[i]));
+      }
+    }
+    pts.push(seg < mileLats.length ? toXY(mileLats[seg], mileLons[seg]) : end);
+    if (pts.length < 2) return '';
+    return `<polyline id="segment-${seg + 1}" points="${pts.map(p => `${p.x},${p.y}`).join(' ')}" fill="none" stroke="#C9922A" stroke-width="4" stroke-linejoin="round" stroke-linecap="round" opacity="0.95"/>`;
+  }).join('\n    ');
 
   // Topaz start sign (hardcoded) — show if within map bounds
   const TOPAZ_LAT = 33.83238, TOPAZ_LON = -118.39028;
@@ -128,7 +146,7 @@ function generateRouteSvg(lats: number[], lons: number[], mileLats: number[], mi
       </linearGradient>
     </defs>
     <rect width="${W}" height="${H}" fill="url(#water)"/>
-    <polyline points="${points}" fill="none" stroke="#C9922A" stroke-width="4" stroke-linejoin="round" stroke-linecap="round" opacity="0.95"/>
+    ${segmentPolylines}
     ${paceLabels}
     ${mileDots}
     ${r10Marker}
@@ -175,12 +193,12 @@ export function parseGpx(buffer: Buffer): Promise<ParsedWorkout> {
   const lats  = points.map((p: Record<string, unknown>) => parseFloat(String(p['@_lat'])));
   const lons  = points.map((p: Record<string, unknown>) => parseFloat(String(p['@_lon'])));
 
-  const MILE_M = 1609.344;
   let distance_m = 0;
   let max_speed_ms = 0;
   const mile_splits: number[] = [];
   const mileLats: number[] = [];
   const mileLons: number[] = [];
+  const cumDist: number[] = [0];
   let lastMileDistance = 0;
   let lastMileTime = times[0];
 
@@ -188,6 +206,7 @@ export function parseGpx(buffer: Buffer): Promise<ParsedWorkout> {
     const seg = haversine(lats[i - 1], lons[i - 1], lats[i], lons[i]);
     const dt = (times[i] - times[i - 1]) / 1000;
     distance_m += seg;
+    cumDist.push(distance_m);
 
     // Max speed
     if (dt > 0) {
@@ -243,7 +262,7 @@ export function parseGpx(buffer: Buffer): Promise<ParsedWorkout> {
     calories: null,
     mile_splits: mile_splits.length > 0 ? mile_splits : null,
     avg_temp_c,
-    map_svg: generateRouteSvg(lats, lons, mileLats, mileLons, mile_splits, {
+    map_svg: generateRouteSvg(lats, lons, cumDist, mileLats, mileLons, mile_splits, {
       date: dateStr,
       distanceMi: distance_m * 0.000621371,
     }),

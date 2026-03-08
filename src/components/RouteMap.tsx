@@ -2,13 +2,29 @@
 
 import { useRef, useState, useCallback, useEffect } from 'react';
 
-export default function RouteMap({ svg, date, location, distance, highlightMile }: { svg: string; date?: string; location?: string | null; distance?: string; highlightMile?: number }) {
+function fmtSplit(s: number): string {
+  const m = Math.floor(s / 60);
+  const sec = Math.round(s % 60).toString().padStart(2, '0');
+  return `${m}:${sec}`;
+}
+
+export default function RouteMap({ svg, date, location, distance, highlightMile, mileSplits }: {
+  svg: string;
+  date?: string;
+  location?: string | null;
+  distance?: string;
+  highlightMile?: number;
+  mileSplits?: number[] | null;
+}) {
   const [scale, setScale] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const [activeSegment, setActiveSegment] = useState<number | null>(highlightMile ?? null);
   const dragging = useRef(false);
   const lastPos = useRef({ x: 0, y: 0 });
   const lastPinchDist = useRef<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const svgRef = useRef<HTMLDivElement>(null);
+  const legendRef = useRef<HTMLDivElement>(null);
 
   const clampOffset = useCallback((x: number, y: number, s: number) => {
     const el = containerRef.current;
@@ -30,36 +46,6 @@ export default function RouteMap({ svg, date, location, distance, highlightMile 
   }, [clampOffset]);
 
   const reset = () => { setScale(1); setOffset({ x: 0, y: 0 }); };
-
-  // Highlight the specified mile marker with a pulsing gold ring
-  useEffect(() => {
-    if (!highlightMile) return;
-    const el = containerRef.current?.querySelector(`#mile-${highlightMile}`) as SVGCircleElement | null;
-    if (!el) return;
-    const ns = 'http://www.w3.org/2000/svg';
-    const ring = document.createElementNS(ns, 'circle');
-    ring.setAttribute('cx', el.getAttribute('cx')!);
-    ring.setAttribute('cy', el.getAttribute('cy')!);
-    ring.setAttribute('r', '14');
-    ring.setAttribute('fill', 'none');
-    ring.setAttribute('stroke', '#C9922A');
-    ring.setAttribute('stroke-width', '3');
-    ring.setAttribute('opacity', '0.9');
-    const anim = document.createElementNS(ns, 'animate');
-    anim.setAttribute('attributeName', 'r');
-    anim.setAttribute('values', '11;17;11');
-    anim.setAttribute('dur', '1.4s');
-    anim.setAttribute('repeatCount', 'indefinite');
-    const animOp = document.createElementNS(ns, 'animate');
-    animOp.setAttribute('attributeName', 'opacity');
-    animOp.setAttribute('values', '0.9;0.3;0.9');
-    animOp.setAttribute('dur', '1.4s');
-    animOp.setAttribute('repeatCount', 'indefinite');
-    ring.appendChild(anim);
-    ring.appendChild(animOp);
-    el.parentNode!.insertBefore(ring, el);
-    return () => { ring.remove(); };
-  }, [highlightMile]);
 
   // Mouse drag
   const onMouseDown = (e: React.MouseEvent) => {
@@ -109,6 +95,33 @@ export default function RouteMap({ svg, date, location, distance, highlightMile 
   };
   const onTouchEnd = () => { lastPinchDist.current = null; };
 
+  // Highlight active segment, dim the rest
+  useEffect(() => {
+    if (!svgRef.current) return;
+    const segments = svgRef.current.querySelectorAll('[id^="segment-"]');
+    if (segments.length === 0) return;
+    segments.forEach(el => {
+      const segNum = parseInt(el.getAttribute('id')!.replace('segment-', ''));
+      if (activeSegment === null) {
+        (el as SVGElement).setAttribute('opacity', '0.95');
+        (el as SVGElement).setAttribute('stroke-width', '4');
+      } else if (segNum === activeSegment) {
+        (el as SVGElement).setAttribute('opacity', '1');
+        (el as SVGElement).setAttribute('stroke-width', '7');
+      } else {
+        (el as SVGElement).setAttribute('opacity', '0.2');
+        (el as SVGElement).setAttribute('stroke-width', '4');
+      }
+    });
+  }, [activeSegment]);
+
+  // Auto-scroll legend so active pill is visible
+  useEffect(() => {
+    if (!activeSegment || !legendRef.current) return;
+    const pill = legendRef.current.querySelector(`[data-mile="${activeSegment}"]`) as HTMLElement | null;
+    if (pill) legendRef.current.scrollTop = pill.offsetTop - legendRef.current.offsetTop - 8;
+  }, [activeSegment]);
+
   return (
     <div className="relative">
       <div
@@ -125,6 +138,7 @@ export default function RouteMap({ svg, date, location, distance, highlightMile 
         onTouchEnd={onTouchEnd}
       >
         <div
+          ref={svgRef}
           style={{
             transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})`,
             transformOrigin: 'center center',
@@ -133,6 +147,40 @@ export default function RouteMap({ svg, date, location, distance, highlightMile 
           dangerouslySetInnerHTML={{ __html: svg }}
         />
       </div>
+
+      {/* Splits legend — scrollable 2-column grid */}
+      {mileSplits && mileSplits.length > 0 && (
+        <div
+          ref={legendRef}
+          className="bg-navy overflow-y-auto"
+          style={{ maxHeight: '116px' }}
+        >
+          <div className="grid grid-cols-2 gap-1.5 p-3">
+            {mileSplits.map((split, i) => {
+              const mileNum = i + 1;
+              const isActive = activeSegment === mileNum;
+              const isDimmed = activeSegment !== null && !isActive;
+              return (
+                <button
+                  key={i}
+                  data-mile={mileNum}
+                  onClick={() => setActiveSegment(isActive ? null : mileNum)}
+                  className={`flex items-center justify-between rounded-lg px-3 py-1.5 text-left transition-all ${
+                    isActive
+                      ? 'bg-gold'
+                      : isDimmed
+                        ? 'bg-white bg-opacity-5 opacity-40'
+                        : 'bg-white bg-opacity-10 hover:bg-opacity-20'
+                  }`}
+                >
+                  <span className="text-white text-xs font-bold opacity-70">Mile {mileNum}</span>
+                  <span className="text-white text-sm font-black">{fmtSplit(split)}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Info bar — outside zoom container */}
       {(date || location || distance) && (
