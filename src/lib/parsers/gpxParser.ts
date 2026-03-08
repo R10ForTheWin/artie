@@ -34,18 +34,31 @@ function generateRouteSvg(lats: number[], lons: number[], mileLats: number[], mi
   const start = coords[0];
   const end = coords[coords.length - 1];
 
-  const mileDots = mileLats.map((lat, i) => {
-    const { x, y } = toXY(lat, mileLons[i]);
-    const pace = mileSplits[i] ? fmtPace(mileSplits[i]) : '';
-    return `<circle cx="${x}" cy="${y}" r="4" fill="white" stroke="#1B2A4A" stroke-width="1.5"/>
-            <text x="${x}" y="${y - 8}" text-anchor="middle" font-size="8" font-family="sans-serif" font-weight="bold" fill="#1B2A4A">${i + 1}</text>
-            ${pace ? `<text x="${x}" y="${y - 18}" text-anchor="middle" font-size="7" font-family="sans-serif" fill="#C9922A">${pace}</text>` : ''}`;
+  // Build XY positions for each mile marker, with start prepended
+  const mileXY = mileLats.map((lat, i) => toXY(lat, mileLons[i]));
+  const allPoints = [start, ...mileXY]; // start + each mile boundary
+
+  // Dots: just the circle + mile number, no pace
+  const mileDots = mileXY.map(({ x, y }, i) =>
+    `<circle cx="${x}" cy="${y}" r="4" fill="white" stroke="#1B2A4A" stroke-width="1.5"/>
+     <text x="${x}" y="${y - 8}" text-anchor="middle" font-size="8" font-family="sans-serif" font-weight="bold" fill="#1B2A4A">${i + 1}</text>`
+  ).join('');
+
+  // Pace labels: midpoint between consecutive markers, near the line
+  const paceLabels = mileSplits.map((split, i) => {
+    const p1 = allPoints[i];
+    const p2 = allPoints[i + 1];
+    if (!p1 || !p2) return '';
+    const mx = parseFloat(((p1.x + p2.x) / 2).toFixed(1));
+    const my = parseFloat(((p1.y + p2.y) / 2).toFixed(1));
+    return `<text x="${mx}" y="${my - 5}" text-anchor="middle" font-size="7" font-family="sans-serif" font-weight="bold" fill="#1B2A4A">${fmtPace(split)}</text>`;
   }).join('');
 
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}">
     <rect width="${W}" height="${H}" fill="#ddeef6"/>
     <polyline points="${points}" fill="none" stroke="#C9922A" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" opacity="0.9"/>
     ${mileDots}
+    ${paceLabels}
     <circle cx="${start.x}" cy="${start.y}" r="5" fill="#1B2A4A"/>
     <text x="${start.x}" y="${start.y - 8}" text-anchor="middle" font-size="8" font-family="sans-serif" font-weight="bold" fill="#1B2A4A">Start</text>
     <circle cx="${end.x}" cy="${end.y}" r="5" fill="#C4532A"/>
