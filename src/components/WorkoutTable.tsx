@@ -70,7 +70,7 @@ export default function WorkoutTable({ workouts }: { workouts: Workout[] }) {
               <td className="px-4 py-3 text-navy opacity-70 hidden sm:table-cell">{formatDuration(w.duration_s)}</td>
               <td className="px-4 py-3 text-navy opacity-70 hidden sm:table-cell">{formatPace(oddMileAvg(w.mile_splits))}</td>
               <td className="px-4 py-3 text-navy opacity-70 hidden sm:table-cell">{formatSpeed(w.avg_speed_ms)}</td>
-              <td className="px-4 py-3 text-navy opacity-60 italic hidden sm:table-cell">{w.location || '—'}</td>
+              <td className="px-4 py-3 text-navy opacity-60 italic hidden sm:table-cell max-w-[120px] truncate">{w.location || '—'}</td>
             </tr>
           ))}
         </tbody>
