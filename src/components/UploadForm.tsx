@@ -97,7 +97,7 @@ export default function UploadForm() {
     formData.append('location', location);
     if (garminUrl) {
       formData.append('garminUrl', garminUrl);
-      if (workoutDate) formData.append('workoutDate', new Date(workoutDate).toISOString());
+      if (workoutDate) formData.append('workoutDate', workoutDate);
       lapsFiles.forEach((f) => formData.append('lapsFile', f));
     } else if (fitFile) {
       formData.append('file', fitFile);
