@@ -11,7 +11,7 @@ export function middleware(request: NextRequest) {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="refresh" content="5;url=${REDIRECT_TO}">
+  <meta http-equiv="refresh" content="10;url=${REDIRECT_TO}">
   <title>Artie has moved!</title>
   <style>
     body { font-family: -apple-system, sans-serif; max-width: 480px; margin: 60px auto; padding: 24px; text-align: center; background: #f5f5f5; }
@@ -26,13 +26,14 @@ export function middleware(request: NextRequest) {
 </head>
 <body>
   <h1>🚀 Artie has a new home!</h1>
-  <p>We've moved to a faster, more reliable server. You'll be redirected automatically in 5 seconds.</p>
-  <a class="btn" href="${REDIRECT_TO}">Go to new Artie →</a>
+  <p>We've moved to a faster, more reliable server. You'll be redirected automatically in 10 seconds.</p>
+  <a class="btn" href="${REDIRECT_TO}">Go Now</a>
   <div class="steps">
-    <h2>📱 Re-add to your Home Screen:</h2>
+    <h2>📱 Update your Home Screen icon:</h2>
     <ol>
-      <li>Tap the button above to open the new site</li>
-      <li>Tap the <strong>Share</strong> button (box with arrow ↑) in Safari</li>
+      <li><strong>Delete</strong> the old Artie icon from your home screen</li>
+      <li>Tap <strong>Go Now</strong> above to open the new site in Safari</li>
+      <li>Tap the <strong>Share</strong> button (box with arrow ↑)</li>
       <li>Scroll down and tap <strong>"Add to Home Screen"</strong></li>
       <li>Tap <strong>Add</strong> — done!</li>
     </ol>
