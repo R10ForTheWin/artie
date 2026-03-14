@@ -116,7 +116,7 @@ export default function UploadForm() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!name || !hasMainInput) return;
+    if (!name || (mode === 'phone' ? !phoneReady : !hasMainInput)) return;
     setLoading(true);
     setError('');
     setResult(null);
@@ -361,7 +361,7 @@ export default function UploadForm() {
               Done
             </a>
             <button
-              onClick={() => { setResult(null); setOverviewFile(null); setLapsFiles([]); setFitFile(null); setGarminUrl(''); setWorkoutDate(''); setName(''); setLocation(''); }}
+              onClick={() => { setResult(null); setOverviewFile(null); setLapsFiles([]); setFitFile(null); setGarminUrl(''); setWorkoutDate(new Date().toLocaleDateString('en-CA')); setName(''); setLocation(''); }}
               className="w-full border-2 border-navy border-opacity-30 text-navy font-black uppercase tracking-wider py-3 rounded-lg hover:border-opacity-100 transition-colors"
             >
               Upload Another
