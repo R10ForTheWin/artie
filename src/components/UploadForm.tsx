@@ -226,6 +226,19 @@ export default function UploadForm() {
                       <input
                         type="text"
                         value={garminUrl}
+                        onPaste={(e) => {
+                          e.preventDefault();
+                          const uriList = e.clipboardData?.getData('text/uri-list') || '';
+                          const text = e.clipboardData?.getData('text/plain') || '';
+                          const garminRegex = /https:\/\/connect\.garmin\.com\/(?:modern|app)\/activity\/\d+/;
+                          const match = uriList.match(garminRegex) || text.match(garminRegex);
+                          if (match) {
+                            setGarminUrl(match[0]);
+                            setError('');
+                          } else {
+                            setGarminUrl(text);
+                          }
+                        }}
                         onChange={(e) => {
                           const val = e.target.value;
                           const urlMatch = val.match(/https:\/\/connect\.garmin\.com\/(?:modern|app)\/activity\/\d+/);
