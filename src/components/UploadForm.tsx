@@ -31,7 +31,19 @@ export default function UploadForm() {
     return new File([blob], `${name}.${ext}`, { type: mimeType });
   }
 
-  async function pasteFromClipboard(target: 'garminUrl' | 'laps') {
+  async function extractDateFromFile(file: File) {
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const res = await fetch('/api/extract-date', { method: 'POST', body: fd });
+      const data = await res.json();
+      if (data.date) setWorkoutDate(data.date);
+    } catch {
+      // silently ignore — user can set date manually
+    }
+  }
+
+  async function pasteFromClipboard(target: 'garminUrl' | 'overview' | 'laps') {
     try {
       const items = await navigator.clipboard.read();
       for (const item of items) {
@@ -47,13 +59,25 @@ export default function UploadForm() {
           return;
         }
         const imageType = item.types.find((t) => t.startsWith('image/'));
+        if (imageType && target === 'overview') {
+          const blob = await item.getType(imageType);
+          const file = imageFileFromBlob(blob, imageType, 'overview');
+          setOverviewFile(file);
+          extractDateFromFile(file);
+          return;
+        }
         if (imageType && target === 'laps') {
           const blob = await item.getType(imageType);
-          setLapsFiles((prev) => prev.length < 4 ? [...prev, imageFileFromBlob(blob, imageType, `laps-${prev.length + 1}`)] : prev);
+          setLapsFiles((prev) => {
+            if (prev.length >= 4) return prev;
+            const file = imageFileFromBlob(blob, imageType, `laps-${prev.length + 1}`);
+            if (prev.length === 0) extractDateFromFile(file);
+            return [...prev, file];
+          });
           return;
         }
       }
-      setError(target === 'laps' ? 'No image found in clipboard' : 'No Garmin Connect link found in clipboard');
+      setError(target === 'laps' ? 'No image found in clipboard' : target === 'overview' ? 'No image found in clipboard' : 'No Garmin Connect link found in clipboard');
     } catch {
       setError('Clipboard access denied — allow paste permission when prompted');
     }
@@ -72,7 +96,12 @@ export default function UploadForm() {
           const blob = item.getAsFile();
           if (blob) {
             const ext = item.type === 'image/png' ? 'png' : 'jpg';
-            setLapsFiles((prev) => prev.length < 4 ? [...prev, new File([blob], `laps-${prev.length + 1}.${ext}`, { type: item.type })] : prev);
+            setLapsFiles((prev) => {
+              if (prev.length >= 4) return prev;
+              const file = new File([blob], `laps-${prev.length + 1}.${ext}`, { type: item.type });
+              if (prev.length === 0) extractDateFromFile(file);
+              return [...prev, file];
+            });
           }
           break;
         }
@@ -83,7 +112,7 @@ export default function UploadForm() {
   }, []);
 
   const hasMainInput = !!(garminUrl || fitFile);
-  const phoneReady = !!(garminUrl && workoutDate);
+  const phoneReady = !!((garminUrl || overviewFile) && workoutDate);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -98,6 +127,9 @@ export default function UploadForm() {
     if (garminUrl) {
       formData.append('garminUrl', garminUrl);
       if (workoutDate) formData.append('workoutDate', workoutDate);
+      lapsFiles.forEach((f) => formData.append('lapsFile', f));
+    } else if (overviewFile) {
+      formData.append('file', overviewFile);
       lapsFiles.forEach((f) => formData.append('lapsFile', f));
     } else if (fitFile) {
       formData.append('file', fitFile);
@@ -140,7 +172,7 @@ export default function UploadForm() {
               {/* Back button */}
               <button
                 type="button"
-                onClick={() => { setMode(null); setOverviewFile(null); setLapsFiles([]); setFitFile(null); setGarminUrl(''); setWorkoutDate(''); setError(''); }}
+                onClick={() => { setMode(null); setOverviewFile(null); setLapsFiles([]); setFitFile(null); setGarminUrl(''); setWorkoutDate(new Date().toLocaleDateString('en-CA')); setError(''); }}
                 className="text-navy opacity-50 text-sm font-bold uppercase tracking-widest hover:opacity-100 transition-opacity"
               >
                 ← Back
@@ -177,16 +209,37 @@ export default function UploadForm() {
                     </select>
                   </div>
 
-                  {/* Garmin Connect URL */}
-                  <div>
-                    <input
-                      type="text"
-                      value={garminUrl}
-                      onChange={(e) => setGarminUrl(e.target.value)}
-                      placeholder="Paste Garmin weblink URL here"
-                      className="w-full bg-white border-2 border-navy text-navy rounded-lg px-4 py-3 font-semibold focus:outline-none focus:border-gold placeholder-navy placeholder-opacity-30"
-                    />
-                  </div>
+                  {/* Garmin Connect URL or Overview Screenshot */}
+                  {!overviewFile ? (
+                    <div className="space-y-2">
+                      <input
+                        type="text"
+                        value={garminUrl}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          const urlMatch = val.match(/https:\/\/connect\.garmin\.com\/(?:modern|app)\/activity\/\d+/);
+                          setGarminUrl(urlMatch ? urlMatch[0] : val);
+                        }}
+                        placeholder="Paste Garmin weblink URL here"
+                        className="w-full bg-white border-2 border-navy text-navy rounded-lg px-4 py-3 font-semibold focus:outline-none focus:border-gold placeholder-navy placeholder-opacity-30"
+                      />
+                      {!garminUrl && (
+                        <>
+                          <p className="text-center text-navy opacity-40 font-bold uppercase tracking-widest text-xs">or</p>
+                          <button type="button" onClick={() => pasteFromClipboard('overview')}
+                            className="w-full border-2 border-dashed border-navy border-opacity-30 text-navy font-black uppercase tracking-widest py-4 rounded-lg hover:border-gold hover:text-gold transition-colors text-sm">
+                            Paste Overview Screenshot
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between border-2 border-navy border-opacity-20 rounded-lg px-4 py-3 bg-white">
+                      <span className="text-navy font-semibold text-sm">Overview screenshot added</span>
+                      <button type="button" onClick={() => setOverviewFile(null)}
+                        className="text-navy opacity-40 hover:opacity-100 font-bold text-sm ml-4">✕</button>
+                    </div>
+                  )}
 
                   {/* Laps Screenshots */}
                   <div className="space-y-2">
@@ -268,7 +321,7 @@ export default function UploadForm() {
                 className="w-full bg-navy text-white font-black uppercase tracking-widest py-4 rounded-lg text-lg hover:bg-terracotta transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 {loading
-                  ? overviewFile ? 'Analyzing screenshot...' : 'Parsing...'
+                  ? (overviewFile && !garminUrl) ? 'Analyzing screenshot...' : 'Parsing...'
                   : 'Upload Data'}
               </button>
             </form>
