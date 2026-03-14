@@ -9,12 +9,12 @@ export default function HomePage() {
 
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-12">
         {/* Logo — bigger, no shadow */}
-        <div className="mb-6">
+        <div className="mb-4">
           <Image
             src="/logo-v3.png"
             alt="ARTIE"
-            width={560}
-            height={280}
+            width={280}
+            height={140}
             priority
           />
         </div>
