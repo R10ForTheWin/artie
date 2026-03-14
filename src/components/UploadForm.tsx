@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { TEAMMATES } from '@/lib/teammates';
 import { COURSES } from '@/lib/courses';
 import { formatDistance, formatDuration, formatSpeed } from '@/lib/formatters';
@@ -22,6 +22,11 @@ export default function UploadForm() {
   const [fitFile, setFitFile] = useState<File | null>(null);
   const [garminUrl, setGarminUrl] = useState('');
   const [workoutDate, setWorkoutDate] = useState(new Date().toLocaleDateString('en-CA'));
+  const garminUrlRef = useRef(garminUrl);
+  const overviewFileRef = useRef(overviewFile);
+  useEffect(() => { garminUrlRef.current = garminUrl; }, [garminUrl]);
+  useEffect(() => { overviewFileRef.current = overviewFile; }, [overviewFile]);
+
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<WorkoutResult | null>(null);
   const [error, setError] = useState('');
@@ -96,12 +101,18 @@ export default function UploadForm() {
           const blob = item.getAsFile();
           if (blob) {
             const ext = item.type === 'image/png' ? 'png' : 'jpg';
-            setLapsFiles((prev) => {
-              if (prev.length >= 4) return prev;
-              const file = new File([blob], `laps-${prev.length + 1}.${ext}`, { type: item.type });
-              if (prev.length === 0) extractDateFromFile(file);
-              return [...prev, file];
-            });
+            if (!garminUrlRef.current && !overviewFileRef.current) {
+              const file = new File([blob], `overview.${ext}`, { type: item.type });
+              setOverviewFile(file);
+              extractDateFromFile(file);
+            } else {
+              setLapsFiles((prev) => {
+                if (prev.length >= 4) return prev;
+                const file = new File([blob], `laps-${prev.length + 1}.${ext}`, { type: item.type });
+                if (prev.length === 0) extractDateFromFile(file);
+                return [...prev, file];
+              });
+            }
           }
           break;
         }
@@ -226,13 +237,10 @@ export default function UploadForm() {
                       {!garminUrl && (
                         <>
                           <p className="text-center text-navy opacity-40 font-bold uppercase tracking-widest text-xs">or</p>
-                          <label className="w-full border-2 border-dashed border-navy border-opacity-30 text-navy font-black uppercase tracking-widest py-4 rounded-lg hover:border-gold hover:text-gold transition-colors text-sm flex items-center justify-center cursor-pointer">
-                            Upload Overview Screenshot
-                            <input type="file" accept="image/*" className="hidden" onChange={(e) => {
-                              const f = e.target.files?.[0] ?? null;
-                              if (f) { setOverviewFile(f); extractDateFromFile(f); }
-                            }} />
-                          </label>
+                          <button type="button" onClick={() => pasteFromClipboard('overview')}
+                            className="w-full border-2 border-dashed border-navy border-opacity-30 text-navy font-black uppercase tracking-widest py-4 rounded-lg hover:border-gold hover:text-gold transition-colors text-sm">
+                            Paste Overview Screenshot
+                          </button>
                         </>
                       )}
                     </div>
