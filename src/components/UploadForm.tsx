@@ -226,10 +226,13 @@ export default function UploadForm() {
                       {!garminUrl && (
                         <>
                           <p className="text-center text-navy opacity-40 font-bold uppercase tracking-widest text-xs">or</p>
-                          <button type="button" onClick={() => pasteFromClipboard('overview')}
-                            className="w-full border-2 border-dashed border-navy border-opacity-30 text-navy font-black uppercase tracking-widest py-4 rounded-lg hover:border-gold hover:text-gold transition-colors text-sm">
-                            Paste Overview Screenshot
-                          </button>
+                          <label className="w-full border-2 border-dashed border-navy border-opacity-30 text-navy font-black uppercase tracking-widest py-4 rounded-lg hover:border-gold hover:text-gold transition-colors text-sm flex items-center justify-center cursor-pointer">
+                            Upload Overview Screenshot
+                            <input type="file" accept="image/*" className="hidden" onChange={(e) => {
+                              const f = e.target.files?.[0] ?? null;
+                              if (f) { setOverviewFile(f); extractDateFromFile(f); }
+                            }} />
+                          </label>
                         </>
                       )}
                     </div>
