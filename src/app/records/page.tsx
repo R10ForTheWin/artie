@@ -50,6 +50,18 @@ export default async function RecordsPage() {
   `);
   const topaz3 = topazResult.rows;
 
+  // Top 3 fastest Mothers Beach → Venice Pier & Back workouts by duration
+  const mdrResult = await pool.query<TopazRow>(`
+    SELECT id, name, workout_date, location, duration_s, distance_m
+    FROM workouts
+    WHERE LOWER(location) LIKE '%mdr%'
+      AND distance_m >= 8000
+      AND duration_s IS NOT NULL
+    ORDER BY duration_s ASC
+    LIMIT 3
+  `);
+  const mdr3 = mdrResult.rows;
+
   const medals = ['🥇', '🥈', '🥉'];
 
   return (
@@ -101,6 +113,35 @@ export default async function RecordsPage() {
           ) : (
             <div className="space-y-3">
               {topaz3.map((row, i) => (
+                <Link key={i} href={`/dashboard/workout/${row.id}`}
+                  className="flex items-center justify-between border-2 border-navy border-opacity-20 rounded-xl px-5 py-4 bg-white hover:border-gold transition-colors">
+                  <div className="flex items-center gap-4">
+                    <span className="text-2xl">{medals[i]}</span>
+                    <div>
+                      <p className="text-navy font-black uppercase tracking-wider text-sm">{row.name}</p>
+                      <p className="text-navy opacity-40 text-xs mt-0.5">
+                        {formatDate(row.workout_date)}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-gold font-black text-xl">{formatDuration(row.duration_s)}</p>
+                    <p className="text-navy opacity-50 text-xs mt-0.5">{(row.distance_m * 0.000621371).toFixed(2)} mi</p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
+        <div className="mt-10">
+          <h2 className="text-navy font-black uppercase tracking-widest text-sm mb-1 opacity-60">Fastest Mothers Beach → Venice Pier &amp; Back</h2>
+          <p className="text-navy opacity-30 text-xs mb-4">~6 mi</p>
+
+          {mdr3.length === 0 ? (
+            <p className="text-navy opacity-40 text-sm">No qualifying workouts yet — be the first!</p>
+          ) : (
+            <div className="space-y-3">
+              {mdr3.map((row, i) => (
                 <Link key={i} href={`/dashboard/workout/${row.id}`}
                   className="flex items-center justify-between border-2 border-navy border-opacity-20 rounded-xl px-5 py-4 bg-white hover:border-gold transition-colors">
                   <div className="flex items-center gap-4">

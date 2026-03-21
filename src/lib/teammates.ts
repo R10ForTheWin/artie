@@ -1,2 +1,2 @@
-export const TEAMMATES = ['DJ', 'Zack', 'Andy', 'Glick', 'Adams', 'Brent', 'Anthony', 'Zach Jirkovsky'] as const;
+export const TEAMMATES = ['DJ', 'Zach', 'Andy', 'Glick', 'Adams', 'Brent', 'Anthony', 'Zach'] as const;
 export type Teammate = typeof TEAMMATES[number];

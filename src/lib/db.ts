@@ -43,6 +43,7 @@ export async function initSchema() {
     ALTER TABLE races ADD COLUMN IF NOT EXISTS results JSONB;
 
     UPDATE workouts SET workout_date = REPLACE(workout_date, '2024', '2026') WHERE workout_date LIKE '%2024%';
+    UPDATE workouts SET name = 'Zach' WHERE name = 'Zack';
     UPDATE workouts SET workout_date = REPLACE(workout_date, '2026-01-09', '2026-03-07') WHERE workout_date LIKE '%2026-01-09%';
 
     INSERT INTO races (name, race_date, location, logo)
