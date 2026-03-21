@@ -22,7 +22,7 @@ interface Workout {
 
 export default async function DashboardPage() {
   await initSchema();
-  const workoutsResult = await pool.query('SELECT * FROM workouts ORDER BY distance_m DESC');
+  const workoutsResult = await pool.query('SELECT * FROM workouts ORDER BY name ASC, workout_date ASC');
   const workouts = workoutsResult.rows as Workout[];
 
   const CHART_START = '2026-03-01';
@@ -32,10 +32,9 @@ export default async function DashboardPage() {
       mileageMap[w.name] += formatDistanceMiles(w.distance_m);
     }
   }
-  const chartData = TEAMMATES.map((name) => ({
-    name,
-    miles: parseFloat(mileageMap[name].toFixed(2)),
-  }));
+  const chartData = TEAMMATES
+    .map((name) => ({ name, miles: parseFloat(mileageMap[name].toFixed(2)) }))
+    .sort((a, b) => a.name.localeCompare(b.name));
 
   const totalMiles = Object.values(mileageMap).reduce((a, b) => a + b, 0);
 
