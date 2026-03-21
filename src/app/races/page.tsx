@@ -19,6 +19,21 @@ export default async function RacesPage() {
   const result = await pool.query('SELECT * FROM races ORDER BY race_date ASC');
   const races = result.rows as Race[];
 
+  // Build map of { raceDate -> { name -> workoutId } } for past races
+  const pastDates = races.filter((r) => r.race_date < new Date().toISOString().slice(0, 10)).map((r) => r.race_date);
+  const workoutLinks: Record<string, Record<string, number>> = {};
+  if (pastDates.length > 0) {
+    const wResult = await pool.query(
+      'SELECT id, name, workout_date FROM workouts WHERE workout_date = ANY($1) AND distance_m >= 4828',
+      [pastDates]
+    );
+    for (const w of wResult.rows as { id: number; name: string; workout_date: string }[]) {
+      const date = w.workout_date.slice(0, 10);
+      if (!workoutLinks[date]) workoutLinks[date] = {};
+      workoutLinks[date][w.name] = w.id;
+    }
+  }
+
   return (
     <main className="min-h-screen bg-white flex flex-col">
       <StripeBar side="top" />
@@ -29,7 +44,7 @@ export default async function RacesPage() {
           </Link>
         </div>
         <h1 className="text-navy font-black uppercase tracking-widest text-3xl mb-6">Races</h1>
-        <RaceCountdowns races={races} />
+        <RaceCountdowns races={races} workoutLinks={workoutLinks} />
       </div>
       <StripeBar side="bottom" />
     </main>

@@ -60,7 +60,7 @@ export default function WorkoutTable({ workouts, raceDates = new Set() }: { work
         </thead>
         <tbody>
           {workouts.map((w, i) => {
-            const isRace = raceDates.has(w.workout_date.slice(0, 10));
+            const isRace = raceDates.has(w.workout_date.slice(0, 10)) && (w.distance_m ?? 0) >= 4828;
             const btnClass = isRace
               ? 'bg-terracotta text-white font-black uppercase tracking-wider px-2 py-1 rounded hover:opacity-80 transition-colors whitespace-nowrap'
               : 'bg-navy text-white font-black uppercase tracking-wider px-2 py-1 rounded hover:bg-terracotta transition-colors whitespace-nowrap';
