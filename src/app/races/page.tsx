@@ -11,6 +11,7 @@ interface Race {
   race_date: string;
   location: string | null;
   logo: string | null;
+  results: { place: number; name: string; time: string }[] | null;
 }
 
 export default async function RacesPage() {

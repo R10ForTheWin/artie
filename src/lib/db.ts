@@ -40,6 +40,7 @@ export async function initSchema() {
     ALTER TABLE workouts ADD COLUMN IF NOT EXISTS avg_temp_c REAL;
     ALTER TABLE workouts ADD COLUMN IF NOT EXISTS map_image_url TEXT;
     ALTER TABLE workouts ADD COLUMN IF NOT EXISTS map_svg TEXT;
+    ALTER TABLE races ADD COLUMN IF NOT EXISTS results JSONB;
 
     UPDATE workouts SET workout_date = REPLACE(workout_date, '2024', '2026') WHERE workout_date LIKE '%2024%';
     UPDATE workouts SET workout_date = REPLACE(workout_date, '2026-01-09', '2026-03-07') WHERE workout_date LIKE '%2026-01-09%';
@@ -71,6 +72,26 @@ export async function initSchema() {
     WHERE NOT EXISTS (SELECT 1 FROM races WHERE LOWER(name) = 'adler paddler');
 
     UPDATE races SET logo = '/logos/adler-paddler.png' WHERE LOWER(name) = 'adler paddler' AND (logo IS NULL OR logo = '');
+
+    UPDATE races SET results = '[
+      {"place": 1,  "name": "Zach Jirkovsky",  "time": "50:55"},
+      {"place": 2,  "name": "Andrew Mathison",  "time": "51:19"},
+      {"place": 3,  "name": "DJ Nurre",          "time": "52:42"},
+      {"place": 4,  "name": "Brent Blackman",    "time": "53:09"},
+      {"place": 5,  "name": "Dave Price",         "time": "55:16"},
+      {"place": 6,  "name": "Sean Reseigh",       "time": "55:45"},
+      {"place": 7,  "name": "Jacob Melendez",     "time": "56:09"},
+      {"place": 8,  "name": "Alex Merrill",       "time": "56:23"},
+      {"place": 9,  "name": "Brian Bayer",        "time": "57:07"},
+      {"place": 10, "name": "Gavin McNeal",       "time": "58:49"},
+      {"place": 11, "name": "Casey Annis",        "time": "59:04"},
+      {"place": 12, "name": "Matthew Ruane",      "time": "1:01:28"},
+      {"place": 13, "name": "Brian Gregoire",     "time": "1:09:01"},
+      {"place": 14, "name": "Beck Maxwell",       "time": "1:10:03"},
+      {"place": 15, "name": "Jeff Hooykaas",      "time": "1:12:57"},
+      {"place": 16, "name": "Jon Wood",           "time": "1:06:18"}
+    ]'::jsonb
+    WHERE LOWER(name) = 'adler paddler' AND results IS NULL;
 
     INSERT INTO races (name, race_date, location, logo)
     SELECT 'The Lifeguard Lap', '2026-04-11', 'Port San Luis, California', '/logos/lifeguard-lap.png'
