@@ -24,7 +24,7 @@ function oddMileAvg(splits: number[] | null): number | null {
 const th = 'px-2 py-2 text-left text-navy font-black uppercase tracking-wider text-xs opacity-70';
 const td = 'px-2 py-2 text-xs';
 
-export default function WorkoutTable({ workouts }: { workouts: Workout[] }) {
+export default function WorkoutTable({ workouts, raceDates = new Set() }: { workouts: Workout[]; raceDates?: Set<string> }) {
   const router = useRouter();
   if (workouts.length === 0) {
     return (
@@ -59,22 +59,29 @@ export default function WorkoutTable({ workouts }: { workouts: Workout[] }) {
           </tr>
         </thead>
         <tbody>
-          {workouts.map((w, i) => (
-            <tr key={w.id} onClick={() => router.push(`/dashboard/workout/${w.id}`)} className={`border-b border-navy border-opacity-10 cursor-pointer hover:bg-gold hover:bg-opacity-10 transition-colors ${i % 2 === 0 ? 'bg-white' : 'bg-cream-light'}`}>
-              <td className={`${td} text-navy font-bold`}>{w.name}</td>
-              <td className={`${td} text-navy opacity-70 whitespace-nowrap`}>{formatDate(w.workout_date)}</td>
-              <td className={`${td} text-gold font-bold whitespace-nowrap`}>{formatDistanceShort(w.distance_m)}</td>
-              <td className={`${td} sm:hidden`} onClick={(e) => e.stopPropagation()}>
-                <button onClick={() => router.push(`/dashboard/workout/${w.id}`)} className="bg-navy text-white font-black uppercase tracking-wider px-2 py-1 rounded hover:bg-terracotta transition-colors whitespace-nowrap" style={{fontSize: '9px'}}>Details</button>
-              </td>
-              <td className={`${td} text-navy opacity-70 whitespace-nowrap hidden sm:table-cell`}>{formatPace(w.avg_speed_ms ? 1609.344 / w.avg_speed_ms : null)}</td>
-              <td className={`${td} text-navy opacity-70 whitespace-nowrap hidden sm:table-cell`}>{formatPace(oddMileAvg(w.mile_splits))}</td>
-              <td className={`${td} text-navy opacity-60 italic hidden sm:table-cell max-w-[100px] truncate`}>{w.location || '—'}</td>
-              <td className={`${td} hidden sm:table-cell`} onClick={(e) => e.stopPropagation()}>
-                <button onClick={() => router.push(`/dashboard/workout/${w.id}`)} className="bg-navy text-white font-black uppercase tracking-wider px-2 py-1 rounded hover:bg-terracotta transition-colors whitespace-nowrap" style={{fontSize: '9px'}}>Details</button>
-              </td>
-            </tr>
-          ))}
+          {workouts.map((w, i) => {
+            const isRace = raceDates.has(w.workout_date.slice(0, 10));
+            const btnClass = isRace
+              ? 'bg-terracotta text-white font-black uppercase tracking-wider px-2 py-1 rounded hover:opacity-80 transition-colors whitespace-nowrap'
+              : 'bg-navy text-white font-black uppercase tracking-wider px-2 py-1 rounded hover:bg-terracotta transition-colors whitespace-nowrap';
+            const btnLabel = isRace ? 'Race Details' : 'Details';
+            return (
+              <tr key={w.id} onClick={() => router.push(`/dashboard/workout/${w.id}`)} className={`border-b border-navy border-opacity-10 cursor-pointer hover:bg-gold hover:bg-opacity-10 transition-colors ${i % 2 === 0 ? 'bg-white' : 'bg-cream-light'}`}>
+                <td className={`${td} text-navy font-bold`}>{w.name}</td>
+                <td className={`${td} text-navy opacity-70 whitespace-nowrap`}>{formatDate(w.workout_date)}</td>
+                <td className={`${td} text-gold font-bold whitespace-nowrap`}>{formatDistanceShort(w.distance_m)}</td>
+                <td className={`${td} sm:hidden`} onClick={(e) => e.stopPropagation()}>
+                  <button onClick={() => router.push(`/dashboard/workout/${w.id}`)} className={btnClass} style={{fontSize: '9px'}}>{btnLabel}</button>
+                </td>
+                <td className={`${td} text-navy opacity-70 whitespace-nowrap hidden sm:table-cell`}>{formatPace(w.avg_speed_ms ? 1609.344 / w.avg_speed_ms : null)}</td>
+                <td className={`${td} text-navy opacity-70 whitespace-nowrap hidden sm:table-cell`}>{formatPace(oddMileAvg(w.mile_splits))}</td>
+                <td className={`${td} text-navy opacity-60 italic hidden sm:table-cell max-w-[100px] truncate`}>{w.location || '—'}</td>
+                <td className={`${td} hidden sm:table-cell`} onClick={(e) => e.stopPropagation()}>
+                  <button onClick={() => router.push(`/dashboard/workout/${w.id}`)} className={btnClass} style={{fontSize: '9px'}}>{btnLabel}</button>
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>

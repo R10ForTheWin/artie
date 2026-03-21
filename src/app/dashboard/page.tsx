@@ -32,11 +32,12 @@ export default async function DashboardPage() {
       mileageMap[w.name] += formatDistanceMiles(w.distance_m);
     }
   }
-  const chartData = TEAMMATES
-    .map((name) => ({ name, miles: parseFloat(mileageMap[name].toFixed(2)) }))
-    .sort((a, b) => a.name.localeCompare(b.name));
+  const chartData = TEAMMATES.map((name) => ({ name, miles: parseFloat(mileageMap[name].toFixed(2)) }));
 
   const totalMiles = Object.values(mileageMap).reduce((a, b) => a + b, 0);
+
+  const racesResult = await pool.query('SELECT race_date FROM races');
+  const raceDates = new Set(racesResult.rows.map((r: { race_date: string }) => r.race_date));
 
   return (
     <main className="min-h-screen bg-white flex flex-col">
@@ -66,7 +67,7 @@ export default async function DashboardPage() {
         </div>
 
         {/* Workout Feed */}
-        <WorkoutTable workouts={workouts} />
+        <WorkoutTable workouts={workouts} raceDates={raceDates} />
 
       </div>
 
