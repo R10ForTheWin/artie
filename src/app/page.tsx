@@ -7,7 +7,7 @@ export default function HomePage() {
     <main className="min-h-screen bg-white flex flex-col">
       <StripeBar side="top" />
 
-      <div className="flex-1 flex flex-col items-center justify-center px-6 py-12">
+      <div className="flex-1 flex flex-col items-center justify-center px-6 py-12 -mt-4">
         {/* Logo — bigger, no shadow */}
         <div className="mb-4">
           <Image
