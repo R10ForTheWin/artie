@@ -19,8 +19,8 @@ export async function POST(req: NextRequest) {
   const body = await req.json();
 
   if (body.object_type === 'activity' && body.aspect_type === 'create') {
-    // Respond immediately — Strava requires < 2s response
-    setImmediate(async () => {
+    // Fire-and-forget — respond immediately, Strava requires < 2s
+    void Promise.resolve().then(async () => {
       try {
         await initSchema();
         await importStravaActivity(body.owner_id, body.object_id);
