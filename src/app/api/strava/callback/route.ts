@@ -6,7 +6,7 @@ export async function GET(req: NextRequest) {
   const code = req.nextUrl.searchParams.get('code');
   const name = req.nextUrl.searchParams.get('state');
   const error = req.nextUrl.searchParams.get('error');
-  const baseUrl = `${req.nextUrl.protocol}//${req.nextUrl.host}`;
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? `https://${req.nextUrl.host}`;
 
   if (error || !code || !name || !TEAMMATES.includes(name as typeof TEAMMATES[number])) {
     return NextResponse.redirect(`${baseUrl}/strava?error=auth_failed`);
