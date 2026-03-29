@@ -27,12 +27,17 @@ export default async function DashboardPage() {
 
   const CHART_START = '2026-03-01';
   const mileageMap = Object.fromEntries(TEAMMATES.map((t) => [t, 0]));
+  const lastDateMap = Object.fromEntries(TEAMMATES.map((t) => [t, '']));
   for (const w of workouts) {
-    if (w.name in mileageMap && w.distance_m && w.workout_date >= CHART_START) {
-      mileageMap[w.name] += formatDistanceMiles(w.distance_m);
+    if (w.name in mileageMap && w.distance_m) {
+      if (w.workout_date >= CHART_START) mileageMap[w.name] += formatDistanceMiles(w.distance_m);
+      if (w.workout_date > lastDateMap[w.name]) lastDateMap[w.name] = w.workout_date;
     }
   }
-  const chartData = TEAMMATES.map((name) => ({ name, miles: parseFloat(mileageMap[name].toFixed(2)) }));
+  const chartData = TEAMMATES
+    .map((name, i) => ({ name, miles: parseFloat(mileageMap[name].toFixed(2)), lastDate: lastDateMap[name], order: i }))
+    .sort((a, b) => b.lastDate.localeCompare(a.lastDate) || a.order - b.order)
+    .map(({ name, miles }) => ({ name, miles }));
 
   const totalMiles = Object.values(mileageMap).reduce((a, b) => a + b, 0);
 
@@ -49,12 +54,20 @@ export default async function DashboardPage() {
           <Link href="/" className="text-navy opacity-50 hover:opacity-100 text-sm font-bold uppercase tracking-wider">
             ← Home
           </Link>
-          <Link
-            href="/upload"
-            className="bg-navy text-white font-black uppercase tracking-wider text-sm px-5 py-2 rounded-lg hover:bg-terracotta transition-colors"
-          >
-            + Upload Garmin File
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/upload"
+              className="bg-navy text-white font-black uppercase tracking-wider text-sm px-5 py-2 rounded-lg hover:bg-terracotta transition-colors"
+            >
+              + Upload Garmin File
+            </Link>
+            <Link
+              href="/strava"
+              className="border-2 border-[#FC4C02] text-[#FC4C02] font-black uppercase tracking-wider text-sm px-5 py-2 rounded-lg hover:bg-[#FC4C02] hover:text-white transition-colors"
+            >
+              Strava Beta
+            </Link>
+          </div>
         </div>
 
         <p className="text-navy opacity-40 text-sm mb-6">

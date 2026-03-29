@@ -42,6 +42,16 @@ export async function initSchema() {
     ALTER TABLE workouts ADD COLUMN IF NOT EXISTS map_svg TEXT;
     ALTER TABLE races ADD COLUMN IF NOT EXISTS results JSONB;
 
+    CREATE TABLE IF NOT EXISTS strava_tokens (
+      id            SERIAL PRIMARY KEY,
+      name          TEXT NOT NULL UNIQUE,
+      athlete_id    BIGINT NOT NULL UNIQUE,
+      access_token  TEXT NOT NULL,
+      refresh_token TEXT NOT NULL,
+      expires_at    BIGINT NOT NULL,
+      created_at    TIMESTAMPTZ DEFAULT NOW()
+    );
+
     UPDATE workouts SET workout_date = REPLACE(workout_date, '2024', '2026') WHERE workout_date LIKE '%2024%';
     UPDATE workouts SET name = 'Zach' WHERE name = 'Zack';
     UPDATE workouts SET workout_date = REPLACE(workout_date, '2026-01-09', '2026-03-07') WHERE workout_date LIKE '%2026-01-09%';
@@ -93,6 +103,8 @@ export async function initSchema() {
       {"place": 16, "name": "Jon Wood",           "time": "1:06:18"}
     ]'::jsonb
     WHERE LOWER(name) = 'adler paddler' AND results IS NULL;
+
+    DELETE FROM races WHERE LOWER(name) LIKE '%lifeguard%' AND logo != '/logos/lifeguard-lap.png';
 
     INSERT INTO races (name, race_date, location, logo)
     SELECT 'The Lifeguard Lap', '2026-04-11', 'Port San Luis, California', '/logos/lifeguard-lap.png'

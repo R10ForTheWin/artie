@@ -295,33 +295,6 @@ export default function UploadForm() {
 
               {mode === 'computer' && (
                 <>
-                  {/* GPX instructions */}
-                  <div className="bg-cream-light border-2 border-navy border-opacity-10 rounded-xl px-5 py-4 space-y-4 text-navy text-sm">
-                    <div>
-                      <p className="font-black uppercase tracking-widest text-xs mb-2 opacity-60">From your phone</p>
-                      <ol className="space-y-1 opacity-70 list-decimal list-inside">
-                        <li>Open <strong>Safari</strong> (not the Garmin app) and go to <strong>connect.garmin.com</strong></li>
-                        <li>Log in and tap <strong>Activities</strong> to find the activity you want</li>
-                        <li>Tap the activity to open it</li>
-                        <li>Tap the <strong>gear icon</strong> (just above the distance data) → <strong>Export to GPX</strong></li>
-                        <li>When prompted, tap <strong>Download</strong></li>
-                        <li>Tap the <strong>blue arrow</strong> in the Safari address bar → tap <strong>Downloads</strong> → find and tap your activity file</li>
-                        <li>Tap the <strong>Share icon</strong> (box with arrow) in the bottom left → <strong>Save to Files</strong></li>
-                        <li>Come back to <strong>Artie</strong> and tap <strong>Choose File</strong> to upload it from your phone&apos;s files</li>
-                      </ol>
-                    </div>
-                    <div>
-                      <p className="font-black uppercase tracking-widest text-xs mb-2 opacity-60">From a laptop (way easier)</p>
-                      <ol className="space-y-1 opacity-70 list-decimal list-inside">
-                        <li>Go to <strong>connect.garmin.com</strong> and log in</li>
-                        <li>Click <strong>Activities</strong> and select the activity you want</li>
-                        <li>Click the <strong>gear icon</strong> → <strong>Export to GPX</strong></li>
-                        <li>The file will download to your computer</li>
-                        <li>Come back to <strong>Artie</strong> and click <strong>Choose File</strong> to upload it</li>
-                      </ol>
-                    </div>
-                  </div>
-
                   {/* Location */}
                   <div>
                     <select
@@ -358,6 +331,33 @@ export default function UploadForm() {
                       <input type="file" accept=".fit,.gpx" className="hidden"
                         onChange={(e) => { const f = e.target.files?.[0] ?? null; setFitFile(f); }} />
                     </label>
+                  </div>
+
+                  {/* GPX instructions */}
+                  <div className="bg-cream-light border-2 border-navy border-opacity-10 rounded-xl px-5 py-4 space-y-4 text-navy text-sm">
+                    <div>
+                      <p className="font-black uppercase tracking-widest text-xs mb-2 opacity-60">From your phone</p>
+                      <ol className="space-y-1 opacity-70 list-decimal list-inside">
+                        <li>Open <strong>Safari</strong> (not the Garmin app) and go to <strong>connect.garmin.com</strong></li>
+                        <li>Log in and tap <strong>Activities</strong> to find the activity you want</li>
+                        <li>Tap the activity to open it</li>
+                        <li>Tap the <strong>gear icon</strong> (just above the distance data) → <strong>Export to GPX</strong></li>
+                        <li>When prompted, tap <strong>Download</strong></li>
+                        <li>Tap the <strong>blue arrow</strong> in the Safari address bar → tap <strong>Downloads</strong> → find and tap your activity file</li>
+                        <li>Tap the <strong>Share icon</strong> (box with arrow) in the bottom left → <strong>Save to Files</strong></li>
+                        <li>Come back to <strong>Artie</strong> and tap <strong>Choose File</strong> to upload it from your phone&apos;s files</li>
+                      </ol>
+                    </div>
+                    <div>
+                      <p className="font-black uppercase tracking-widest text-xs mb-2 opacity-60">From a laptop (way easier)</p>
+                      <ol className="space-y-1 opacity-70 list-decimal list-inside">
+                        <li>Go to <strong>connect.garmin.com</strong> and log in</li>
+                        <li>Click <strong>Activities</strong> and select the activity you want</li>
+                        <li>Click the <strong>gear icon</strong> → <strong>Export to GPX</strong></li>
+                        <li>The file will download to your computer</li>
+                        <li>Come back to <strong>Artie</strong> and click <strong>Choose File</strong> to upload it</li>
+                      </ol>
+                    </div>
                   </div>
                 </>
               )}
