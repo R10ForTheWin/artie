@@ -1,4 +1,4 @@
-import { pool } from './db';
+import { pool, isCrossSourceDuplicate } from './db';
 
 const CLIENT_ID = process.env.STRAVA_CLIENT_ID!;
 const CLIENT_SECRET = process.env.STRAVA_CLIENT_SECRET!;
@@ -55,12 +55,15 @@ export async function importStravaActivity(athleteId: number, activityId: number
 
   if (!PADDLE_SPORTS.has(act.sport_type)) return 'skipped';
 
-  // Deduplicate
+  const workout_date = (act.start_date_local ?? act.start_date ?? new Date().toISOString()).split('T')[0];
+
+  // Deduplicate: same file (exact) or same person/date/distance (cross-source)
   const existing = await pool.query(
     'SELECT id FROM workouts WHERE name=$1 AND file_name=$2',
     [token.name, `strava-${activityId}`]
   );
   if (existing.rows.length > 0) return 'duplicate';
+  if (await isCrossSourceDuplicate(token.name, workout_date, act.distance ?? null)) return 'duplicate';
 
   // Fetch streams for mile splits
   let mile_splits: number[] | null = null;
@@ -90,8 +93,6 @@ export async function importStravaActivity(athleteId: number, activityId: number
       if (splits.length > 0) mile_splits = splits;
     }
   }
-
-  const workout_date = (act.start_date_local ?? act.start_date ?? new Date().toISOString()).split('T')[0];
 
   await pool.query(
     `INSERT INTO workouts (name, file_name, file_type, workout_date, duration_s, distance_m, avg_speed_ms, max_speed_ms, avg_hr, max_hr, calories, mile_splits)

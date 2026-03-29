@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { pool, initSchema } from '@/lib/db';
+import { pool, initSchema, isCrossSourceDuplicate } from '@/lib/db';
 import { parseWorkoutFile } from '@/lib/parsers';
 import { injectMapLocation } from '@/lib/parsers/gpxParser';
 import { parseLapsImage } from '@/lib/parsers/imageParser';
@@ -110,6 +110,9 @@ export async function POST(req: NextRequest) {
         }
 
         await initSchema();
+        if (await isCrossSourceDuplicate(name, parsed.workout_date.split('T')[0], parsed.distance_m ?? null)) {
+          return NextResponse.json({ error: 'A workout for this person on this date with a similar distance already exists.' }, { status: 409 });
+        }
         const result = await pool.query(
           `INSERT INTO workouts (name, file_name, file_type, workout_date, duration_s, distance_m, avg_speed_ms, max_speed_ms, avg_hr, max_hr, calories, location, mile_splits, map_image_url)
            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
@@ -178,6 +181,9 @@ export async function POST(req: NextRequest) {
     }
 
     await initSchema();
+    if (await isCrossSourceDuplicate(name, parsed.workout_date.split('T')[0], parsed.distance_m ?? null)) {
+      return NextResponse.json({ error: 'A workout for this person on this date with a similar distance already exists.' }, { status: 409 });
+    }
     const result = await pool.query(
       `INSERT INTO workouts (name, file_name, file_type, workout_date, duration_s, distance_m, avg_speed_ms, max_speed_ms, avg_hr, max_hr, calories, location, mile_splits, avg_temp_c, map_svg, mile_bearings)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)

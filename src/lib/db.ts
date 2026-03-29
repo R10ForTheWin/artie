@@ -5,6 +5,17 @@ export const pool = new Pool({
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
 });
 
+export async function isCrossSourceDuplicate(name: string, date: string, distance_m: number | null): Promise<boolean> {
+  if (!distance_m) return false;
+  const r = await pool.query(
+    `SELECT id FROM workouts
+     WHERE name = $1 AND workout_date = $2 AND distance_m IS NOT NULL
+       AND ABS(distance_m - $3) / GREATEST(distance_m, $3) < 0.05`,
+    [name, date, distance_m]
+  );
+  return r.rows.length > 0;
+}
+
 export async function initSchema() {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS workouts (
