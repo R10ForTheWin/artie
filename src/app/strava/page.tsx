@@ -15,6 +15,13 @@ export default async function StravaPage({
   const result = await pool.query('SELECT name FROM strava_tokens');
   const connected = new Set<string>(result.rows.map((r: { name: string }) => r.name));
 
+  const importsResult = await pool.query(
+    `SELECT name, file_name, workout_date, distance_m, created_at
+     FROM workouts WHERE file_name LIKE 'strava-%'
+     ORDER BY created_at DESC LIMIT 20`
+  );
+  const imports = importsResult.rows;
+
   return (
     <main className="min-h-screen bg-white flex flex-col">
       <StripeBar />
@@ -64,6 +71,35 @@ export default async function StravaPage({
           Beta — only StandUpPaddling, Surfing, Canoeing, Kayaking, and Rowing activities will be imported.
           Each teammate connects once; new workouts appear automatically after that.
         </p>
+
+        {/* Recent Strava imports */}
+        <div className="mt-10">
+          <h2 className="text-navy font-black uppercase tracking-widest text-sm mb-4">Recent Strava Imports</h2>
+          {imports.length === 0 ? (
+            <p className="text-navy opacity-30 text-sm">No Strava imports yet.</p>
+          ) : (
+            <div className="space-y-2">
+              {imports.map((row: { name: string; file_name: string; workout_date: string; distance_m: number | null; created_at: string }) => (
+                <div key={row.file_name} className="flex items-center justify-between border border-navy border-opacity-10 rounded-lg px-4 py-3 bg-white text-sm">
+                  <div>
+                    <span className="text-navy font-bold">{row.name}</span>
+                    <span className="text-navy opacity-40 mx-2">·</span>
+                    <span className="text-navy opacity-60">{row.workout_date}</span>
+                    {row.distance_m && (
+                      <>
+                        <span className="text-navy opacity-40 mx-2">·</span>
+                        <span className="text-gold font-bold">{(row.distance_m * 0.000621371).toFixed(2)} mi</span>
+                      </>
+                    )}
+                  </div>
+                  <span className="text-navy opacity-30 text-xs">
+                    {new Date(row.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       <StripeBar side="bottom" />
