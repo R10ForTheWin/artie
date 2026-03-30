@@ -67,9 +67,9 @@ export default async function DashboardPage() {
             </Link>
             <Link
               href="/strava"
-              className="border-2 border-[#FC4C02] text-[#FC4C02] font-black uppercase tracking-wider text-sm px-5 py-2 rounded-lg hover:bg-[#FC4C02] hover:text-white transition-colors"
+              className="bg-terracotta text-white font-black uppercase tracking-wider text-sm px-5 py-2 rounded-lg hover:bg-gold transition-colors"
             >
-              Strava Beta
+              Sync with Strava (Beta)
             </Link>
           </div>
         </div>
