@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { formatDate, formatDistanceShort, formatPace } from '@/lib/formatters';
 
@@ -21,11 +22,37 @@ function oddMileAvg(splits: number[] | null): number | null {
   return odd.reduce((a, b) => a + b, 0) / odd.length;
 }
 
+function monthLabel(key: string): string {
+  const [year, month] = key.split('-').map(Number);
+  return new Date(year, month - 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+}
+
 const th = 'px-2 py-2 text-left text-navy font-black uppercase tracking-wider text-xs opacity-70';
 const td = 'px-2 py-2 text-xs';
 
 export default function WorkoutTable({ workouts, raceDates = new Set() }: { workouts: Workout[]; raceDates?: Set<string> }) {
   const router = useRouter();
+
+  const currentMonth = new Date().toISOString().slice(0, 7);
+
+  // Group workouts by YYYY-MM, preserving order (newest first)
+  const groups: { key: string; rows: Workout[] }[] = [];
+  const seen = new Map<string, Workout[]>();
+  for (const w of workouts) {
+    const key = w.workout_date.slice(0, 7);
+    if (!seen.has(key)) {
+      seen.set(key, []);
+      groups.push({ key, rows: seen.get(key)! });
+    }
+    seen.get(key)!.push(w);
+  }
+
+  const [expanded, setExpanded] = useState<Record<string, boolean>>(
+    Object.fromEntries(groups.map(g => [g.key, g.key >= currentMonth]))
+  );
+
+  const toggle = (key: string) => setExpanded(prev => ({ ...prev, [key]: !prev[key] }));
+
   if (workouts.length === 0) {
     return (
       <div className="border-2 border-navy border-opacity-20 rounded-lg p-8 text-center text-navy opacity-40">
@@ -36,55 +63,96 @@ export default function WorkoutTable({ workouts, raceDates = new Set() }: { work
 
   return (
     <>
-    <div className="flex items-center gap-2 mb-2 sm:hidden text-navy opacity-40">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="4" y="2" width="10" height="16" rx="2"/>
-        <path d="M17 8l3 3-3 3"/>
-        <path d="M20 11H14"/>
-      </svg>
-      <span className="text-xs font-bold uppercase tracking-wider">Rotate for more data</span>
-    </div>
-    <div className="border-2 border-navy border-opacity-20 rounded-lg overflow-hidden" data-swipe-ignore>
-      <table className="w-full">
-        <thead>
-          <tr className="border-b-2 border-navy border-opacity-20 bg-cream-light">
-            <th className={th}>Athlete</th>
-            <th className={th}>Date</th>
-            <th className={th}>Dist</th>
-            <th className={`${th} sm:hidden`}></th>
-            <th className={`${th} hidden sm:table-cell`}>Pace</th>
-            <th className={`${th} hidden sm:table-cell`}>Odd Mi</th>
-            <th className={`${th} hidden sm:table-cell`}>Location</th>
-            <th className={`${th} hidden sm:table-cell`}></th>
-          </tr>
-        </thead>
-        <tbody>
-          {workouts.map((w, i) => {
-            const isRace = raceDates.has(w.workout_date.slice(0, 10)) && (w.distance_m ?? 0) >= 4828;
-            const btnClass = isRace
-              ? 'bg-terracotta text-white font-black uppercase tracking-wider px-2 py-1 rounded hover:opacity-80 transition-colors whitespace-nowrap'
-              : 'bg-navy text-white font-black uppercase tracking-wider px-2 py-1 rounded hover:bg-terracotta transition-colors whitespace-nowrap';
-            const btnLabel = isRace ? 'Race Details' : 'Details';
-            return (
-              <tr key={w.id} onClick={() => router.push(`/dashboard/workout/${w.id}`)} className={`border-b border-navy border-opacity-10 cursor-pointer hover:bg-gold hover:bg-opacity-10 transition-colors ${i % 2 === 0 ? 'bg-white' : 'bg-cream-light'}`}>
-                <td className={`${td} text-navy font-bold`}>{w.name}</td>
-                <td className={`${td} text-navy opacity-70 whitespace-nowrap`}>{formatDate(w.workout_date)}</td>
-                <td className={`${td} text-gold font-bold whitespace-nowrap`}>{formatDistanceShort(w.distance_m)}</td>
-                <td className={`${td} sm:hidden`} onClick={(e) => e.stopPropagation()}>
-                  <button onClick={() => router.push(`/dashboard/workout/${w.id}`)} className={btnClass} style={{fontSize: '9px'}}>{btnLabel}</button>
-                </td>
-                <td className={`${td} text-navy opacity-70 whitespace-nowrap hidden sm:table-cell`}>{formatPace(w.avg_speed_ms ? 1609.344 / w.avg_speed_ms : null)}</td>
-                <td className={`${td} text-navy opacity-70 whitespace-nowrap hidden sm:table-cell`}>{formatPace(oddMileAvg(w.mile_splits))}</td>
-                <td className={`${td} text-navy opacity-60 italic hidden sm:table-cell max-w-[100px] truncate`}>{w.location || '—'}</td>
-                <td className={`${td} hidden sm:table-cell`} onClick={(e) => e.stopPropagation()}>
-                  <button onClick={() => router.push(`/dashboard/workout/${w.id}`)} className={btnClass} style={{fontSize: '9px'}}>{btnLabel}</button>
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-    </div>
+      <div className="flex items-center gap-2 mb-2 sm:hidden text-navy opacity-40">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="4" y="2" width="10" height="16" rx="2"/>
+          <path d="M17 8l3 3-3 3"/>
+          <path d="M20 11H14"/>
+        </svg>
+        <span className="text-xs font-bold uppercase tracking-wider">Rotate for more data</span>
+      </div>
+
+      <div className="border-2 border-navy border-opacity-20 rounded-lg overflow-hidden" data-swipe-ignore>
+        <table className="w-full">
+          <thead>
+            <tr className="border-b-2 border-navy border-opacity-20 bg-cream-light">
+              <th className={th}>Athlete</th>
+              <th className={th}>Date</th>
+              <th className={th}>Dist</th>
+              <th className={`${th} sm:hidden`}></th>
+              <th className={`${th} hidden sm:table-cell`}>Pace</th>
+              <th className={`${th} hidden sm:table-cell`}>Odd Mi</th>
+              <th className={`${th} hidden sm:table-cell`}>Location</th>
+              <th className={`${th} hidden sm:table-cell`}></th>
+            </tr>
+          </thead>
+          <tbody>
+            {groups.map(({ key, rows }) => {
+              const isOpen = !!expanded[key];
+              const isPast = key < currentMonth;
+              return (
+                <>
+                  {/* Month header row */}
+                  <tr
+                    key={`header-${key}`}
+                    onClick={() => toggle(key)}
+                    className="cursor-pointer bg-navy bg-opacity-5 border-b border-navy border-opacity-10 hover:bg-opacity-10 transition-colors"
+                  >
+                    <td colSpan={8} className="px-3 py-2">
+                      <div className="flex items-center gap-2">
+                        <svg
+                          width="12" height="12" viewBox="0 0 24 24" fill="none"
+                          stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"
+                          className={`text-navy opacity-50 transition-transform ${isOpen ? 'rotate-90' : ''}`}
+                          style={{ flexShrink: 0 }}
+                        >
+                          <polyline points="9 18 15 12 9 6"/>
+                        </svg>
+                        <span className="text-navy font-black uppercase tracking-widest text-xs">
+                          {monthLabel(key)}
+                        </span>
+                        <span className="text-navy opacity-30 text-xs font-semibold">
+                          {rows.length} workout{rows.length !== 1 ? 's' : ''}
+                          {isPast && !isOpen ? '' : ''}
+                        </span>
+                      </div>
+                    </td>
+                  </tr>
+
+                  {/* Workout rows */}
+                  {isOpen && rows.map((w, i) => {
+                    const isRace = raceDates.has(w.workout_date.slice(0, 10)) && (w.distance_m ?? 0) >= 4828;
+                    const btnClass = isRace
+                      ? 'bg-terracotta text-white font-black uppercase tracking-wider px-2 py-1 rounded hover:opacity-80 transition-colors whitespace-nowrap'
+                      : 'bg-navy text-white font-black uppercase tracking-wider px-2 py-1 rounded hover:bg-terracotta transition-colors whitespace-nowrap';
+                    const btnLabel = isRace ? 'Race Details' : 'Details';
+                    return (
+                      <tr
+                        key={w.id}
+                        onClick={() => router.push(`/dashboard/workout/${w.id}`)}
+                        className={`border-b border-navy border-opacity-10 cursor-pointer hover:bg-gold hover:bg-opacity-10 transition-colors ${i % 2 === 0 ? 'bg-white' : 'bg-cream-light'}`}
+                      >
+                        <td className={`${td} text-navy font-bold`}>{w.name}</td>
+                        <td className={`${td} text-navy opacity-70 whitespace-nowrap`}>{formatDate(w.workout_date)}</td>
+                        <td className={`${td} text-gold font-bold whitespace-nowrap`}>{formatDistanceShort(w.distance_m)}</td>
+                        <td className={`${td} sm:hidden`} onClick={(e) => e.stopPropagation()}>
+                          <button onClick={() => router.push(`/dashboard/workout/${w.id}`)} className={btnClass} style={{fontSize: '9px'}}>{btnLabel}</button>
+                        </td>
+                        <td className={`${td} text-navy opacity-70 whitespace-nowrap hidden sm:table-cell`}>{formatPace(w.avg_speed_ms ? 1609.344 / w.avg_speed_ms : null)}</td>
+                        <td className={`${td} text-navy opacity-70 whitespace-nowrap hidden sm:table-cell`}>{formatPace(oddMileAvg(w.mile_splits))}</td>
+                        <td className={`${td} text-navy opacity-60 italic hidden sm:table-cell max-w-[100px] truncate`}>{w.location || '—'}</td>
+                        <td className={`${td} hidden sm:table-cell`} onClick={(e) => e.stopPropagation()}>
+                          <button onClick={() => router.push(`/dashboard/workout/${w.id}`)} className={btnClass} style={{fontSize: '9px'}}>{btnLabel}</button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
     </>
   );
 }
