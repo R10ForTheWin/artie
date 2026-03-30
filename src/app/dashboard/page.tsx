@@ -22,8 +22,12 @@ interface Workout {
 
 export default async function DashboardPage() {
   await initSchema();
-  const workoutsResult = await pool.query('SELECT * FROM workouts ORDER BY name ASC, workout_date ASC');
-  const workouts = workoutsResult.rows as Workout[];
+  const workoutsResult = await pool.query('SELECT * FROM workouts ORDER BY workout_date DESC');
+  const teammateOrder = Object.fromEntries(TEAMMATES.map((t, i) => [t, i]));
+  const workouts = (workoutsResult.rows as Workout[]).sort((a, b) => {
+    if (b.workout_date !== a.workout_date) return b.workout_date.localeCompare(a.workout_date);
+    return (teammateOrder[a.name] ?? 99) - (teammateOrder[b.name] ?? 99);
+  });
 
   const CHART_START = '2026-03-01';
   const mileageMap = Object.fromEntries(TEAMMATES.map((t) => [t, 0]));
