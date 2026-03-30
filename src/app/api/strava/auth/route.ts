@@ -7,7 +7,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid name' }, { status: 400 });
   }
 
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? `https://${req.nextUrl.host}`;
+  const baseUrl = 'https://artie-production-1b13.up.railway.app';
   const params = new URLSearchParams({
     client_id: process.env.STRAVA_CLIENT_ID!,
     redirect_uri: `${baseUrl}/api/strava/callback`,
