@@ -15,11 +15,9 @@ interface Workout {
   mile_splits: number[] | null;
 }
 
-function oddMileAvg(splits: number[] | null): number | null {
+function fastestMile(splits: number[] | null): number | null {
   if (!splits || splits.length === 0) return null;
-  const odd = splits.filter((_, i) => i % 2 === 0);
-  if (odd.length === 0) return null;
-  return odd.reduce((a, b) => a + b, 0) / odd.length;
+  return Math.min(...splits);
 }
 
 function monthLabel(key: string): string {
@@ -81,7 +79,7 @@ export default function WorkoutTable({ workouts, raceDates = new Set() }: { work
               <th className={th}>Dist</th>
               <th className={`${th} sm:hidden`}></th>
               <th className={`${th} hidden sm:table-cell`}>Pace</th>
-              <th className={`${th} hidden sm:table-cell`}>Odd Mi</th>
+              <th className={`${th} hidden sm:table-cell`}>Best Mi</th>
               <th className={`${th} hidden sm:table-cell`}>Location</th>
               <th className={`${th} hidden sm:table-cell`}></th>
             </tr>
@@ -139,7 +137,7 @@ export default function WorkoutTable({ workouts, raceDates = new Set() }: { work
                           <button onClick={() => router.push(`/dashboard/workout/${w.id}`)} className={btnClass} style={{fontSize: '9px'}}>{btnLabel}</button>
                         </td>
                         <td className={`${td} text-navy opacity-70 whitespace-nowrap hidden sm:table-cell`}>{formatPace(w.avg_speed_ms ? 1609.344 / w.avg_speed_ms : null)}</td>
-                        <td className={`${td} text-navy opacity-70 whitespace-nowrap hidden sm:table-cell`}>{formatPace(oddMileAvg(w.mile_splits))}</td>
+                        <td className={`${td} text-navy opacity-70 whitespace-nowrap hidden sm:table-cell`}>{formatPace(fastestMile(w.mile_splits))}</td>
                         <td className={`${td} text-navy opacity-60 italic hidden sm:table-cell max-w-[100px] truncate`}>{w.location || '—'}</td>
                         <td className={`${td} hidden sm:table-cell`} onClick={(e) => e.stopPropagation()}>
                           <button onClick={() => router.push(`/dashboard/workout/${w.id}`)} className={btnClass} style={{fontSize: '9px'}}>{btnLabel}</button>
