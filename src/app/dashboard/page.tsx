@@ -18,6 +18,8 @@ interface Workout {
   calories: number | null;
   location: string | null;
   mile_splits: number[] | null;
+  file_name: string;
+  file_type: string;
 }
 
 export default async function DashboardPage() {

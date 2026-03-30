@@ -13,6 +13,16 @@ interface Workout {
   avg_speed_ms: number | null;
   location: string | null;
   mile_splits: number[] | null;
+  file_name: string;
+  file_type: string;
+}
+
+function sourceLabel(file_name: string, file_type: string): { label: string; title: string } {
+  if (file_name.startsWith('strava-')) return { label: 'Strava', title: 'Imported from Strava' };
+  if (file_type === 'image') return { label: 'Photo', title: 'Uploaded from screenshot' };
+  if (file_type === 'gpx') return { label: 'GPX', title: 'Uploaded as GPX file' };
+  if (file_type === 'fit') return { label: 'FIT', title: 'Uploaded as FIT file' };
+  return { label: file_type.toUpperCase(), title: file_name };
 }
 
 function fastestMile(splits: number[] | null): number | null {
@@ -79,8 +89,9 @@ export default function WorkoutTable({ workouts, raceDates = new Set() }: { work
               <th className={th}>Dist</th>
               <th className={`${th} sm:hidden`}></th>
               <th className={`${th} hidden sm:table-cell`}>Pace</th>
-              <th className={`${th} hidden sm:table-cell`}>Best Mi</th>
+              <th className={`${th} hidden sm:table-cell`}>Fastest Mi</th>
               <th className={`${th} hidden sm:table-cell`}>Location</th>
+              <th className={`${th} hidden sm:table-cell`}>Source</th>
               <th className={`${th} hidden sm:table-cell`}></th>
             </tr>
           </thead>
@@ -96,7 +107,7 @@ export default function WorkoutTable({ workouts, raceDates = new Set() }: { work
                     onClick={() => toggle(key)}
                     className="cursor-pointer bg-navy bg-opacity-5 border-b border-navy border-opacity-10 hover:bg-opacity-10 transition-colors"
                   >
-                    <td colSpan={8} className="px-3 py-2">
+                    <td colSpan={9} className="px-3 py-2">
                       <div className="flex items-center gap-2">
                         <svg
                           width="12" height="12" viewBox="0 0 24 24" fill="none"
@@ -139,6 +150,9 @@ export default function WorkoutTable({ workouts, raceDates = new Set() }: { work
                         <td className={`${td} text-navy opacity-70 whitespace-nowrap hidden sm:table-cell`}>{formatPace(w.avg_speed_ms ? 1609.344 / w.avg_speed_ms : null)}</td>
                         <td className={`${td} text-navy opacity-70 whitespace-nowrap hidden sm:table-cell`}>{formatPace(fastestMile(w.mile_splits))}</td>
                         <td className={`${td} text-navy opacity-60 italic hidden sm:table-cell max-w-[100px] truncate`}>{w.location || '—'}</td>
+                        <td className={`${td} hidden sm:table-cell`} title={sourceLabel(w.file_name, w.file_type).title}>
+                          <span className="text-xs font-bold uppercase tracking-wide opacity-50">{sourceLabel(w.file_name, w.file_type).label}</span>
+                        </td>
                         <td className={`${td} hidden sm:table-cell`} onClick={(e) => e.stopPropagation()}>
                           <button onClick={() => router.push(`/dashboard/workout/${w.id}`)} className={btnClass} style={{fontSize: '9px'}}>{btnLabel}</button>
                         </td>
