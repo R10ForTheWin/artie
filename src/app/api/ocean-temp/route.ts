@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
 
 // Historical average water temps (°F) for Santa Monica Bay by month
+// Historical avg water temps (°F) for Manhattan Beach via seatemperature.org
 const MONTHLY_NORMS_F: Record<number, number> = {
-  1: 57, 2: 57, 3: 58, 4: 60, 5: 63, 6: 66,
-  7: 70, 8: 71, 9: 70, 10: 67, 11: 63, 12: 59,
+  1: 59, 2: 57, 3: 57, 4: 59, 5: 63, 6: 64,
+  7: 68, 8: 68, 9: 68, 10: 66, 11: 63, 12: 61,
 };
 
 export async function GET() {
