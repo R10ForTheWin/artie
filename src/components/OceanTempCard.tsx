@@ -87,7 +87,7 @@ export default function OceanTempCard() {
                   borderRadius: 8,
                   fontSize: 13,
                 }}
-                formatter={(value: number | undefined, name: string) => [
+                formatter={(value: number | undefined, name: string | undefined) => [
                   `${value ?? '—'}°F`,
                   name === 'temp_f' ? 'Actual' : 'Historical Avg',
                 ]}
