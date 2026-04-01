@@ -98,14 +98,13 @@ export default function WorkoutTable({ workouts, raceDates = new Set() }: { work
           <tbody>
             {groups.map(({ key, rows }) => {
               const isOpen = !!expanded[key];
-              const isPast = key < currentMonth;
               return (
                 <>
                   {/* Month header row */}
                   <tr
                     key={`header-${key}`}
                     onClick={() => toggle(key)}
-                    className={`cursor-pointer border-b-2 border-navy border-opacity-20 hover:bg-opacity-100 transition-colors ${isOpen ? 'bg-navy bg-opacity-5' : 'bg-navy bg-opacity-10'}`}
+                    className={`cursor-pointer border-b-2 border-navy border-opacity-20 transition-colors ${isOpen ? 'bg-navy bg-opacity-5 hover:bg-opacity-10' : 'bg-navy bg-opacity-10 hover:bg-opacity-20'}`}
                   >
                     <td colSpan={9} className="px-4 py-3">
                       <div className="flex items-center justify-between">
