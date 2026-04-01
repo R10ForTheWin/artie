@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import StripeBar from '@/components/StripeBar';
-import OceanTempCard from '@/components/OceanTempCard';
 
 export default function PhotosPage() {
   return (
@@ -39,9 +38,6 @@ export default function PhotosPage() {
           </ol>
         </div>
 
-        <div className="mt-4">
-          <OceanTempCard />
-        </div>
       </div>
       <StripeBar side="bottom" />
     </main>

@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import StripeBar from '@/components/StripeBar';
+import OceanTempCard from '@/components/OceanTempCard';
 
 export default function HomePage() {
   return (
@@ -45,6 +46,10 @@ export default function HomePage() {
           >
             Photos
           </Link>
+        </div>
+
+        <div className="w-full max-w-xs mt-3">
+          <OceanTempCard />
         </div>
       </div>
 
