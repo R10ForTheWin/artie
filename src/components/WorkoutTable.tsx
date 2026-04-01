@@ -105,24 +105,25 @@ export default function WorkoutTable({ workouts, raceDates = new Set() }: { work
                   <tr
                     key={`header-${key}`}
                     onClick={() => toggle(key)}
-                    className="cursor-pointer bg-navy bg-opacity-5 border-b border-navy border-opacity-10 hover:bg-opacity-10 transition-colors"
+                    className={`cursor-pointer border-b-2 border-navy border-opacity-20 hover:bg-opacity-100 transition-colors ${isOpen ? 'bg-navy bg-opacity-5' : 'bg-navy bg-opacity-10'}`}
                   >
-                    <td colSpan={9} className="px-3 py-2">
-                      <div className="flex items-center gap-2">
-                        <svg
-                          width="12" height="12" viewBox="0 0 24 24" fill="none"
-                          stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"
-                          className={`text-navy opacity-50 transition-transform ${isOpen ? 'rotate-90' : ''}`}
-                          style={{ flexShrink: 0 }}
-                        >
-                          <polyline points="9 18 15 12 9 6"/>
-                        </svg>
-                        <span className="text-navy font-black uppercase tracking-widest text-xs">
-                          {monthLabel(key)}
-                        </span>
-                        <span className="text-navy opacity-30 text-xs font-semibold">
+                    <td colSpan={9} className="px-4 py-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <svg
+                            width="14" height="14" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"
+                            className={`text-navy opacity-60 transition-transform ${isOpen ? 'rotate-90' : ''}`}
+                            style={{ flexShrink: 0 }}
+                          >
+                            <polyline points="9 18 15 12 9 6"/>
+                          </svg>
+                          <span className="text-navy font-black uppercase tracking-widest text-sm">
+                            {monthLabel(key)}
+                          </span>
+                        </div>
+                        <span className="text-navy opacity-40 text-xs font-semibold">
                           {rows.length} workout{rows.length !== 1 ? 's' : ''}
-                          {isPast && !isOpen ? '' : ''}
                         </span>
                       </div>
                     </td>
