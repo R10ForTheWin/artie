@@ -115,7 +115,7 @@ export async function initSchema() {
     ]'::jsonb
     WHERE LOWER(name) = 'adler paddler' AND results IS NULL;
 
-    DELETE FROM races WHERE LOWER(name) LIKE '%lifeguard%' AND logo != '/logos/lifeguard-lap.png';
+    DELETE FROM races WHERE LOWER(name) LIKE '%lifeguard%' AND id NOT IN (SELECT MIN(id) FROM races WHERE LOWER(name) LIKE '%lifeguard%');
 
     INSERT INTO races (name, race_date, location, logo)
     SELECT 'The Lifeguard Lap', '2026-04-11', 'Port San Luis, California', '/logos/lifeguard-lap.png'

@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import StripeBar from '@/components/StripeBar';
+import OceanTempCard from '@/components/OceanTempCard';
 
 export default function PhotosPage() {
   return (
@@ -36,6 +37,10 @@ export default function PhotosPage() {
             <li>Select "Add to Shared Album"</li>
             <li>Choose the Team Topaz album</li>
           </ol>
+        </div>
+
+        <div className="mt-4">
+          <OceanTempCard />
         </div>
       </div>
       <StripeBar side="bottom" />

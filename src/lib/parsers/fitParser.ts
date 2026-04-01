@@ -20,6 +20,26 @@ export function parseFit(buffer: Buffer): Promise<ParsedWorkout> {
 
       const startTime: Date | undefined = session.start_time;
 
+      // Extract mile splits from auto-lap data (if device is set to 1-mile laps)
+      const MILE_M = 1609.344;
+      const TOLERANCE = 0.15;
+      const laps: any[] = session.laps ?? [];
+      let mile_splits: number[] | null = null;
+      if (laps.length >= 2) {
+        const fullMileLaps = laps.filter((lap: any) => {
+          const dist = lap.total_distance;
+          return dist >= MILE_M * (1 - TOLERANCE) && dist <= MILE_M * (1 + TOLERANCE);
+        });
+        const allButLast = laps.slice(0, -1);
+        const allButLastAreMiles = allButLast.every((lap: any) => {
+          const dist = lap.total_distance;
+          return dist >= MILE_M * (1 - TOLERANCE) && dist <= MILE_M * (1 + TOLERANCE);
+        });
+        if (allButLastAreMiles && fullMileLaps.length >= 1) {
+          mile_splits = fullMileLaps.map((lap: any) => lap.total_elapsed_time as number);
+        }
+      }
+
       resolve({
         workout_date: startTime?.toISOString() ?? new Date().toISOString(),
         duration_s:   session.total_elapsed_time  ?? null,
@@ -29,6 +49,7 @@ export function parseFit(buffer: Buffer): Promise<ParsedWorkout> {
         avg_hr:       session.avg_heart_rate       ?? null,
         max_hr:       session.max_heart_rate       ?? null,
         calories:     session.total_calories       ?? null,
+        mile_splits:  mile_splits,
       });
     });
   });

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { pool, initSchema } from '@/lib/db';
+import { backfillSplitsFromStrava } from '@/lib/strava';
 import { TEAMMATES } from '@/lib/teammates';
 
 export async function GET(req: NextRequest) {
@@ -33,6 +34,9 @@ export async function GET(req: NextRequest) {
      ON CONFLICT (name) DO UPDATE SET athlete_id=$2, access_token=$3, refresh_token=$4, expires_at=$5`,
     [name, data.athlete.id, data.access_token, data.refresh_token, data.expires_at]
   );
+
+  // Backfill mile splits for existing workouts that have a matching Strava activity
+  backfillSplitsFromStrava(name).catch((err) => console.error('[strava] backfill error:', err));
 
   return NextResponse.redirect(`${baseUrl}/strava?connected=${encodeURIComponent(name)}`);
 }
