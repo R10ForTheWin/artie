@@ -115,13 +115,14 @@ export async function initSchema() {
     ]'::jsonb
     WHERE LOWER(name) = 'adler paddler' AND results IS NULL;
 
-    DELETE FROM races WHERE LOWER(name) LIKE '%lifeguard%' AND id NOT IN (SELECT MIN(id) FROM races WHERE LOWER(name) LIKE '%lifeguard%');
+    DELETE FROM races WHERE LOWER(name) LIKE '%lifeguard%' AND LOWER(name) != 'the lifeguard lap';
 
     INSERT INTO races (name, race_date, location, logo)
     SELECT 'The Lifeguard Lap', '2026-04-11', 'Port San Luis, California', '/logos/lifeguard-lap.png'
     WHERE NOT EXISTS (SELECT 1 FROM races WHERE LOWER(name) = 'the lifeguard lap');
 
-    UPDATE races SET logo = '/logos/lifeguard-lap.png' WHERE LOWER(name) = 'the lifeguard lap' AND (logo IS NULL OR logo = '');
+    UPDATE races SET logo = '/logos/lifeguard-lap.png', race_date = '2026-04-11', location = 'Port San Luis, California'
+    WHERE LOWER(name) = 'the lifeguard lap';
 
     INSERT INTO races (name, race_date, location, logo)
     SELECT 'El Morro Classic', '2026-05-30', null, '/logos/el-morro-classic.png'

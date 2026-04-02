@@ -104,7 +104,7 @@ export default function WorkoutTable({ workouts, raceDates = new Set() }: { work
                   <tr
                     key={`header-${key}`}
                     onClick={() => toggle(key)}
-                    className={`cursor-pointer border-b-2 border-navy border-opacity-20 transition-colors ${isOpen ? 'bg-navy bg-opacity-5 hover:bg-opacity-10' : 'bg-navy bg-opacity-10 hover:bg-opacity-20'}`}
+                    className={`cursor-pointer border-b-2 border-navy/20 transition-colors ${isOpen ? 'bg-navy/5 hover:bg-navy/10' : 'bg-navy/10 hover:bg-navy/20'}`}
                   >
                     <td colSpan={9} className="px-4 py-3">
                       <div className="flex items-center justify-between">
