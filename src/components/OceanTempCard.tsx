@@ -23,10 +23,14 @@ function formatLabel(dateStr: string) {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
+const RANGES = [7, 14, 30, 45] as const;
+type Range = typeof RANGES[number];
+
 export default function OceanTempCard() {
   const [data, setData] = useState<OceanTempData | null>(null);
   const [expanded, setExpanded] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [range, setRange] = useState<Range>(14);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -37,7 +41,8 @@ export default function OceanTempCard() {
     return () => controller.abort();
   }, []);
 
-  const chartData = data?.history?.map((d) => ({ ...d, label: formatLabel(d.date) })) ?? [];
+  const allData = data?.history?.map((d) => ({ ...d, label: formatLabel(d.date) })) ?? [];
+  const chartData = allData.slice(-range);
   const tickInterval = Math.max(1, Math.floor(chartData.length / 6));
 
   return (
@@ -65,6 +70,21 @@ export default function OceanTempCard() {
 
       {expanded && chartData.length > 0 && (
         <div className="mt-6">
+          <div className="flex gap-1 mb-4 justify-end">
+            {RANGES.map((r) => (
+              <button
+                key={r}
+                onClick={() => setRange(r)}
+                className={`px-2.5 py-1 rounded text-xs font-black uppercase tracking-wider transition-colors ${
+                  range === r
+                    ? 'bg-navy text-white'
+                    : 'bg-navy/10 text-navy hover:bg-navy/20'
+                }`}
+              >
+                {r === 45 ? 'MAX' : `${r}D`}
+              </button>
+            ))}
+          </div>
           <ResponsiveContainer width="100%" height={200}>
             <LineChart data={chartData} margin={{ top: 4, right: 16, left: 0, bottom: 0 }}>
               <XAxis

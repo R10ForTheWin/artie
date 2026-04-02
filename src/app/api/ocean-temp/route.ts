@@ -31,7 +31,7 @@ export async function GET() {
       dayMap.get(dateStr)!.push(val);
     }
 
-    const sortedDates = Array.from(dayMap.keys()).sort().slice(-14);
+    const sortedDates = Array.from(dayMap.keys()).sort().slice(-45);
 
     const history = sortedDates.map((date) => {
       const readings = dayMap.get(date)!;
