@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 
-// Historical average water temps (°F) for Santa Monica Bay by month
 // Historical avg water temps (°F) for Manhattan Beach via seatemperature.org
 const MONTHLY_NORMS_F: Record<number, number> = {
   1: 59, 2: 57, 3: 57, 4: 59, 5: 63, 6: 64,
@@ -25,10 +24,11 @@ export async function GET() {
       if (parts.length < 15) continue;
       const yr = parts[0], mo = parts[1], dy = parts[2];
       const wtmp = parts[14];
-      if (wtmp === 'MM' || isNaN(parseFloat(wtmp))) continue;
+      const val = parseFloat(wtmp);
+      if (wtmp === 'MM' || isNaN(val)) continue;
       const dateStr = `${yr}-${mo.padStart(2, '0')}-${dy.padStart(2, '0')}`;
       if (!dayMap.has(dateStr)) dayMap.set(dateStr, []);
-      dayMap.get(dateStr)!.push(parseFloat(wtmp));
+      dayMap.get(dateStr)!.push(val);
     }
 
     const sortedDates = Array.from(dayMap.keys()).sort().slice(-14);

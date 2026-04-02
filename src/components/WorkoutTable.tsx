@@ -112,8 +112,7 @@ export default function WorkoutTable({ workouts, raceDates = new Set() }: { work
                           <svg
                             width="14" height="14" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"
-                            className={`text-navy opacity-60 transition-transform ${isOpen ? 'rotate-90' : ''}`}
-                            style={{ flexShrink: 0 }}
+                            className={`shrink-0 text-navy opacity-60 transition-transform ${isOpen ? 'rotate-90' : ''}`}
                           >
                             <polyline points="9 18 15 12 9 6"/>
                           </svg>
@@ -135,6 +134,7 @@ export default function WorkoutTable({ workouts, raceDates = new Set() }: { work
                       ? 'bg-terracotta text-white font-black uppercase tracking-wider px-2 py-1 rounded hover:opacity-80 transition-colors whitespace-nowrap'
                       : 'bg-navy text-white font-black uppercase tracking-wider px-2 py-1 rounded hover:bg-terracotta transition-colors whitespace-nowrap';
                     const btnLabel = isRace ? 'Race Details' : 'Details';
+                    const source = sourceLabel(w.file_name, w.file_type);
                     return (
                       <tr
                         key={w.id}
@@ -150,8 +150,8 @@ export default function WorkoutTable({ workouts, raceDates = new Set() }: { work
                         <td className={`${td} text-navy opacity-70 whitespace-nowrap hidden sm:table-cell`}>{formatPace(w.avg_speed_ms ? 1609.344 / w.avg_speed_ms : null)}</td>
                         <td className={`${td} text-navy opacity-70 whitespace-nowrap hidden sm:table-cell`}>{formatPace(fastestMile(w.mile_splits))}</td>
                         <td className={`${td} text-navy opacity-60 italic hidden sm:table-cell max-w-[100px] truncate`}>{w.location || '—'}</td>
-                        <td className={`${td} hidden sm:table-cell`} title={sourceLabel(w.file_name, w.file_type).title}>
-                          <span className="text-xs font-bold uppercase tracking-wide opacity-50">{sourceLabel(w.file_name, w.file_type).label}</span>
+                        <td className={`${td} hidden sm:table-cell`} title={source.title}>
+                          <span className="text-xs font-bold uppercase tracking-wide opacity-50">{source.label}</span>
                         </td>
                         <td className={`${td} hidden sm:table-cell`} onClick={(e) => e.stopPropagation()}>
                           <button onClick={() => router.push(`/dashboard/workout/${w.id}`)} className={btnClass} style={{fontSize: '9px'}}>{btnLabel}</button>

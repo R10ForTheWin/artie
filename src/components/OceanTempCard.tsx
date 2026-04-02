@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import {
   LineChart, Line, XAxis, YAxis, Tooltip,
-  ResponsiveContainer, Legend,
+  ResponsiveContainer,
 } from 'recharts';
 
 interface DayEntry {
@@ -29,17 +29,19 @@ export default function OceanTempCard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/ocean-temp')
+    const controller = new AbortController();
+    fetch('/api/ocean-temp', { signal: controller.signal })
       .then((r) => r.json())
       .then((d) => { setData(d); setLoading(false); })
-      .catch(() => setLoading(false));
+      .catch((e) => { if (e.name !== 'AbortError') setLoading(false); });
+    return () => controller.abort();
   }, []);
 
   const chartData = data?.history?.map((d) => ({ ...d, label: formatLabel(d.date) })) ?? [];
   const tickInterval = Math.max(1, Math.floor(chartData.length / 6));
 
   return (
-    <div className="border-2 border-navy border-opacity-20 rounded-xl p-6 bg-white">
+    <div className="border-2 border-navy/20 rounded-xl p-6 bg-white">
       <div className="flex items-center justify-between gap-4">
         <div>
           <p className="text-navy font-bold">Current Ocean Temp</p>
