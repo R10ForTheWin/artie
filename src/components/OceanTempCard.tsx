@@ -23,14 +23,15 @@ function formatLabel(dateStr: string) {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-const RANGES = [7, 14, 30, 45] as const;
+const RANGES = [7, 30, 90, 180, 365] as const;
 type Range = typeof RANGES[number];
+const RANGE_LABELS: Record<Range, string> = { 7: '7D', 30: '1M', 90: '3M', 180: '6M', 365: '1Y' };
 
 export default function OceanTempCard() {
   const [data, setData] = useState<OceanTempData | null>(null);
   const [expanded, setExpanded] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [range, setRange] = useState<Range>(14);
+  const [range, setRange] = useState<Range>(30);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -81,7 +82,7 @@ export default function OceanTempCard() {
                     : 'bg-navy/10 text-navy hover:bg-navy/20'
                 }`}
               >
-                {r === 45 ? 'MAX' : `${r}D`}
+                {RANGE_LABELS[r]}
               </button>
             ))}
           </div>
