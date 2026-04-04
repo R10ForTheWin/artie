@@ -4,6 +4,7 @@ import { formatDate, formatDistance, formatDuration, formatSpeed, formatPace } f
 import StripeBar from '@/components/StripeBar';
 import WorkoutEditForm from '@/components/WorkoutEditForm';
 import RouteMap from '@/components/RouteMap';
+import CalorieCard from '@/components/CalorieCard';
 import { notFound } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
@@ -15,6 +16,7 @@ interface Workout {
   distance_m: number | null;
   duration_s: number | null;
   avg_speed_ms: number | null;
+  avg_hr: number | null;
   location: string | null;
   mile_splits: number[] | null;
   mile_bearings: number[] | null;
@@ -27,9 +29,15 @@ export default async function WorkoutDetailPage({ params, searchParams }: { para
   const { mile } = await searchParams;
   const highlightMile = mile ? parseInt(mile, 10) : undefined;
   await initSchema();
-  const result = await pool.query('SELECT * FROM workouts WHERE id = $1', [id]);
+  const [result, hrResult] = await Promise.all([
+    pool.query('SELECT * FROM workouts WHERE id = $1', [id]),
+    pool.query(
+      'SELECT avg_hr, avg_speed_ms, duration_s FROM workouts WHERE avg_hr IS NOT NULL AND avg_speed_ms IS NOT NULL AND duration_s IS NOT NULL ORDER BY workout_date DESC LIMIT 30'
+    ),
+  ]);
   if (result.rows.length === 0) notFound();
   const w = result.rows[0] as Workout;
+  const hrWorkouts = hrResult.rows as { avg_hr: number; avg_speed_ms: number; duration_s: number }[];
 
   function bearingToCompass(deg: number): string {
     const dirs = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
@@ -87,6 +95,17 @@ export default async function WorkoutDetailPage({ params, searchParams }: { para
               <p className="text-gold font-bold text-xl">{value}</p>
             </div>
           ))}
+          <div className="col-span-2">
+            <CalorieCard
+              avg_speed_ms={w.avg_speed_ms}
+              duration_s={w.duration_s}
+              distance_m={w.distance_m}
+              avg_hr={w.avg_hr}
+              location={w.location}
+              workout_date={w.workout_date}
+              hrWorkouts={hrWorkouts}
+            />
+          </div>
         </div>
 
         {/* Mile splits */}
