@@ -38,6 +38,8 @@ export default async function WorkoutDetailPage({ params, searchParams }: { para
   if (result.rows.length === 0) notFound();
   const w = result.rows[0] as Workout;
   const hrWorkouts = hrResult.rows as { avg_hr: number; avg_speed_ms: number; duration_s: number }[];
+  const profileResult = await pool.query('SELECT weight_lbs, age FROM profiles WHERE name = $1', [w.name]);
+  const athleteProfile = profileResult.rows[0] as { weight_lbs: number; age: number | null } | undefined;
 
   function bearingToCompass(deg: number): string {
     const dirs = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
@@ -104,6 +106,7 @@ export default async function WorkoutDetailPage({ params, searchParams }: { para
               location={w.location}
               workout_date={w.workout_date}
               hrWorkouts={hrWorkouts}
+              athleteProfile={athleteProfile ?? null}
             />
           </div>
         </div>

@@ -133,5 +133,14 @@ export async function initSchema() {
     INSERT INTO races (name, race_date, location, logo)
     SELECT 'Rock 2 Rock Paddleboard Race', '2026-07-12', 'Two Harbors, Catalina Island to Cabrillo State Beach, San Pedro, CA', '/logos/rock2rock.png'
     WHERE NOT EXISTS (SELECT 1 FROM races WHERE LOWER(name) = 'rock 2 rock paddleboard race');
+
+    CREATE TABLE IF NOT EXISTS profiles (
+      name        TEXT PRIMARY KEY,
+      weight_lbs  REAL,
+      age         INTEGER
+    );
+
+    INSERT INTO profiles (name, weight_lbs) VALUES ('Dallas', 130)
+    ON CONFLICT (name) DO NOTHING;
   `);
 }

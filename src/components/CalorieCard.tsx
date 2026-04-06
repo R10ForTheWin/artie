@@ -16,6 +16,7 @@ interface Props {
   location: string | null;
   workout_date: string;
   hrWorkouts: HRWorkout[];
+  athleteProfile: { weight_lbs: number; age: number | null } | null;
 }
 
 interface UserProfile {
@@ -147,7 +148,7 @@ function ProfileModal({
   );
 }
 
-export default function CalorieCard({ avg_speed_ms, duration_s, distance_m, avg_hr, location, workout_date, hrWorkouts }: Props) {
+export default function CalorieCard({ avg_speed_ms, duration_s, distance_m, avg_hr, location, workout_date, hrWorkouts, athleteProfile }: Props) {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [profileLoaded, setProfileLoaded] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -182,7 +183,12 @@ export default function CalorieCard({ avg_speed_ms, duration_s, distance_m, avg_
     setAgeInput('');
   }
 
-  if (!profileLoaded) return null;
+  if (!profileLoaded && !athleteProfile) return null;
+
+  // Athlete DB profile takes precedence over localStorage viewer profile
+  const activeProfile = athleteProfile
+    ? { weight_lbs: athleteProfile.weight_lbs, age: athleteProfile.age ?? 40 }
+    : profile;
 
   // Derive speed and duration, tracking whether we fell back to estimates
   let speedMph: number;
@@ -206,7 +212,7 @@ export default function CalorieCard({ avg_speed_ms, duration_s, distance_m, avg_
     durationMin = 0;
   }
 
-  if (!profile) {
+  if (!activeProfile) {
     return (
       <>
         {showModal && (
@@ -235,7 +241,7 @@ export default function CalorieCard({ avg_speed_ms, duration_s, distance_m, avg_
 
   if (durationMin === 0) return null;
 
-  const weight_kg = profile.weight_lbs / 2.205;
+  const weight_kg = activeProfile.weight_lbs / 2.205;
 
   let windMultiplier = 1.0;
   let windLabel: string | null = null;
@@ -256,17 +262,17 @@ export default function CalorieCard({ avg_speed_ms, duration_s, distance_m, avg_
 
   if (avg_hr) {
     // HR-based formula is more accurate — wind adjustment still applies
-    calories = Math.round(calcCaloriesFromHR(avg_hr, weight_kg, profile.age, durationMin) * windMultiplier);
+    calories = Math.round(calcCaloriesFromHR(avg_hr, weight_kg, activeProfile.age, durationMin) * windMultiplier);
     method = 'HR-based';
-    detailLine = `${avg_hr} bpm avg · ${profile.weight_lbs} lbs · age ${profile.age}`;
+    detailLine = `${avg_hr} bpm avg · ${activeProfile.weight_lbs} lbs · age ${activeProfile.age}`;
   } else {
     const met = getMET(speedMph);
-    const ageMultiplier = getAgeMultiplier(profile.age);
-    const calibrationFactor = computeCalibrationFactor(hrWorkouts, weight_kg, profile.age);
+    const ageMultiplier = getAgeMultiplier(activeProfile.age);
+    const calibrationFactor = computeCalibrationFactor(hrWorkouts, weight_kg, activeProfile.age);
     const calibrated = calibrationFactor !== 1.0;
     calories = Math.round(met * weight_kg * (durationMin / 60) * ageMultiplier * calibrationFactor * windMultiplier);
     method = `MET ${met}`;
-    detailLine = `${speedMph.toFixed(1)} mph${speedEstimated ? ' (est.)' : ''} · ${method}${calibrated ? ` · calibrated (${hrWorkouts.length}w)` : ''} · ${profile.weight_lbs} lbs`;
+    detailLine = `${speedMph.toFixed(1)} mph${speedEstimated ? ' (est.)' : ''} · ${method}${calibrated ? ` · calibrated (${hrWorkouts.length}w)` : ''} · ${activeProfile.weight_lbs} lbs`;
   }
 
   if (windLabel) detailLine += ` · ${windLabel}`;
@@ -281,17 +287,19 @@ export default function CalorieCard({ avg_speed_ms, duration_s, distance_m, avg_
         <span className="text-sm font-normal text-navy/40">(±10%)</span>
       </p>
       <p className="text-navy/40 text-xs mt-1">{detailLine}</p>
-      <button
-        onClick={() => setShowModal(true)}
-        className="text-navy/30 text-xs mt-2 hover:text-navy/60 transition-colors"
-      >
-        Edit profile
-      </button>
-      {showModal && (
+      {!athleteProfile && (
+        <button
+          onClick={() => setShowModal(true)}
+          className="text-navy/30 text-xs mt-2 hover:text-navy/60 transition-colors"
+        >
+          Edit profile
+        </button>
+      )}
+      {showModal && !athleteProfile && (
         <ProfileModal
           title="Your Profile"
-          weightValue={weightInput || String(profile.weight_lbs)}
-          ageValue={ageInput || String(profile.age)}
+          weightValue={weightInput || String(activeProfile.weight_lbs)}
+          ageValue={ageInput || String(activeProfile.age)}
           onWeightChange={setWeightInput}
           onAgeChange={setAgeInput}
           onSave={saveProfile}
