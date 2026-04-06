@@ -52,7 +52,7 @@ export default function RaceCountdowns({ races, workoutLinks = {} }: { races: Ra
           ) : upcoming.map((race) => {
             const days = daysUntil(race.race_date);
             return (
-              <div key={race.id} className="flex items-center gap-4 border-2 border-navy border-opacity-10 rounded-xl px-4 py-4 bg-cream-light">
+              <div key={race.id} className="flex items-center gap-4 border border-navy/10 rounded-xl px-4 py-4 bg-sky-50">
                 <div className="flex-shrink-0 w-[72px] h-[72px] rounded-xl overflow-hidden bg-white border border-navy border-opacity-10 flex items-center justify-center p-2">
                   <Image src={race.logo ?? '/default-race.jpg'} alt={race.name} width={72} height={72} className="object-contain w-full h-full" />
                 </div>
