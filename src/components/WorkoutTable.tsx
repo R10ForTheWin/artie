@@ -18,8 +18,7 @@ interface Workout {
 }
 
 const STRAVA_SPORT_LABELS: Record<string, string> = {
-  StandUpPaddling: 'SUP',
-  Surfing: 'Surf',
+  StandUpPaddling: 'Prone',
   Canoeing: 'Canoe',
   Kayaking: 'Kayak',
   Rowing: 'Row',

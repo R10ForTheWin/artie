@@ -4,7 +4,7 @@ const CLIENT_ID = process.env.STRAVA_CLIENT_ID!;
 const CLIENT_SECRET = process.env.STRAVA_CLIENT_SECRET!;
 
 const PADDLE_SPORTS = new Set([
-  'StandUpPaddling', 'Surfing', 'Canoeing', 'Kayaking', 'Rowing', 'Paddling',
+  'StandUpPaddling', 'Canoeing', 'Kayaking', 'Rowing', 'Paddling',
 ]);
 
 const MILE_M = 1609.344;

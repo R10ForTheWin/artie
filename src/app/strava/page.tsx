@@ -68,7 +68,7 @@ export default async function StravaPage({
         </div>
 
         <p className="text-navy opacity-30 text-xs mt-8 leading-relaxed">
-          Beta — only StandUpPaddling, Surfing, Canoeing, Kayaking, and Rowing activities will be imported.
+          Beta — only Prone Paddleboarding, Canoeing, Kayaking, and Rowing activities will be imported.
           Each teammate connects once; new workouts appear automatically after that.
         </p>
 
