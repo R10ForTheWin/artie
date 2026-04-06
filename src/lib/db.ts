@@ -148,5 +148,8 @@ export async function initSchema() {
 
     INSERT INTO profiles (name, weight_lbs, age) VALUES ('Adams', 165, 54)
     ON CONFLICT (name) DO NOTHING;
+
+    INSERT INTO profiles (name, weight_lbs, age) VALUES ('Brent', 175, 52)
+    ON CONFLICT (name) DO NOTHING;
   `);
 }
