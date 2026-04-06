@@ -142,5 +142,8 @@ export async function initSchema() {
 
     INSERT INTO profiles (name, weight_lbs) VALUES ('Dallas', 130)
     ON CONFLICT (name) DO NOTHING;
+
+    INSERT INTO profiles (name, weight_lbs, age) VALUES ('Zach', 175, 47)
+    ON CONFLICT (name) DO NOTHING;
   `);
 }
