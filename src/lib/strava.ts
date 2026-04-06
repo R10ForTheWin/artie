@@ -185,7 +185,7 @@ export async function importStravaActivity(athleteId: number, activityId: number
     [
       token.name,
       `strava-${activityId}`,
-      'gpx',
+      act.sport_type ?? 'Paddling',
       workout_date,
       act.elapsed_time ?? null,
       act.distance ?? null,

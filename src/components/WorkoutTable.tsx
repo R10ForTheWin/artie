@@ -17,8 +17,20 @@ interface Workout {
   file_type: string;
 }
 
+const STRAVA_SPORT_LABELS: Record<string, string> = {
+  StandUpPaddling: 'SUP',
+  Surfing: 'Surf',
+  Canoeing: 'Canoe',
+  Kayaking: 'Kayak',
+  Rowing: 'Row',
+  Paddling: 'Paddle',
+};
+
 function sourceLabel(file_name: string, file_type: string): { label: string; title: string } {
-  if (file_name.startsWith('strava-')) return { label: 'Strava', title: 'Imported from Strava' };
+  if (file_name.startsWith('strava-')) {
+    const sport = STRAVA_SPORT_LABELS[file_type] ?? 'Strava';
+    return { label: sport, title: `Strava · ${file_type}` };
+  }
   if (file_type === 'image') return { label: 'Photo', title: 'Uploaded from screenshot' };
   if (file_type === 'gpx') return { label: 'GPX', title: 'Uploaded as GPX file' };
   if (file_type === 'fit') return { label: 'FIT', title: 'Uploaded as FIT file' };
