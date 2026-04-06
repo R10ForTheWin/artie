@@ -14,7 +14,7 @@ AI coordination platform for prone paddle teams training for the Catalina Classi
 ARTIE was built for a small prone paddleboard crew out of Redondo Beach training for the Catalina Classic, a 32-mile open-ocean paddleboard race.
 
 ## Preview
-(Screenshots coming next)
+![ARTIE Dashboard](ARTIE%20for%20Github.png)
 
 ## Tech Stack
 - TypeScript
