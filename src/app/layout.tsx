@@ -9,8 +9,10 @@ export const metadata: Metadata = {
   title: "Artie",
   description: "Team Topaz mileage tracker",
   icons: {
+    icon: "/apple-touch-icon.png",
     apple: "/apple-touch-icon.png",
   },
+  manifest: "/manifest.json",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
