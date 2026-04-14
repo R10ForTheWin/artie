@@ -1,11 +1,13 @@
 import Image from 'next/image';
 import { formatDate, daysUntil } from '@/lib/formatters';
 import { TEAMMATES } from '@/lib/teammates';
+import SyncResultsButton from './SyncResultsButton';
 
 interface Finisher {
   place: number;
   name: string;
   time: string;
+  division?: string;
 }
 
 interface Race {
@@ -15,6 +17,7 @@ interface Race {
   location: string | null;
   logo: string | null;
   results: Finisher[] | null;
+  paddleguru_url: string | null;
 }
 
 function isTeammate(name: string): boolean {
@@ -95,42 +98,67 @@ export default function RaceCountdowns({ races, workoutLinks = {} }: { races: Ra
                   </div>
                 </div>
 
-                {race.results && race.results.length > 0 && (
-                  <div>
-                    <p className="text-navy text-xs uppercase tracking-widest opacity-40 mb-2">Prone Open</p>
+                {race.results && race.results.length > 0 && (() => {
+                  const dateKey = race.race_date.slice(0, 10);
+                  const byName = workoutLinks[dateKey] ?? {};
+                  const hasDivisions = race.results.some((f) => f.division);
+
+                  const renderTable = (finishers: Finisher[]) => (
                     <table className="w-full text-sm">
                       <tbody>
-                        {race.results.map((f) => {
+                        {finishers.map((f) => {
                           const highlight = isTeammate(f.name);
-                          const dateKey = race.race_date.slice(0, 10);
-                          const byName = workoutLinks[dateKey] ?? {};
                           const workoutId = highlight
                             ? Object.entries(byName).find(([n]) => f.name.toLowerCase().includes(n.toLowerCase()))?.[1]
                             : undefined;
                           return (
-                            <tr
-                              key={f.place}
-                              className={highlight ? 'bg-gold bg-opacity-20 rounded' : ''}
-                            >
-                              <td className={`py-1 px-2 w-8 font-bold tabular-nums ${highlight ? 'text-gold' : 'text-navy opacity-30'}`}>
-                                {f.place}
-                              </td>
+                            <tr key={`${f.division ?? ''}-${f.place}-${f.name}`} className={highlight ? 'bg-gold bg-opacity-20 rounded' : ''}>
+                              <td className={`py-1 px-2 w-8 font-bold tabular-nums ${highlight ? 'text-gold' : 'text-navy opacity-30'}`}>{f.place}</td>
                               <td className={`py-1 px-2 flex-1 ${highlight ? 'font-bold text-navy' : 'text-navy opacity-60'}`}>
                                 {workoutId ? (
-                                  <a href={`/dashboard/workout/${workoutId}`} className="underline hover:text-gold transition-colors">
-                                    {f.name}
-                                  </a>
+                                  <a href={`/dashboard/workout/${workoutId}`} className="underline hover:text-gold transition-colors">{f.name}</a>
                                 ) : f.name}
                               </td>
-                              <td className={`py-1 px-2 text-right tabular-nums ${highlight ? 'text-navy font-bold' : 'text-navy opacity-40'}`}>
-                                {f.time}
-                              </td>
+                              <td className={`py-1 px-2 text-right tabular-nums ${highlight ? 'text-navy font-bold' : 'text-navy opacity-40'}`}>{f.time}</td>
                             </tr>
                           );
                         })}
                       </tbody>
                     </table>
-                  </div>
+                  );
+
+                  if (hasDivisions) {
+                    const groups = race.results.reduce((acc, f) => {
+                      const key = f.division ?? '';
+                      if (!acc[key]) acc[key] = [];
+                      acc[key].push(f);
+                      return acc;
+                    }, {} as Record<string, Finisher[]>);
+                    // Only show divisions containing at least one teammate
+                    const teammateGroups = Object.entries(groups).filter(([, finishers]) =>
+                      finishers.some((f) => isTeammate(f.name))
+                    );
+                    return (
+                      <div className="space-y-4">
+                        {teammateGroups.map(([division, finishers]) => (
+                          <div key={division}>
+                            <p className="text-navy text-xs uppercase tracking-widest opacity-40 mb-2">{division || 'Results'}</p>
+                            {renderTable(finishers)}
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div>
+                      <p className="text-navy text-xs uppercase tracking-widest opacity-40 mb-2">Prone Open</p>
+                      {renderTable(race.results)}
+                    </div>
+                  );
+                })()}
+                {race.paddleguru_url && (
+                  <SyncResultsButton raceId={race.id} />
                 )}
               </div>
             ))}

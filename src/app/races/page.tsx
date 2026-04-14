@@ -12,6 +12,7 @@ interface Race {
   location: string | null;
   logo: string | null;
   results: { place: number; name: string; time: string }[] | null;
+  paddleguru_url: string | null;
 }
 
 export default async function RacesPage() {

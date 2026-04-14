@@ -52,6 +52,19 @@ export async function initSchema() {
     ALTER TABLE workouts ADD COLUMN IF NOT EXISTS map_image_url TEXT;
     ALTER TABLE workouts ADD COLUMN IF NOT EXISTS map_svg TEXT;
     ALTER TABLE races ADD COLUMN IF NOT EXISTS results JSONB;
+    ALTER TABLE races ADD COLUMN IF NOT EXISTS paddleguru_url TEXT;
+
+    UPDATE races SET paddleguru_url = 'https://paddleguru.com/races/TheLifeguardLap2026'
+      WHERE LOWER(name) = 'the lifeguard lap';
+
+    UPDATE races SET paddleguru_url = 'https://paddleguru.com/races/Malibudownwinder2026'
+      WHERE LOWER(name) = 'malibu downwinder' AND paddleguru_url IS NULL;
+
+    UPDATE races SET paddleguru_url = 'https://paddleguru.com/races/NACElMorroClassic2026'
+      WHERE LOWER(name) = 'el morro classic' AND paddleguru_url IS NULL;
+
+    UPDATE races SET paddleguru_url = 'https://paddleguru.com/races/CatalinaClassicPaddleboardRace2026'
+      WHERE LOWER(name) = 'catalina classic' AND paddleguru_url IS NULL;
 
     CREATE TABLE IF NOT EXISTS strava_tokens (
       id            SERIAL PRIMARY KEY,
@@ -151,5 +164,14 @@ export async function initSchema() {
 
     INSERT INTO profiles (name, weight_lbs, age) VALUES ('Brent', 175, 52)
     ON CONFLICT (name) DO NOTHING;
+
+    -- Lifeguard Lap 2026-04-11: Adams and Glick competed (8 miles), no file uploaded
+    INSERT INTO workouts (name, file_name, file_type, workout_date, distance_m)
+    SELECT 'Adams', 'manual-lifeguard-lap-2026', 'manual', '2026-04-11', 12874.8
+    WHERE NOT EXISTS (SELECT 1 FROM workouts WHERE name = 'Adams' AND workout_date = '2026-04-11' AND file_name = 'manual-lifeguard-lap-2026');
+
+    INSERT INTO workouts (name, file_name, file_type, workout_date, distance_m)
+    SELECT 'Glick', 'manual-lifeguard-lap-2026', 'manual', '2026-04-11', 12874.8
+    WHERE NOT EXISTS (SELECT 1 FROM workouts WHERE name = 'Glick' AND workout_date = '2026-04-11' AND file_name = 'manual-lifeguard-lap-2026');
   `);
 }
