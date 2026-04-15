@@ -56,39 +56,41 @@ export default function RaceCountdowns({ races, workoutLinks = {} }: { races: Ra
           ) : upcoming.map((race) => {
             const days = daysUntil(race.race_date);
             return (
-              <div key={race.id} className="flex items-center gap-4 border border-navy/10 rounded-xl px-4 py-4 bg-sky/10">
-                <div className="flex-shrink-0 w-[72px] h-[72px] rounded-xl overflow-hidden bg-white border border-navy border-opacity-10 flex items-center justify-center p-2">
-                  <Image src={race.logo ?? '/default-race.jpg'} alt={race.name} width={72} height={72} className="object-contain w-full h-full" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-navy font-bold text-lg">{race.name}</p>
-                  {race.location && <p className="text-navy text-xs opacity-50">{race.location}</p>}
-                  <p className="text-navy text-xs opacity-40 mt-0.5">{formatDate(race.race_date)}</p>
-                  {race.course_record && (
-                    <p className="text-navy text-xs opacity-40 mt-0.5">CR: {race.course_record}</p>
-                  )}
-                </div>
-                <div className="flex-shrink-0">
-                  {days === 0 ? (
-                    <p className="text-terracotta font-black text-lg uppercase">Today!</p>
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      <div className="flex gap-0.5">
-                        {String(days).padStart(2, '0').split('').map((d, i) => (
-                          <div key={i} className="relative w-9 h-11 bg-navy rounded flex items-center justify-center overflow-hidden shadow">
-                            <div className="absolute inset-x-0 top-0 h-1/2 bg-white/10" />
-                            <div className="absolute inset-x-0 top-1/2 h-px bg-black/40 z-10" />
-                            <span className="text-white font-black text-2xl leading-none z-20">{d}</span>
-                          </div>
-                        ))}
+              <div key={race.id} className="border border-navy/10 rounded-xl px-4 py-4 bg-sky/10">
+                <div className="flex items-center gap-4">
+                  <div className="flex-shrink-0 w-[72px] h-[72px] rounded-xl overflow-hidden bg-white border border-navy border-opacity-10 flex items-center justify-center p-2">
+                    <Image src={race.logo ?? '/default-race.jpg'} alt={race.name} width={72} height={72} className="object-contain w-full h-full" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-navy font-bold text-lg">{race.name}</p>
+                    {race.location && <p className="text-navy text-xs opacity-50">{race.location}</p>}
+                    <p className="text-navy text-xs opacity-40 mt-0.5">{formatDate(race.race_date)}</p>
+                  </div>
+                  <div className="flex-shrink-0">
+                    {days === 0 ? (
+                      <p className="text-terracotta font-black text-lg uppercase">Today!</p>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <div className="flex gap-0.5">
+                          {String(days).padStart(2, '0').split('').map((d, i) => (
+                            <div key={i} className="relative w-9 h-11 bg-navy rounded flex items-center justify-center overflow-hidden shadow">
+                              <div className="absolute inset-x-0 top-0 h-1/2 bg-white/10" />
+                              <div className="absolute inset-x-0 top-1/2 h-px bg-black/40 z-10" />
+                              <span className="text-white font-black text-2xl leading-none z-20">{d}</span>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="text-left leading-none">
+                          <p className="text-navy font-black text-xs uppercase tracking-wide">Days</p>
+                          <p className="text-navy font-black text-xs uppercase tracking-wide mt-0.5">To Go</p>
+                        </div>
                       </div>
-                      <div className="text-left leading-none">
-                        <p className="text-navy font-black text-xs uppercase tracking-wide">Days</p>
-                        <p className="text-navy font-black text-xs uppercase tracking-wide mt-0.5">To Go</p>
-                      </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
+                {race.course_record && (
+                  <p className="text-navy text-xs opacity-40 mt-2 pt-2 border-t border-navy/10">CR: {race.course_record}</p>
+                )}
               </div>
             );
           })}
@@ -110,9 +112,6 @@ export default function RaceCountdowns({ races, workoutLinks = {} }: { races: Ra
                     <p className="text-navy font-bold text-base">{race.name}</p>
                     {race.location && <p className="text-navy text-xs opacity-50">{race.location}</p>}
                     <p className="text-navy text-xs opacity-40">{formatDate(race.race_date)}</p>
-                    {race.course_record && (
-                      <p className="text-navy text-xs opacity-40 mt-0.5">CR: {race.course_record}</p>
-                    )}
                   </div>
                 </div>
 
@@ -175,6 +174,9 @@ export default function RaceCountdowns({ races, workoutLinks = {} }: { races: Ra
                     </div>
                   );
                 })()}
+                {race.course_record && (
+                  <p className="text-navy text-xs opacity-40 mt-2 pt-2 border-t border-navy/10">CR: {race.course_record}</p>
+                )}
                 {race.paddleguru_url && (
                   <SyncResultsButton raceId={race.id} />
                 )}
