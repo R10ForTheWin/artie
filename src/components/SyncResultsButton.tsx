@@ -32,7 +32,7 @@ export default function SyncResultsButton({ raceId }: { raceId: number }) {
       <button
         onClick={handleSync}
         disabled={state === 'loading'}
-        className="text-xs text-navy opacity-40 hover:opacity-70 underline disabled:cursor-wait transition-opacity"
+        className="w-full py-3 px-4 rounded-xl border-2 border-navy border-opacity-20 text-sm font-bold text-navy opacity-60 hover:opacity-100 active:opacity-100 disabled:opacity-30 disabled:cursor-wait transition-opacity text-center"
       >
         {state === 'loading' ? 'Syncing...' : 'Sync results from PaddleGuru'}
       </button>
