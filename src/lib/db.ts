@@ -56,6 +56,7 @@ export async function initSchema() {
     ALTER TABLE races ADD COLUMN IF NOT EXISTS results JSONB;
     ALTER TABLE races ADD COLUMN IF NOT EXISTS paddleguru_url TEXT;
     ALTER TABLE races ADD COLUMN IF NOT EXISTS distance_m REAL;
+    ALTER TABLE races ADD COLUMN IF NOT EXISTS course_record TEXT;
 
     UPDATE races SET distance_m = 12874.8 WHERE LOWER(name) = 'the lifeguard lap' AND distance_m IS NULL;
 
@@ -169,6 +170,14 @@ export async function initSchema() {
 
     INSERT INTO profiles (name, weight_lbs, age) VALUES ('Brent', 175, 52)
     ON CONFLICT (name) DO NOTHING;
+
+    -- Course records (UL Men Prone)
+    UPDATE races SET course_record = '4:54:45 (Jack Bark, 2024)' WHERE LOWER(name) = 'catalina classic';
+    UPDATE races SET course_record = '2:16:35 (Jack Bark, 2024)' WHERE LOWER(name) = 'south bay paddle';
+    UPDATE races SET course_record = '3:35:55 (Max First, 2013) — unofficial' WHERE LOWER(name) = 'rock 2 rock paddleboard race';
+    UPDATE races SET course_record = '1:20:50 (Jack Bark, 2025) — unofficial' WHERE LOWER(name) = 'malibu downwinder';
+    UPDATE races SET course_record = '1:50:18 (Lance Lerum, 2025) — unofficial' WHERE LOWER(name) = 'the loop';
+    UPDATE races SET course_record = '1:20:16 (Max First, 2018) — unofficial' WHERE LOWER(name) = 'r10 paddleboard race';
 
     -- Remove old placeholder seeds — paddleguru sync handles these now
     DELETE FROM workouts WHERE file_name = 'manual-lifeguard-lap-2026';

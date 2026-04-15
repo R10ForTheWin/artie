@@ -18,6 +18,7 @@ interface Race {
   logo: string | null;
   results: Finisher[] | null;
   paddleguru_url: string | null;
+  course_record: string | null;
 }
 
 function isTeammate(name: string): boolean {
@@ -63,15 +64,29 @@ export default function RaceCountdowns({ races, workoutLinks = {} }: { races: Ra
                   <p className="text-navy font-bold text-lg">{race.name}</p>
                   {race.location && <p className="text-navy text-xs opacity-50">{race.location}</p>}
                   <p className="text-navy text-xs opacity-40 mt-0.5">{formatDate(race.race_date)}</p>
+                  {race.course_record && (
+                    <p className="text-navy text-xs opacity-40 mt-0.5">CR: {race.course_record}</p>
+                  )}
                 </div>
-                <div className="text-right flex-shrink-0">
+                <div className="flex-shrink-0">
                   {days === 0 ? (
                     <p className="text-terracotta font-black text-lg uppercase">Today!</p>
                   ) : (
-                    <>
-                      <p className="text-gold font-black text-4xl leading-none">{days}</p>
-                      <p className="text-navy text-xs uppercase tracking-wider opacity-50 mt-1">days away</p>
-                    </>
+                    <div className="flex items-center gap-2">
+                      <div className="flex gap-0.5">
+                        {String(days).padStart(2, '0').split('').map((d, i) => (
+                          <div key={i} className="relative w-9 h-11 bg-navy rounded flex items-center justify-center overflow-hidden shadow">
+                            <div className="absolute inset-x-0 top-0 h-1/2 bg-white/10" />
+                            <div className="absolute inset-x-0 top-1/2 h-px bg-black/40 z-10" />
+                            <span className="text-white font-black text-2xl leading-none z-20">{d}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="text-left leading-none">
+                        <p className="text-navy font-black text-xs uppercase tracking-wide">Days</p>
+                        <p className="text-navy font-black text-xs uppercase tracking-wide mt-0.5">To Go</p>
+                      </div>
+                    </div>
                   )}
                 </div>
               </div>
@@ -95,6 +110,9 @@ export default function RaceCountdowns({ races, workoutLinks = {} }: { races: Ra
                     <p className="text-navy font-bold text-base">{race.name}</p>
                     {race.location && <p className="text-navy text-xs opacity-50">{race.location}</p>}
                     <p className="text-navy text-xs opacity-40">{formatDate(race.race_date)}</p>
+                    {race.course_record && (
+                      <p className="text-navy text-xs opacity-40 mt-0.5">CR: {race.course_record}</p>
+                    )}
                   </div>
                 </div>
 
