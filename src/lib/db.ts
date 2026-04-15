@@ -170,13 +170,7 @@ export async function initSchema() {
     INSERT INTO profiles (name, weight_lbs, age) VALUES ('Brent', 175, 52)
     ON CONFLICT (name) DO NOTHING;
 
-    -- Lifeguard Lap 2026-04-11: Adams and Glick competed (8 miles), no file uploaded
-    INSERT INTO workouts (name, file_name, file_type, workout_date, distance_m)
-    SELECT 'Adams', 'manual-lifeguard-lap-2026', 'manual', '2026-04-11', 12874.8
-    WHERE NOT EXISTS (SELECT 1 FROM workouts WHERE name = 'Adams' AND workout_date = '2026-04-11' AND file_name = 'manual-lifeguard-lap-2026');
-
-    INSERT INTO workouts (name, file_name, file_type, workout_date, distance_m)
-    SELECT 'Glick', 'manual-lifeguard-lap-2026', 'manual', '2026-04-11', 12874.8
-    WHERE NOT EXISTS (SELECT 1 FROM workouts WHERE name = 'Glick' AND workout_date = '2026-04-11' AND file_name = 'manual-lifeguard-lap-2026');
+    -- Remove old placeholder seeds — paddleguru sync handles these now
+    DELETE FROM workouts WHERE file_name = 'manual-lifeguard-lap-2026';
   `);
 }
