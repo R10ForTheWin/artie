@@ -48,7 +48,7 @@ function parseResults(edn: string): PaddleGuruResult[] {
     const timeMatch = entry.match(/:time (\d+)/);
     // :division N inside :rank — distinct from the :division {:category...} object
     const divRankMatch = entry.match(/:division (\d+)/);
-    const catMatch = entry.match(/:category \{:name "([^"]+)"/);
+    const catMatch = entry.match(/:category \{[^}]*:name "([^"]+)"/);
     const ageMatch = entry.match(/:age-group \{[^}]*:name "([^"]+)"/);
     const statusMatch = entry.match(/:status "([^"]+)"/);
 
