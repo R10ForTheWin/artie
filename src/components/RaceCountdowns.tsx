@@ -57,14 +57,9 @@ export default function RaceCountdowns({ races, workoutLinks = {} }: { races: Ra
             const days = daysUntil(race.race_date);
             return (
               <div key={race.id} className="border border-navy/10 rounded-xl px-4 py-4 bg-sky/10">
-                <div className="flex items-center gap-4">
-                  <div className="flex-shrink-0 w-[72px] h-[72px] rounded-xl overflow-hidden bg-white border border-navy border-opacity-10 flex items-center justify-center p-2">
-                    <Image src={race.logo ?? '/default-race.jpg'} alt={race.name} width={72} height={72} className="object-contain w-full h-full" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-navy font-bold text-lg">{race.name}</p>
-                    {race.location && <p className="text-navy text-xs opacity-50">{race.location}</p>}
-                    <p className="text-navy text-xs opacity-40 mt-0.5">{formatDate(race.race_date)}</p>
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex-shrink-0 w-[64px] h-[64px] rounded-xl overflow-hidden bg-white border border-navy border-opacity-10 flex items-center justify-center p-2">
+                    <Image src={race.logo ?? '/default-race.jpg'} alt={race.name} width={64} height={64} className="object-contain w-full h-full" />
                   </div>
                   <div className="flex-shrink-0">
                     {days === 0 ? (
@@ -87,6 +82,11 @@ export default function RaceCountdowns({ races, workoutLinks = {} }: { races: Ra
                       </div>
                     )}
                   </div>
+                </div>
+                <div className="mt-2">
+                  <p className="text-navy font-bold text-base">{race.name}</p>
+                  {race.location && <p className="text-navy text-xs opacity-50">{race.location}</p>}
+                  <p className="text-navy text-xs opacity-40 mt-0.5">{formatDate(race.race_date)}</p>
                 </div>
                 {race.course_record && (
                   <p className="text-navy text-xs opacity-40 mt-2 pt-2 border-t border-navy/10">CR: {race.course_record}</p>
