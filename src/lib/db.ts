@@ -10,6 +10,7 @@ export async function isCrossSourceDuplicate(name: string, date: string, distanc
   const r = await pool.query(
     `SELECT id FROM workouts
      WHERE name = $1 AND workout_date = $2 AND distance_m IS NOT NULL
+       AND (source IS NULL OR source != 'paddleguru')
        AND ABS(distance_m - $3) / GREATEST(distance_m, $3) < 0.05`,
     [name, date, distance_m]
   );
@@ -51,8 +52,12 @@ export async function initSchema() {
     ALTER TABLE workouts ADD COLUMN IF NOT EXISTS avg_temp_c REAL;
     ALTER TABLE workouts ADD COLUMN IF NOT EXISTS map_image_url TEXT;
     ALTER TABLE workouts ADD COLUMN IF NOT EXISTS map_svg TEXT;
+    ALTER TABLE workouts ADD COLUMN IF NOT EXISTS source TEXT;
     ALTER TABLE races ADD COLUMN IF NOT EXISTS results JSONB;
     ALTER TABLE races ADD COLUMN IF NOT EXISTS paddleguru_url TEXT;
+    ALTER TABLE races ADD COLUMN IF NOT EXISTS distance_m REAL;
+
+    UPDATE races SET distance_m = 12874.8 WHERE LOWER(name) = 'the lifeguard lap' AND distance_m IS NULL;
 
     UPDATE races SET paddleguru_url = 'https://paddleguru.com/races/TheLifeguardLap2026'
       WHERE LOWER(name) = 'the lifeguard lap';

@@ -113,6 +113,11 @@ export async function POST(req: NextRequest) {
         if (await isCrossSourceDuplicate(name, parsed.workout_date.split('T')[0], parsed.distance_m ?? null)) {
           return NextResponse.json({ error: 'A workout for this person on this date with a similar distance already exists.' }, { status: 409 });
         }
+        // Replace any auto-created paddleguru workout for this person/date
+        await pool.query(
+          `DELETE FROM workouts WHERE name = $1 AND workout_date = $2 AND source = 'paddleguru'`,
+          [name, parsed.workout_date.split('T')[0]]
+        );
         const result = await pool.query(
           `INSERT INTO workouts (name, file_name, file_type, workout_date, duration_s, distance_m, avg_speed_ms, max_speed_ms, avg_hr, max_hr, calories, location, mile_splits, map_image_url)
            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
@@ -184,6 +189,11 @@ export async function POST(req: NextRequest) {
     if (await isCrossSourceDuplicate(name, parsed.workout_date.split('T')[0], parsed.distance_m ?? null)) {
       return NextResponse.json({ error: 'A workout for this person on this date with a similar distance already exists.' }, { status: 409 });
     }
+    // Replace any auto-created paddleguru workout for this person/date
+    await pool.query(
+      `DELETE FROM workouts WHERE name = $1 AND workout_date = $2 AND source = 'paddleguru'`,
+      [name, parsed.workout_date.split('T')[0]]
+    );
     const result = await pool.query(
       `INSERT INTO workouts (name, file_name, file_type, workout_date, duration_s, distance_m, avg_speed_ms, max_speed_ms, avg_hr, max_hr, calories, location, mile_splits, avg_temp_c, map_svg, mile_bearings)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
