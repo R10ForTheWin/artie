@@ -75,15 +75,15 @@ function parseResults(edn: string): PaddleGuruResult[] {
 
   const results: PaddleGuruResult[] = [];
   for (const [cat, group] of byCategory) {
-    group.sort((a, b) => a.divRank - b.divRank);
-    for (const r of group) {
+    group.sort((a, b) => a.timeMs - b.timeMs);
+    group.forEach((r, i) => {
       results.push({
-        place: r.divRank,
+        place: i + 1,
         name: r.name,
         time: formatMs(r.timeMs),
         division: cat || undefined,
       });
-    }
+    });
   }
   return results;
 }
