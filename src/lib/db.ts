@@ -69,6 +69,9 @@ export async function initSchema() {
     UPDATE races SET paddleguru_url = 'https://paddleguru.com/races/NACElMorroClassic2026'
       WHERE LOWER(name) = 'el morro classic' AND paddleguru_url IS NULL;
 
+    UPDATE races SET paddleguru_url = 'https://paddleguru.com/races/19thAnnualSeasideSlide'
+      WHERE LOWER(name) = 'seaside slide' AND paddleguru_url IS NULL;
+
     UPDATE races SET paddleguru_url = 'https://paddleguru.com/races/CatalinaClassicPaddleboardRace2026'
       WHERE LOWER(name) = 'catalina classic' AND paddleguru_url IS NULL;
 
