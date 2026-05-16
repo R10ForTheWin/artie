@@ -130,7 +130,7 @@ export default function RaceCountdowns({ races, workoutLinks = {} }: { races: Ra
                             : undefined;
                           return (
                             <tr key={`${f.division ?? ''}-${f.place}-${f.name}`} className={highlight ? 'bg-gold bg-opacity-20 rounded' : ''}>
-                              <td className={`py-1 px-2 w-8 font-bold tabular-nums ${highlight ? 'text-terracotta' : 'text-navy opacity-30'}`}>{f.place}</td>
+                              <td className={`py-1 px-2 w-8 font-bold tabular-nums ${highlight ? 'text-navy' : 'text-navy opacity-30'}`}>{f.place}</td>
                               <td className={`py-1 px-2 flex-1 ${highlight ? 'font-bold text-navy' : 'text-navy opacity-60'}`}>
                                 {workoutId ? (
                                   <a href={`/dashboard/workout/${workoutId}`} className="underline hover:text-gold transition-colors">{f.name}</a>
