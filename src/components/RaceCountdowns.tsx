@@ -27,7 +27,7 @@ function isTeammate(name: string): boolean {
 
 export default function RaceCountdowns({ races, workoutLinks = {} }: { races: Race[]; workoutLinks?: Record<string, Record<string, number>> }) {
   const upcoming = races.filter((r) => daysUntil(r.race_date) >= 0);
-  const past = races.filter((r) => daysUntil(r.race_date) < 0);
+  const past = races.filter((r) => daysUntil(r.race_date) < 0).sort((a, b) => b.race_date.localeCompare(a.race_date));
 
   if (races.length === 0) {
     return (
