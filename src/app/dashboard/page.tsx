@@ -56,24 +56,17 @@ export default async function DashboardPage() {
 
       <div className="flex-1 px-6 pt-10 pb-0 max-w-5xl mx-auto w-full">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <Link href="/" className="text-navy opacity-50 hover:opacity-100 text-sm font-bold uppercase tracking-wider">
+        <div className="flex items-center gap-2 mb-6">
+          <Link href="/" className="border-2 border-navy/20 text-navy font-black uppercase tracking-wider text-xs px-4 py-2.5 rounded-lg hover:border-navy/60 transition-colors whitespace-nowrap">
             ← Home
           </Link>
-          <div className="flex items-center gap-2">
-            <Link
-              href="/upload"
-              className="bg-navy text-white font-black uppercase tracking-wider text-sm px-5 py-2 rounded-lg hover:bg-terracotta transition-colors"
-            >
-              + Upload Garmin File
-            </Link>
-            <Link
-              href="/strava"
-              className="bg-terracotta text-white font-black uppercase tracking-wider text-sm px-5 py-2 rounded-lg hover:bg-gold transition-colors"
-            >
-              Sync with Strava (Beta)
-            </Link>
-          </div>
+          <div className="flex-1" />
+          <Link href="/upload" className="bg-navy text-white font-black uppercase tracking-wider text-xs px-4 py-2.5 rounded-lg hover:bg-terracotta transition-colors whitespace-nowrap">
+            + Upload
+          </Link>
+          <Link href="/strava" className="bg-terracotta text-white font-black uppercase tracking-wider text-xs px-4 py-2.5 rounded-lg hover:bg-gold transition-colors whitespace-nowrap">
+            Sync Strava
+          </Link>
         </div>
 
         <p className="text-navy opacity-40 text-sm mb-6">
