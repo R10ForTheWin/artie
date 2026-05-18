@@ -62,7 +62,15 @@ export default function OceanTempCard() {
             className="flex items-center gap-2 bg-sky text-white font-black text-2xl px-4 py-2 rounded-xl hover:opacity-80 transition-opacity"
           >
             {data.current_f}°F
-            <span className="text-sm font-normal opacity-80">{expanded ? '▲' : '▼'}</span>
+            {expanded ? (
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 opacity-80" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414l-5 5a1 1 0 01-1.414 0l-5-5a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+            ) : (
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 opacity-80" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zm6-4a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zm6-3a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
+              </svg>
+            )}
           </button>
         ) : (
           <div className="text-navy opacity-40 text-sm">Unavailable</div>

@@ -8,9 +8,9 @@ export default function HomePage() {
     <main className="min-h-screen bg-white flex flex-col">
       <StripeBar side="top" />
 
-      <div className="flex-1 flex flex-col items-center justify-center px-6 py-12 -mt-4">
+      <div className="flex-1 flex flex-col items-center px-6 pt-8 pb-6">
         {/* Logo — bigger, no shadow */}
-        <div className="mb-4">
+        <div className="mb-3">
           <Image
             src="/logo-v3.png"
             alt="ARTIE"
