@@ -7,7 +7,7 @@ export default function StripeBar({ side = 'top' }: { side?: 'top' | 'bottom' })
   const displayStripes = side === 'bottom' ? [...stripes].reverse() : stripes;
 
   const W = 1440;
-  const H = 110;
+  const H = 80;
   const sw = H / displayStripes.length;
   const curl = 140;
   const viewH = side === 'bottom' ? H + curl : H;
