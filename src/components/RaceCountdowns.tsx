@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import { formatDate, daysUntil } from '@/lib/formatters';
-import { TEAMMATES } from '@/lib/teammates';
+import { TEAMMATES, TEAMMATE_ALIASES, type Teammate } from '@/lib/teammates';
 import SyncResultsButton from './SyncResultsButton';
 
 interface Finisher {
@@ -22,7 +22,11 @@ interface Race {
 }
 
 function isTeammate(name: string): boolean {
-  return TEAMMATES.some((t) => name.toLowerCase().includes(t.toLowerCase()));
+  const lower = name.toLowerCase();
+  return TEAMMATES.some((t) => {
+    if (lower.includes(t.toLowerCase())) return true;
+    return (TEAMMATE_ALIASES[t] ?? []).some((alias) => lower.includes(alias.toLowerCase()));
+  });
 }
 
 export default function RaceCountdowns({ races, workoutLinks = {} }: { races: Race[]; workoutLinks?: Record<string, Record<string, number>> }) {
@@ -126,7 +130,12 @@ export default function RaceCountdowns({ races, workoutLinks = {} }: { races: Ra
                         {finishers.map((f) => {
                           const highlight = isTeammate(f.name);
                           const workoutId = highlight
-                            ? Object.entries(byName).find(([n]) => f.name.toLowerCase().includes(n.toLowerCase()))?.[1]
+                            ? Object.entries(byName).find(([n]) => {
+                                const lower = f.name.toLowerCase();
+                                const teammate = n as Teammate;
+                                if (lower.includes(n.toLowerCase())) return true;
+                                return (TEAMMATE_ALIASES[teammate] ?? []).some((alias) => lower.includes(alias.toLowerCase()));
+                              })?.[1]
                             : undefined;
                           return (
                             <tr key={`${f.division ?? ''}-${f.place}-${f.name}`} className={highlight ? 'bg-gold bg-opacity-20 rounded' : ''}>
