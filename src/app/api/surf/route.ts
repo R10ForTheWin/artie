@@ -35,11 +35,11 @@ export async function GET() {
     while ((m = timeLabelRe.exec(html)) !== null) timePeriods.push(m[1].trim());
 
     // --- Parse day headers (data-date + colspan) ---
-    const dayCellRe = /data-date="(\d{4}-\d{2}-\d{2})"[^>]*colspan="(\d+)"/g;
+    const dayCellRe = /colspan="(\d+)"[^>]*data-date="(\d{4}-\d{2}-\d{2})"/g;
     const dayMap: { date: string; period: string }[] = [];
     while ((m = dayCellRe.exec(html)) !== null) {
-      const date = m[1];
-      const span = parseInt(m[2]);
+      const span = parseInt(m[1]);
+      const date = m[2];
       // Each day cell spans N time-period columns
       for (let i = 0; i < span; i++) {
         dayMap.push({ date, period: timePeriods[dayMap.length] ?? '' });
