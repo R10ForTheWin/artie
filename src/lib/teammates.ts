@@ -5,3 +5,6 @@ export type Teammate = typeof TEAMMATES[number];
 export const TEAMMATE_ALIASES: Partial<Record<Teammate, string[]>> = {
   Andy: ['Hoover'],
 };
+
+// First names too common to match on alone — only match via aliases above
+export const MATCH_ALIAS_ONLY = new Set<Teammate>(['Andy']);

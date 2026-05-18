@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import { formatDate, daysUntil } from '@/lib/formatters';
-import { TEAMMATES, TEAMMATE_ALIASES, type Teammate } from '@/lib/teammates';
+import { TEAMMATES, TEAMMATE_ALIASES, MATCH_ALIAS_ONLY, type Teammate } from '@/lib/teammates';
 import SyncResultsButton from './SyncResultsButton';
 
 interface Finisher {
@@ -24,8 +24,9 @@ interface Race {
 function isTeammate(name: string): boolean {
   const lower = name.toLowerCase();
   return TEAMMATES.some((t) => {
-    if (lower.includes(t.toLowerCase())) return true;
-    return (TEAMMATE_ALIASES[t] ?? []).some((alias) => lower.includes(alias.toLowerCase()));
+    const nameMatch = !MATCH_ALIAS_ONLY.has(t) && lower.includes(t.toLowerCase());
+    const aliasMatch = (TEAMMATE_ALIASES[t] ?? []).some((alias) => lower.includes(alias.toLowerCase()));
+    return nameMatch || aliasMatch;
   });
 }
 

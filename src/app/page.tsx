@@ -2,6 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import StripeBar from '@/components/StripeBar';
 import OceanTempCard from '@/components/OceanTempCard';
+import SurfCard from '@/components/SurfCard';
 
 export default function HomePage() {
   return (
@@ -47,8 +48,9 @@ export default function HomePage() {
           </Link>
         </div>
 
-        <div className="w-full max-w-xs mt-2">
+        <div className="w-full max-w-xs mt-2 flex flex-col gap-2">
           <OceanTempCard />
+          <SurfCard />
         </div>
       </div>
 

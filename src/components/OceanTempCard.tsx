@@ -47,11 +47,11 @@ export default function OceanTempCard() {
   const tickInterval = Math.max(1, Math.floor(chartData.length / 6));
 
   return (
-    <div className="border-2 border-navy/20 rounded-xl p-6 bg-white">
-      <div className="flex items-center justify-between gap-4">
+    <div className="border-2 border-navy/20 rounded-xl p-4 bg-white">
+      <div className="flex items-center justify-between gap-2">
         <div>
-          <p className="text-navy font-bold">Current Ocean Temp</p>
-          <p className="text-navy opacity-40 text-xs mt-0.5">Manhattan Beach · NOAA Buoy 46222</p>
+          <p className="text-navy font-bold text-sm whitespace-nowrap">Ocean Temp</p>
+          <p className="text-navy opacity-40 text-xs mt-0.5">MB · NOAA Buoy 46222</p>
         </div>
 
         {loading ? (
