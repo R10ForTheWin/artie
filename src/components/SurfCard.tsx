@@ -82,7 +82,7 @@ export default function SurfCard() {
           {m.windHours.map(w => (
             <div key={w.hour} className="flex flex-col items-center gap-0.5">
               <span className="text-navy opacity-40 text-xs">{fmtHour(w.hour)}</span>
-              <span className="text-navy font-bold text-xs">{w.speedMph}</span>
+              <span className="text-navy font-bold text-xs">{w.speedMph}<span className="font-normal opacity-50">mph</span></span>
               <span className="text-navy opacity-50 text-xs">{w.direction}</span>
             </div>
           ))}
