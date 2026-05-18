@@ -43,7 +43,7 @@ export default function SurfCard() {
     fetch('/api/surf', { signal: controller.signal })
       .then(r => r.json())
       .then(d => { setData(d); setLoading(false); })
-      .catch(e => { if (e.name !== 'AbortError') setLoading(false); });
+      .catch(e => { if (e.name !== 'AbortError') { setData({ morning: null, morningLabel: '' }); setLoading(false); } });
     return () => controller.abort();
   }, []);
 
@@ -77,7 +77,7 @@ export default function SurfCard() {
       </div>
 
       {/* Hourly wind table */}
-      {m && m.windHours.length > 0 && (
+      {m && m.windHours?.length > 0 && (
         <div className="flex justify-between border-t border-navy/10 pt-2">
           {m.windHours.map(w => (
             <div key={w.hour} className="flex flex-col items-center gap-0.5">

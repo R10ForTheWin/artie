@@ -35,8 +35,9 @@ function degToCardinal(deg: number): string {
 
 export async function GET() {
   try {
-    const ptDateStr = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' });
-    const ptHour = parseInt(new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles', hour: 'numeric', hour12: false }));
+    const nowPT = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }));
+    const ptDateStr = `${nowPT.getFullYear()}-${String(nowPT.getMonth() + 1).padStart(2, '0')}-${String(nowPT.getDate()).padStart(2, '0')}`;
+    const ptHour = nowPT.getHours();
 
     // --- surf-forecast.com for wave height + wind state ---
     const surfRes = await fetch(
