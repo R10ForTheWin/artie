@@ -1,12 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { pool } from '@/lib/db';
 import { fetchPaddleGuruResults } from '@/lib/paddleguru';
-import { TEAMMATES } from '@/lib/teammates';
+import { TEAMMATES, TEAMMATE_ALIASES, MATCH_ALIAS_ONLY } from '@/lib/teammates';
 
 function findTeammate(fullName: string): string | null {
   const lower = fullName.toLowerCase();
   for (const t of TEAMMATES) {
-    if (lower.includes(t.toLowerCase())) return t;
+    const aliases = TEAMMATE_ALIASES[t] ?? [];
+    if (MATCH_ALIAS_ONLY.has(t)) {
+      if (aliases.some(a => lower.includes(a.toLowerCase()))) return t;
+    } else {
+      if (lower.includes(t.toLowerCase()) || aliases.some(a => lower.includes(a.toLowerCase()))) return t;
+    }
   }
   return null;
 }

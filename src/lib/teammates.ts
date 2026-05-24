@@ -1,4 +1,4 @@
-export const TEAMMATES = ['DJ', 'Zach', 'Brent', 'Adams', 'Andy', 'Anthony', 'Glick', 'Dallas'] as const;
+export const TEAMMATES = ['DJ', 'Zach', 'Brent', 'Adams', 'Andy', 'Anthony', 'Glick', 'Dallas', 'Matt'] as const;
 export type Teammate = typeof TEAMMATES[number];
 
 // Last-name / alternate name aliases — race result names are matched against both
