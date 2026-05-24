@@ -186,5 +186,8 @@ export async function initSchema() {
 
     -- Remove old placeholder seeds — paddleguru sync handles these now
     DELETE FROM workouts WHERE file_name = 'manual-lifeguard-lap-2026';
+
+    -- Remove Matt Walls (not our Matt) from Malibu sync
+    DELETE FROM workouts WHERE name = 'Matt' AND source = 'paddleguru' AND workout_date = '2026-04-25';
   `);
 }

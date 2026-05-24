@@ -7,4 +7,4 @@ export const TEAMMATE_ALIASES: Partial<Record<Teammate, string[]>> = {
 };
 
 // First names too common to match on alone — only match via aliases above
-export const MATCH_ALIAS_ONLY = new Set<Teammate>(['Andy']);
+export const MATCH_ALIAS_ONLY = new Set<Teammate>(['Andy', 'Matt']);
