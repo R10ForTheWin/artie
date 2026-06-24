@@ -4,6 +4,7 @@ export type Teammate = typeof TEAMMATES[number];
 // Last-name / alternate name aliases — race result names are matched against both
 export const TEAMMATE_ALIASES: Partial<Record<Teammate, string[]>> = {
   Andy: ['Hoover'],
+  Matt: ['Ruane'],
 };
 
 // First names too common to match on alone — only match via aliases above
