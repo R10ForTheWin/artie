@@ -192,5 +192,10 @@ export async function initSchema() {
 
     -- Remove Matt Walls (not our Matt) from Malibu sync
     DELETE FROM workouts WHERE name = 'Matt' AND source = 'paddleguru' AND workout_date = '2026-04-25';
+
+    ALTER TABLE workouts ADD COLUMN IF NOT EXISTS is_race BOOLEAN;
+
+    -- DJ practiced on Santa Cruz Classic day, not a race
+    UPDATE workouts SET is_race = false WHERE id = 130;
   `);
 }

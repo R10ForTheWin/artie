@@ -15,6 +15,7 @@ interface Workout {
   mile_splits: number[] | null;
   file_name: string;
   file_type: string;
+  is_race: boolean | null;
 }
 
 const STRAVA_SPORT_LABELS: Record<string, string> = {
@@ -140,7 +141,7 @@ export default function WorkoutTable({ workouts, raceDates = new Set() }: { work
 
                   {/* Workout rows */}
                   {isOpen && rows.map((w, i) => {
-                    const isRace = raceDates.has(w.workout_date.slice(0, 10)) && (w.distance_m ?? 0) >= 4828;
+                    const isRace = w.is_race === true || (w.is_race !== false && raceDates.has(w.workout_date.slice(0, 10)) && (w.distance_m ?? 0) >= 4828);
                     const btnClass = isRace
                       ? 'bg-terracotta text-white font-black uppercase tracking-wider px-2 py-1 rounded hover:opacity-80 transition-colors whitespace-nowrap'
                       : 'bg-navy text-white font-black uppercase tracking-wider px-2 py-1 rounded hover:bg-terracotta transition-colors whitespace-nowrap';

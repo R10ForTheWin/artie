@@ -20,6 +20,7 @@ interface Workout {
   mile_splits: number[] | null;
   file_name: string;
   file_type: string;
+  is_race: boolean | null;
 }
 
 export default async function DashboardPage() {
