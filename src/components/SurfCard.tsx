@@ -65,7 +65,7 @@ export default function SurfCard() {
         ) : !m ? (
           <div className="text-navy opacity-40 text-sm">Unavailable</div>
         ) : (
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col items-end gap-1">
             <span className="bg-sky text-white font-black text-2xl px-3 py-1.5 rounded-xl leading-none">
               {m.waveHeightFt}ft
             </span>

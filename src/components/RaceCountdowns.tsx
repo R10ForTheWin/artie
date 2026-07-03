@@ -21,13 +21,39 @@ interface Race {
   course_record: string | null;
 }
 
+function wordMatch(text: string, word: string): boolean {
+  return new RegExp(`\\b${word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(text);
+}
+
 function isTeammate(name: string): boolean {
-  const lower = name.toLowerCase();
   return TEAMMATES.some((t) => {
-    const nameMatch = !MATCH_ALIAS_ONLY.has(t) && lower.includes(t.toLowerCase());
-    const aliasMatch = (TEAMMATE_ALIASES[t] ?? []).some((alias) => lower.includes(alias.toLowerCase()));
+    const nameMatch = !MATCH_ALIAS_ONLY.has(t) && wordMatch(name, t);
+    const aliasMatch = (TEAMMATE_ALIASES[t] ?? []).some((alias) => wordMatch(name, alias));
     return nameMatch || aliasMatch;
   });
+}
+
+const CONTEXT_WINDOW = 3;
+
+function contextRows(finishers: Finisher[]): (Finisher | null)[] {
+  const keep = new Set<number>();
+  finishers.forEach((f, i) => {
+    if (isTeammate(f.name)) {
+      for (let j = Math.max(0, i - CONTEXT_WINDOW); j <= Math.min(finishers.length - 1, i + CONTEXT_WINDOW); j++) {
+        keep.add(j);
+      }
+    }
+  });
+  if (keep.size === 0) return finishers.slice(0, 5);
+  const sorted = [...keep].sort((a, b) => a - b);
+  const result: (Finisher | null)[] = [];
+  let prev = -2;
+  for (const idx of sorted) {
+    if (prev >= 0 && idx > prev + 1) result.push(null); // gap sentinel
+    result.push(finishers[idx]);
+    prev = idx;
+  }
+  return result;
 }
 
 export default function RaceCountdowns({ races, workoutLinks = {} }: { races: Race[]; workoutLinks?: Record<string, Record<string, number>> }) {
@@ -125,34 +151,43 @@ export default function RaceCountdowns({ races, workoutLinks = {} }: { races: Ra
                   const byName = workoutLinks[dateKey] ?? {};
                   const hasDivisions = race.results.some((f) => f.division);
 
-                  const renderTable = (finishers: Finisher[]) => (
-                    <table className="w-full text-sm">
-                      <tbody>
-                        {finishers.map((f) => {
-                          const highlight = isTeammate(f.name);
-                          const workoutId = highlight
-                            ? Object.entries(byName).find(([n]) => {
-                                const lower = f.name.toLowerCase();
-                                const teammate = n as Teammate;
-                                if (lower.includes(n.toLowerCase())) return true;
-                                return (TEAMMATE_ALIASES[teammate] ?? []).some((alias) => lower.includes(alias.toLowerCase()));
-                              })?.[1]
-                            : undefined;
-                          return (
-                            <tr key={`${f.division ?? ''}-${f.place}-${f.name}`} className={highlight ? 'bg-gold bg-opacity-20 rounded' : ''}>
-                              <td className={`py-1 px-2 w-8 font-bold tabular-nums ${highlight ? 'text-navy' : 'text-navy opacity-30'}`}>{f.place}</td>
-                              <td className={`py-1 px-2 flex-1 ${highlight ? 'font-bold text-navy' : 'text-navy opacity-60'}`}>
-                                {workoutId ? (
-                                  <a href={`/dashboard/workout/${workoutId}`} className="underline hover:text-gold transition-colors">{f.name}</a>
-                                ) : f.name}
-                              </td>
-                              <td className={`py-1 px-2 text-right tabular-nums ${highlight ? 'text-navy font-bold' : 'text-navy opacity-40'}`}>{f.time}</td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  );
+                  const renderTable = (finishers: Finisher[]) => {
+                    const rows = contextRows(finishers);
+                    return (
+                      <table className="w-full text-sm">
+                        <tbody>
+                          {rows.map((f, ri) => {
+                            if (!f) {
+                              return (
+                                <tr key={`gap-${ri}`}>
+                                  <td colSpan={3} className="py-0.5 px-2 text-navy opacity-20 text-xs text-center">· · ·</td>
+                                </tr>
+                              );
+                            }
+                            const highlight = isTeammate(f.name);
+                            const workoutId = highlight
+                              ? Object.entries(byName).find(([n]) => {
+                                  const teammate = n as Teammate;
+                                  if (wordMatch(f.name, n)) return true;
+                                  return (TEAMMATE_ALIASES[teammate] ?? []).some((alias) => wordMatch(f.name, alias));
+                                })?.[1]
+                              : undefined;
+                            return (
+                              <tr key={`${f.division ?? ''}-${f.place}-${f.name}`} className={highlight ? 'bg-gold bg-opacity-20 rounded' : ''}>
+                                <td className={`py-1 px-2 w-8 font-bold tabular-nums ${highlight ? 'text-navy' : 'text-navy opacity-30'}`}>{f.place}</td>
+                                <td className={`py-1 px-2 flex-1 ${highlight ? 'font-bold text-navy' : 'text-navy opacity-60'}`}>
+                                  {workoutId ? (
+                                    <a href={`/dashboard/workout/${workoutId}`} className="underline hover:text-gold transition-colors">{f.name}</a>
+                                  ) : f.name}
+                                </td>
+                                <td className={`py-1 px-2 text-right tabular-nums ${highlight ? 'text-navy font-bold' : 'text-navy opacity-40'}`}>{f.time}</td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    );
+                  };
 
                   if (hasDivisions) {
                     const groups = race.results.reduce((acc, f) => {
