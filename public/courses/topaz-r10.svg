@@ -1,38 +1,66 @@
 <svg width="360" height="180" viewBox="0 0 360 180" xmlns="http://www.w3.org/2000/svg">
-  <!-- Ocean -->
+
+  <!-- Ocean background -->
   <rect width="360" height="180" fill="#C8DFF0"/>
 
-  <!-- Land – right side coast, slight curve -->
-  <path d="M 262,0 Q 257,90 262,180 L 360,180 L 360,0 Z" fill="#EDD9A3"/>
-  <path d="M 262,0 Q 257,90 262,180" fill="none" stroke="#1B2A4A" stroke-width="1.5"/>
+  <!-- Shallow nearshore water — subtle tint following the coast -->
+  <path d="
+    M 360,0 L 352,8
+    C 346,20 340,26 334,30
+    C 328,40 316,50 306,64
+    C 296,78 291,92 292,106
+    C 294,122 302,136 315,152
+    C 326,166 342,176 358,180
+    L 360,180 Z
+  " fill="#A8CBE0" opacity="0.55"/>
 
-  <!-- MDR North Jetty (shorter) -->
-  <line x1="261" y1="65" x2="226" y2="63" stroke="#1B2A4A" stroke-width="4" stroke-linecap="round"/>
+  <!-- Land — Palos Verdes Peninsula + Redondo / Hermosa Beach coast -->
+  <path d="
+    M 360,0 L 357,12
+    C 352,22 346,28 340,32
+    C 334,42 322,52 312,66
+    C 302,80 297,94 298,108
+    C 300,124 308,138 320,154
+    C 330,168 346,177 360,180 Z
+  " fill="#EDD9A3"/>
 
-  <!-- MDR South Jetty / Topaz (longer) -->
-  <line x1="261" y1="108" x2="193" y2="105" stroke="#1B2A4A" stroke-width="5.5" stroke-linecap="round"/>
+  <!-- Coastline stroke -->
+  <path d="
+    M 357,12
+    C 352,22 346,28 340,32
+    C 334,42 322,52 312,66
+    C 302,80 297,94 298,108
+    C 300,124 308,138 320,154
+    C 330,168 346,177 360,180
+  " fill="none" stroke="#1B2A4A" stroke-width="1.5"/>
 
-  <!-- Route outbound: jetty tip → R10 (curving WNW) -->
-  <path d="M 192,103 Q 138,88 56,73" fill="none" stroke="#C9922A" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- Topaz Jetty — extends west-northwest from coast -->
+  <line x1="340" y1="32" x2="318" y2="37" stroke="#1B2A4A" stroke-width="5" stroke-linecap="round"/>
 
-  <!-- Route return: slightly offset, lower opacity -->
-  <path d="M 56,78 Q 138,96 192,108" fill="none" stroke="#C9922A" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+  <!-- Route loop — outbound more offshore (left), return more inshore (right) -->
+  <!-- Outbound: 318,37 → offshore arc → R10 at 28,158 -->
+  <!-- Return:   28,158 → inshore arc  → 318,37        -->
+  <path d="
+    M 318,37
+    C 200,76 106,116 28,158
+    C 146,116 242,76 318,37 Z
+  " fill="rgba(201,146,42,0.09)" stroke="#C9922A" stroke-width="2.5" stroke-linejoin="round"/>
 
   <!-- R10 Buoy -->
-  <circle cx="56" cy="75" r="7.5" fill="#1B2A4A" stroke="#C9922A" stroke-width="2.5"/>
+  <circle cx="28" cy="158" r="7.5" fill="#1B2A4A" stroke="#C9922A" stroke-width="2.5"/>
 
-  <!-- Start / End at jetty tip -->
-  <circle cx="193" cy="106" r="5.5" fill="#C9922A" stroke="#1B2A4A" stroke-width="1.5"/>
+  <!-- Start / End marker at jetty tip -->
+  <circle cx="318" cy="37" r="5.5" fill="#C9922A" stroke="#1B2A4A" stroke-width="1.5"/>
 
   <!-- Labels -->
-  <text x="56" y="61" text-anchor="middle" fill="#1B2A4A" font-size="8.5" font-weight="bold" font-family="Arial, sans-serif" letter-spacing="0.5">R10</text>
-  <text x="267" y="103" fill="#1B2A4A" font-size="7.5" font-weight="bold" font-family="Arial, sans-serif" letter-spacing="0.5">TOPAZ</text>
-  <text x="267" y="114" fill="#1B2A4A" font-size="7.5" font-weight="bold" font-family="Arial, sans-serif" letter-spacing="0.5">JETTY</text>
+  <text x="28" y="145" text-anchor="middle" fill="#1B2A4A" font-size="8.5" font-weight="bold" font-family="Arial, sans-serif">R10</text>
+  <text x="308" y="28" text-anchor="end" fill="#1B2A4A" font-size="7.5" font-weight="bold" font-family="Arial, sans-serif">TOPAZ JETTY</text>
 
-  <!-- North indicator (top-left, in water) -->
+  <!-- North indicator -->
   <polygon points="22,12 19,22 22,19 25,22" fill="#1B2A4A" opacity="0.35"/>
   <text x="22" y="30" text-anchor="middle" fill="#1B2A4A" font-size="7.5" font-family="Arial, sans-serif" opacity="0.35">N</text>
 
   <!-- Distance hint -->
-  <text x="20" y="170" fill="#1B2A4A" font-size="7" font-family="Arial, sans-serif" opacity="0.35">~10 mi</text>
+  <text x="20" y="173" fill="#1B2A4A" font-size="7" font-family="Arial, sans-serif" opacity="0.35">~10 mi</text>
+
 </svg>
