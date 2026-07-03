@@ -33,6 +33,13 @@ function isTeammate(name: string): boolean {
   });
 }
 
+const HIGHLIGHT_COLORS = [
+  'bg-gold/20',
+  'bg-sky/20',
+  'bg-terracotta/20',
+  'bg-cream/60',
+] as const;
+
 const CONTEXT_WINDOW = 3;
 
 function contextRows(finishers: Finisher[]): (Finisher | null)[] {
@@ -133,7 +140,7 @@ export default function RaceCountdowns({ races, workoutLinks = {} }: { races: Ra
         <div className="border-2 border-navy border-opacity-20 rounded-lg p-6 bg-white">
           <h2 className="text-navy font-black uppercase tracking-widest text-lg mb-5">Previous Races</h2>
           <div className="space-y-6">
-            {past.map((race) => (
+            {past.map((race, raceIdx) => (
               <div key={race.id}>
                 <div className="flex items-center gap-4 mb-3">
                   <div className="flex-shrink-0 w-[56px] h-[56px] rounded-xl overflow-hidden bg-white border border-navy border-opacity-10 flex items-center justify-center p-2">
@@ -150,6 +157,7 @@ export default function RaceCountdowns({ races, workoutLinks = {} }: { races: Ra
                   const dateKey = race.race_date.slice(0, 10);
                   const byName = workoutLinks[dateKey] ?? {};
                   const hasDivisions = race.results.some((f) => f.division);
+                  const highlightColor = HIGHLIGHT_COLORS[raceIdx % HIGHLIGHT_COLORS.length];
 
                   const renderTable = (finishers: Finisher[]) => {
                     const rows = contextRows(finishers);
@@ -173,7 +181,7 @@ export default function RaceCountdowns({ races, workoutLinks = {} }: { races: Ra
                                 })?.[1]
                               : undefined;
                             return (
-                              <tr key={`${f.division ?? ''}-${f.place}-${f.name}`} className={highlight ? 'bg-gold bg-opacity-20 rounded' : ''}>
+                              <tr key={`${f.division ?? ''}-${f.place}-${f.name}`} className={highlight ? `${highlightColor} rounded` : ''}>
                                 <td className={`py-1 px-2 w-8 font-bold tabular-nums ${highlight ? 'text-navy' : 'text-navy opacity-30'}`}>{f.place}</td>
                                 <td className={`py-1 px-2 flex-1 ${highlight ? 'font-bold text-navy' : 'text-navy opacity-60'}`}>
                                   {workoutId ? (
