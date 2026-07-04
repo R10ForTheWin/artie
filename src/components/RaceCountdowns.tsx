@@ -34,10 +34,9 @@ function isTeammate(name: string): boolean {
 }
 
 const HIGHLIGHT_COLORS = [
-  'bg-gold/20',
-  'bg-sky/20',
-  'bg-terracotta/20',
-  'bg-cream/60',
+  'bg-gold/45',
+  'bg-sky/45',
+  'bg-terracotta/35',
 ] as const;
 
 const CONTEXT_WINDOW = 3;
@@ -96,9 +95,7 @@ export default function RaceCountdowns({ races, workoutLinks = {} }: { races: Ra
             return (
               <div key={race.id} className="border border-navy/10 rounded-xl px-4 py-4 bg-sky/10">
                 <div className="flex items-center justify-between gap-4">
-                  <div className="flex-shrink-0 w-[64px] h-[64px] rounded-xl overflow-hidden bg-white border border-navy border-opacity-10 flex items-center justify-center p-2">
-                    <Image src={race.logo ?? '/default-race.jpg'} alt={race.name} width={64} height={64} className="object-contain w-full h-full" />
-                  </div>
+                  <Image src={race.logo ?? '/default-race.jpg'} alt={race.name} width={80} height={80} className="flex-shrink-0 object-contain" />
                   <div className="flex-shrink-0">
                     {days === 0 ? (
                       <p className="text-terracotta font-black text-lg uppercase">Today!</p>
@@ -143,9 +140,7 @@ export default function RaceCountdowns({ races, workoutLinks = {} }: { races: Ra
             {past.map((race, raceIdx) => (
               <div key={race.id}>
                 <div className="flex items-center gap-4 mb-3">
-                  <div className="flex-shrink-0 w-[56px] h-[56px] rounded-xl overflow-hidden bg-white border border-navy border-opacity-10 flex items-center justify-center p-2">
-                    <Image src={race.logo ?? '/default-race.jpg'} alt={race.name} width={56} height={56} className="object-contain w-full h-full" />
-                  </div>
+                  <Image src={race.logo ?? '/default-race.jpg'} alt={race.name} width={70} height={70} className="flex-shrink-0 object-contain" />
                   <div>
                     <p className="text-navy font-bold text-base">{race.name}</p>
                     {race.location && <p className="text-navy text-xs opacity-50">{race.location}</p>}
@@ -230,7 +225,7 @@ export default function RaceCountdowns({ races, workoutLinks = {} }: { races: Ra
                 {race.course_record && (
                   <p className="text-navy text-xs opacity-40 mt-2 pt-2 border-t border-navy/10">CR: {race.course_record}</p>
                 )}
-                {race.paddleguru_url && (
+                {race.paddleguru_url && (!race.results || race.results.length === 0) && (
                   <SyncResultsButton raceId={race.id} />
                 )}
               </div>
