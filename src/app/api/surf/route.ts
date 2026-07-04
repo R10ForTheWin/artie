@@ -6,17 +6,37 @@ export const revalidate = 3600;
 const LAT = 33.886;
 const LON = -118.406;
 
+// Coast faces ~270° (west). Offshore = wind from east (90°).
+// angle_from_offshore: 0=offshore, 180=onshore
+function windState(avgSpeedMph: number, avgDirDeg: number): string {
+  if (avgSpeedMph < 4) return 'glassy';
+  const raw = Math.abs(avgDirDeg - 90);
+  const angle = raw > 180 ? 360 - raw : raw;
+  if (angle < 30)  return 'off';
+  if (angle < 60)  return 'cross-off';
+  if (angle < 120) return 'cross';
+  if (angle < 150) return 'cross-on';
+  return 'on';
+}
+
+function mToFt(m: number) { return Math.round(m * 3.281 * 2) / 2; }
+
+function degToCardinal(deg: number): string {
+  const dirs = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
+  return dirs[Math.round(deg / 22.5) % 16];
+}
+
 interface WindHour {
-  hour: number;      // 6, 7, 8, 9, 10, 11
+  hour: number;
   speedMph: number;
-  direction: string; // cardinal e.g. "SW"
+  direction: string;
 }
 
 interface SurfSlot {
   date: string;
   waveHeightFt: number;
-  windState: string;  // from surf-forecast (qualitative)
-  windHours: WindHour[]; // hourly 6–11am from Open-Meteo
+  windState: string;
+  windHours: WindHour[];
 }
 
 export interface SurfResult {
@@ -25,86 +45,84 @@ export interface SurfResult {
   error?: string;
 }
 
-function mToFt(m: number) { return Math.round(m * 3.281 * 2) / 2; }
-function kphToMph(kph: number) { return Math.round(kph * 0.621); }
-
-function degToCardinal(deg: number): string {
-  const dirs = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
-  return dirs[Math.round(deg / 22.5) % 16];
-}
-
 export async function GET() {
   try {
     const nowPT = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }));
     const ptDateStr = `${nowPT.getFullYear()}-${String(nowPT.getMonth() + 1).padStart(2, '0')}-${String(nowPT.getDate()).padStart(2, '0')}`;
     const ptHour = nowPT.getHours();
 
-    // --- surf-forecast.com for wave height + wind state ---
-    const surfRes = await fetch(
-      'https://www.surf-forecast.com/breaks/Topaz-Street/forecasts/latest/six_day',
-      { headers: { 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36' }, next: { revalidate: 3600 } }
-    );
-    if (!surfRes.ok) throw new Error(`surf-forecast fetch failed: ${surfRes.status}`);
-    const html = await surfRes.text();
+    // Target date: today if before 11am PT, otherwise tomorrow
+    const targetDate = ptHour < 11 ? ptDateStr : (() => {
+      const d = new Date(nowPT);
+      d.setDate(d.getDate() + 1);
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    })();
+    const morningLabel = targetDate === ptDateStr ? 'Today' : 'Tomorrow';
 
-    const timeLabelRe = /forecast-table__time[^>]*><span[^>]*>([^<]+)</g;
-    const timePeriods: string[] = [];
-    let m;
-    while ((m = timeLabelRe.exec(html)) !== null) timePeriods.push(m[1].trim());
+    // Fetch wind + wave data together from Open-Meteo
+    const [meteoRes, marineRes] = await Promise.all([
+      fetch(
+        `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&hourly=wind_speed_10m,wind_direction_10m&wind_speed_unit=mph&timezone=America%2FLos_Angeles&forecast_days=3`,
+        { next: { revalidate: 3600 } }
+      ),
+      fetch(
+        `https://marine-api.open-meteo.com/v1/marine?latitude=${LAT}&longitude=${LON}&hourly=wave_height&timezone=America%2FLos_Angeles&forecast_days=3`,
+        { next: { revalidate: 3600 } }
+      ),
+    ]);
 
-    const dayCellRe = /colspan="(\d+)"[^>]*data-date="(\d{4}-\d{2}-\d{2})"/g;
-    const dayMap: { date: string; period: string }[] = [];
-    while ((m = dayCellRe.exec(html)) !== null) {
-      const span = parseInt(m[1]);
-      const date = m[2];
-      for (let i = 0; i < span; i++) dayMap.push({ date, period: timePeriods[dayMap.length] ?? '' });
-    }
+    if (!meteoRes.ok) throw new Error(`open-meteo wind fetch failed: ${meteoRes.status}`);
+    if (!marineRes.ok) throw new Error(`open-meteo marine fetch failed: ${marineRes.status}`);
 
-    const heightRe = /data-height="([^"]+)"/g;
-    const heights: number[] = [];
-    while ((m = heightRe.exec(html)) !== null) heights.push(parseFloat(m[1]));
-
-    const wsRe = /wind-state wind-state--([^\s"<]+)/g;
-    const allWs: string[] = [];
-    while ((m = wsRe.exec(html)) !== null) allWs.push(m[1]);
-    const windStates = allWs.slice(6); // skip 6 tooltip definitions
-
-    const amCols = dayMap.map((d, i) => ({ ...d, idx: i })).filter(d => d.period === 'AM');
-    const target = amCols.find(c => c.date === ptDateStr && ptHour < 11)
-      ?? amCols.find(c => c.date > ptDateStr);
-
-    if (!target) return NextResponse.json({ morning: null, morningLabel: '', error: 'No upcoming AM data' });
-
-    const waveHeightFt = mToFt(heights[target.idx] ?? 0);
-    const windState = windStates[target.idx] ?? '';
-    const morningLabel = target.date === ptDateStr ? 'Today' : 'Tomorrow';
-
-    // --- Open-Meteo for hourly wind 6–11am ---
-    const meteoRes = await fetch(
-      `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&hourly=wind_speed_10m,wind_direction_10m&wind_speed_unit=mph&timezone=America%2FLos_Angeles&forecast_days=3`,
-      { next: { revalidate: 3600 } }
-    );
-    if (!meteoRes.ok) throw new Error(`open-meteo fetch failed: ${meteoRes.status}`);
     const meteo = await meteoRes.json();
+    const marine = await marineRes.json();
 
-    const times: string[] = meteo.hourly.time;
-    const speeds: number[] = meteo.hourly.wind_speed_10m;
-    const dirs: number[] = meteo.hourly.wind_direction_10m;
+    const windTimes: string[]   = meteo.hourly.time;
+    const windSpeeds: number[]  = meteo.hourly.wind_speed_10m;
+    const windDirs: number[]    = meteo.hourly.wind_direction_10m;
 
+    const waveTimes: string[]   = marine.hourly.time;
+    const waveHeights: number[] = marine.hourly.wave_height;
+
+    // Collect 6–11am data for target date
     const windHours: WindHour[] = [];
+    const morningWindSpeeds: number[] = [];
+    const morningWindDirs: number[] = [];
+    const morningWaveHeights: number[] = [];
+
     for (let hr = 6; hr <= 11; hr++) {
-      const ts = `${target.date}T${String(hr).padStart(2, '0')}:00`;
-      const idx = times.indexOf(ts);
-      if (idx >= 0) {
-        windHours.push({
-          hour: hr,
-          speedMph: Math.round(speeds[idx]),
-          direction: degToCardinal(dirs[idx]),
-        });
+      const ts = `${targetDate}T${String(hr).padStart(2, '0')}:00`;
+
+      const wi = windTimes.indexOf(ts);
+      if (wi >= 0) {
+        windHours.push({ hour: hr, speedMph: Math.round(windSpeeds[wi]), direction: degToCardinal(windDirs[wi]) });
+        morningWindSpeeds.push(windSpeeds[wi]);
+        morningWindDirs.push(windDirs[wi]);
       }
+
+      const mi = waveTimes.indexOf(ts);
+      if (mi >= 0) morningWaveHeights.push(waveHeights[mi]);
     }
 
-    const morning: SurfSlot = { date: target.date, waveHeightFt, windState, windHours };
+    if (morningWaveHeights.length === 0) {
+      return NextResponse.json({ morning: null, morningLabel: '', error: 'No morning wave data' });
+    }
+
+    const avgWaveM = morningWaveHeights.reduce((a, b) => a + b, 0) / morningWaveHeights.length;
+    const avgWindSpeed = morningWindSpeeds.length
+      ? morningWindSpeeds.reduce((a, b) => a + b, 0) / morningWindSpeeds.length
+      : 0;
+    const avgWindDir = morningWindDirs.length
+      ? morningWindDirs.reduce((a, b) => a + b, 0) / morningWindDirs.length
+      : 0;
+
+    const morning: SurfSlot = {
+      date: targetDate,
+      waveHeightFt: mToFt(avgWaveM),
+      windState: windState(avgWindSpeed, avgWindDir),
+      windHours,
+    };
+
     return NextResponse.json({ morning, morningLabel } satisfies SurfResult);
 
   } catch (e) {
