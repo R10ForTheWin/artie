@@ -1,17 +1,16 @@
 import { NextResponse } from 'next/server';
 
-export const revalidate = 3600;
+export const revalidate = 1800;
 
 // Topaz Street, Manhattan Beach, CA
 const LAT = 33.886;
 const LON = -118.406;
 
-// Coast faces ~270° (west). Offshore = wind from east (90°).
-// angle_from_offshore: 0=offshore, 180=onshore
-function windState(avgSpeedMph: number, avgDirDeg: number): string {
+// Coast faces ~270° (west). Offshore wind = coming FROM the east (90°).
+function computeWindState(avgSpeedMph: number, avgDirDeg: number): string {
   if (avgSpeedMph < 4) return 'glassy';
   const raw = Math.abs(avgDirDeg - 90);
-  const angle = raw > 180 ? 360 - raw : raw;
+  const angle = raw > 180 ? 360 - raw : raw; // 0=offshore, 180=onshore
   if (angle < 30)  return 'off';
   if (angle < 60)  return 'cross-off';
   if (angle < 120) return 'cross';
@@ -26,11 +25,7 @@ function degToCardinal(deg: number): string {
   return dirs[Math.round(deg / 22.5) % 16];
 }
 
-interface WindHour {
-  hour: number;
-  speedMph: number;
-  direction: string;
-}
+interface WindHour { hour: number; speedMph: number; direction: string; }
 
 interface SurfSlot {
   date: string;
@@ -45,81 +40,78 @@ export interface SurfResult {
   error?: string;
 }
 
+// Parse NDBC realtime text → most recent valid WVHT reading (metres)
+function parseNdbcWaveHeight(text: string): number | null {
+  const lines = text.split('\n').filter(l => !l.startsWith('#') && l.trim());
+  for (const line of lines) {
+    const cols = line.trim().split(/\s+/);
+    const wvht = cols[8];
+    if (wvht && wvht !== 'MM') return parseFloat(wvht);
+  }
+  return null;
+}
+
 export async function GET() {
   try {
     const nowPT = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }));
-    const ptDateStr = `${nowPT.getFullYear()}-${String(nowPT.getMonth() + 1).padStart(2, '0')}-${String(nowPT.getDate()).padStart(2, '0')}`;
     const ptHour = nowPT.getHours();
+    const fmt = (d: Date) =>
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    const todayStr = fmt(nowPT);
+    const tomorrowPT = new Date(nowPT); tomorrowPT.setDate(tomorrowPT.getDate() + 1);
+    const tomorrowStr = fmt(tomorrowPT);
 
-    // Target date: today if before 11am PT, otherwise tomorrow
-    const targetDate = ptHour < 11 ? ptDateStr : (() => {
-      const d = new Date(nowPT);
-      d.setDate(d.getDate() + 1);
-      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-    })();
-    const morningLabel = targetDate === ptDateStr ? 'Today' : 'Tomorrow';
+    const targetDate = ptHour < 11 ? todayStr : tomorrowStr;
+    const morningLabel = targetDate === todayStr ? 'Today' : 'Tomorrow';
 
-    // Fetch wind + wave data together from Open-Meteo
-    const [meteoRes, marineRes] = await Promise.all([
-      fetch(
+    // --- NDBC buoy 46222 for wave height (known to work from Railway) ---
+    const ndbcRes = await fetch('https://www.ndbc.noaa.gov/data/realtime2/46222.txt', {
+      next: { revalidate: 1800 },
+    });
+    if (!ndbcRes.ok) throw new Error(`NDBC fetch failed: ${ndbcRes.status}`);
+    const ndbcText = await ndbcRes.text();
+    const waveM = parseNdbcWaveHeight(ndbcText);
+    if (waveM === null) throw new Error('No wave height data from NDBC');
+
+    // --- Open-Meteo for wind (optional — graceful fallback if blocked) ---
+    let windHours: WindHour[] = [];
+    let windStateStr = '';
+    try {
+      const meteoRes = await fetch(
         `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&hourly=wind_speed_10m,wind_direction_10m&wind_speed_unit=mph&timezone=America%2FLos_Angeles&forecast_days=3`,
-        { next: { revalidate: 3600 } }
-      ),
-      fetch(
-        `https://marine-api.open-meteo.com/v1/marine?latitude=${LAT}&longitude=${LON}&hourly=wave_height&timezone=America%2FLos_Angeles&forecast_days=3`,
-        { next: { revalidate: 3600 } }
-      ),
-    ]);
+        { next: { revalidate: 1800 } }
+      );
+      if (meteoRes.ok) {
+        const meteo = await meteoRes.json();
+        const times: string[] = meteo.hourly.time;
+        const speeds: number[] = meteo.hourly.wind_speed_10m;
+        const dirs: number[] = meteo.hourly.wind_direction_10m;
 
-    if (!meteoRes.ok) throw new Error(`open-meteo wind fetch failed: ${meteoRes.status}`);
-    if (!marineRes.ok) throw new Error(`open-meteo marine fetch failed: ${marineRes.status}`);
-
-    const meteo = await meteoRes.json();
-    const marine = await marineRes.json();
-
-    const windTimes: string[]   = meteo.hourly.time;
-    const windSpeeds: number[]  = meteo.hourly.wind_speed_10m;
-    const windDirs: number[]    = meteo.hourly.wind_direction_10m;
-
-    const waveTimes: string[]   = marine.hourly.time;
-    const waveHeights: number[] = marine.hourly.wave_height;
-
-    // Collect 6–11am data for target date
-    const windHours: WindHour[] = [];
-    const morningWindSpeeds: number[] = [];
-    const morningWindDirs: number[] = [];
-    const morningWaveHeights: number[] = [];
-
-    for (let hr = 6; hr <= 11; hr++) {
-      const ts = `${targetDate}T${String(hr).padStart(2, '0')}:00`;
-
-      const wi = windTimes.indexOf(ts);
-      if (wi >= 0) {
-        windHours.push({ hour: hr, speedMph: Math.round(windSpeeds[wi]), direction: degToCardinal(windDirs[wi]) });
-        morningWindSpeeds.push(windSpeeds[wi]);
-        morningWindDirs.push(windDirs[wi]);
+        const morningSpeeds: number[] = [];
+        const morningDirs: number[] = [];
+        for (let hr = 6; hr <= 11; hr++) {
+          const ts = `${targetDate}T${String(hr).padStart(2, '0')}:00`;
+          const i = times.indexOf(ts);
+          if (i >= 0) {
+            windHours.push({ hour: hr, speedMph: Math.round(speeds[i]), direction: degToCardinal(dirs[i]) });
+            morningSpeeds.push(speeds[i]);
+            morningDirs.push(dirs[i]);
+          }
+        }
+        if (morningSpeeds.length > 0) {
+          const avgSpeed = morningSpeeds.reduce((a, b) => a + b, 0) / morningSpeeds.length;
+          const avgDir = morningDirs.reduce((a, b) => a + b, 0) / morningDirs.length;
+          windStateStr = computeWindState(avgSpeed, avgDir);
+        }
       }
-
-      const mi = waveTimes.indexOf(ts);
-      if (mi >= 0) morningWaveHeights.push(waveHeights[mi]);
+    } catch {
+      // wind data unavailable — wave height still shown
     }
-
-    if (morningWaveHeights.length === 0) {
-      return NextResponse.json({ morning: null, morningLabel: '', error: 'No morning wave data' });
-    }
-
-    const avgWaveM = morningWaveHeights.reduce((a, b) => a + b, 0) / morningWaveHeights.length;
-    const avgWindSpeed = morningWindSpeeds.length
-      ? morningWindSpeeds.reduce((a, b) => a + b, 0) / morningWindSpeeds.length
-      : 0;
-    const avgWindDir = morningWindDirs.length
-      ? morningWindDirs.reduce((a, b) => a + b, 0) / morningWindDirs.length
-      : 0;
 
     const morning: SurfSlot = {
       date: targetDate,
-      waveHeightFt: mToFt(avgWaveM),
-      windState: windState(avgWindSpeed, avgWindDir),
+      waveHeightFt: mToFt(waveM),
+      windState: windStateStr,
       windHours,
     };
 

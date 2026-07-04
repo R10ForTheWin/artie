@@ -1,4 +1,3 @@
-import Image from 'next/image';
 import Link from 'next/link';
 import StripeBar from '@/components/StripeBar';
 import OceanTempCard from '@/components/OceanTempCard';
@@ -11,16 +10,8 @@ export default function HomePage() {
 
       <div className="flex-1 flex flex-col items-center px-6 pt-4 pb-4">
         {/* Logo */}
-        <div className="w-full max-w-xs mb-2">
-          <Image
-            src="/artie-logo.png"
-            alt="ARTIE"
-            width={1825}
-            height={862}
-            className="w-full h-auto"
-            priority
-          />
-        </div>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/artie-logo.png" alt="ARTIE" className="w-full max-w-xs h-auto mb-2" />
 
         <div className="flex flex-col gap-2 w-full max-w-xs">
           <Link
