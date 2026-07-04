@@ -120,7 +120,7 @@ export default async function RecordsPage() {
           <h2 className="text-navy font-black uppercase tracking-widest text-sm mb-1 opacity-60">Fastest Topaz Jetty → R10 → Back</h2>
           <p className="text-navy opacity-30 text-xs mb-3">~10 mi · excludes mid-paddle break</p>
           <div className="rounded-xl overflow-hidden border-2 border-navy border-opacity-10 mb-4">
-            <img src="/courses/topaz-r10.svg" alt="Topaz Jetty to R10 course map" className="w-full" />
+            <img src="/courses/topaz-r10.png" alt="Topaz Jetty to R10 course map" className="w-full" />
           </div>
 
           {topaz3.length === 0 ? (
@@ -152,7 +152,7 @@ export default async function RecordsPage() {
           <h2 className="text-navy font-black uppercase tracking-widest text-sm mb-1 opacity-60">Fastest Mothers Beach → Venice Pier &amp; Back</h2>
           <p className="text-navy opacity-30 text-xs mb-3">~6 mi</p>
           <div className="rounded-xl overflow-hidden border-2 border-navy border-opacity-10 mb-4">
-            <img src="/courses/mdr-venice.svg" alt="Mothers Beach to Venice Pier course map" className="w-full" />
+            <img src="/courses/mdr-venice.png" alt="Mothers Beach to Venice Pier course map" className="w-full" />
           </div>
 
           {mdr3.length === 0 ? (
@@ -184,7 +184,7 @@ export default async function RecordsPage() {
           <h2 className="text-navy font-black uppercase tracking-widest text-sm mb-1 opacity-60">Fastest Oxnard to Anacapa Loop</h2>
           <p className="text-navy opacity-30 text-xs mb-3">~25 mi</p>
           <div className="rounded-xl overflow-hidden border-2 border-navy border-opacity-10 mb-4">
-            <img src="/courses/anacapa-loop.svg" alt="Oxnard to Anacapa Loop course map" className="w-full" />
+            <img src="/courses/anacapa-loop.png" alt="Oxnard to Anacapa Loop course map" className="w-full" />
           </div>
 
           {anacapa3.length === 0 ? (
