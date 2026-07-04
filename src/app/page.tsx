@@ -11,12 +11,13 @@ export default function HomePage() {
 
       <div className="flex-1 flex flex-col items-center px-6 pt-4 pb-4">
         {/* Logo */}
-        <div className="mb-2">
+        <div className="w-full max-w-xs mb-2">
           <Image
-            src="/logo-v3.png"
+            src="/artie-logo.png"
             alt="ARTIE"
-            width={160}
-            height={80}
+            width={1825}
+            height={862}
+            className="w-full h-auto"
             priority
           />
         </div>
