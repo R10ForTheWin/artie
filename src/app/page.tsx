@@ -41,9 +41,7 @@ export default function HomePage() {
         </div>
 
         <div className="w-full max-w-xs mt-2 flex flex-col gap-2">
-          <OceanTempCard />
-          <SurfCard />
-          <div className="rounded-xl overflow-hidden border-2 border-navy border-opacity-10 mt-1">
+          <div className="rounded-xl overflow-hidden border-2 border-navy border-opacity-10">
             <iframe
               src="https://webcams.windy.com/webcams/stream/1481996596"
               className="w-full"
@@ -52,6 +50,8 @@ export default function HomePage() {
               allowFullScreen
             />
           </div>
+          <OceanTempCard />
+          <SurfCard />
         </div>
       </div>
 
