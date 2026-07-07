@@ -2,6 +2,7 @@ import Link from 'next/link';
 import StripeBar from '@/components/StripeBar';
 import OceanTempCard from '@/components/OceanTempCard';
 import SurfCard from '@/components/SurfCard';
+import WebcamEmbed from '@/components/WebcamEmbed';
 
 export default function HomePage() {
   return (
@@ -41,15 +42,7 @@ export default function HomePage() {
         </div>
 
         <div className="w-full max-w-xs mt-2 flex flex-col gap-2">
-          <div className="rounded-xl overflow-hidden border-2 border-navy border-opacity-10">
-            <iframe
-              src="https://webcams.windy.com/webcams/stream/1481996596"
-              className="w-full"
-              style={{ height: 180 }}
-              frameBorder={0}
-              allowFullScreen
-            />
-          </div>
+          <WebcamEmbed src="https://webcams.windy.com/webcams/stream/1481996596" />
           <OceanTempCard />
           <SurfCard />
         </div>
