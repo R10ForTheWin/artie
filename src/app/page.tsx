@@ -45,7 +45,7 @@ export default function HomePage() {
           <SurfCard />
           <div className="rounded-xl overflow-hidden border-2 border-navy border-opacity-10 mt-1">
             <iframe
-              src="https://webcams.windy.com/webcams/public/embed/player/1481996596"
+              src="https://webcams.windy.com/webcams/stream/1481996596"
               className="w-full"
               style={{ height: 180 }}
               frameBorder={0}
