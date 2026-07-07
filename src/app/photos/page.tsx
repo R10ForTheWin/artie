@@ -1,7 +1,19 @@
+import fs from 'fs';
+import path from 'path';
 import Link from 'next/link';
 import StripeBar from '@/components/StripeBar';
 
+export const dynamic = 'force-dynamic';
+
 export default function PhotosPage() {
+  const photosDir = path.join(process.cwd(), 'public/photos');
+  const files = fs.readdirSync(photosDir)
+    .filter(f => /\.(jpe?g|png|webp)$/i.test(f))
+    .sort();
+  const photo = files.length > 0
+    ? `/photos/${files[Math.floor(Date.now() / 86400000) % files.length]}`
+    : null;
+
   return (
     <main className="min-h-screen bg-white flex flex-col">
       <StripeBar side="top" />
@@ -14,6 +26,13 @@ export default function PhotosPage() {
 
         <h1 className="text-navy font-black uppercase tracking-widest text-3xl mb-1">Team Photos</h1>
         <p className="text-navy opacity-40 text-sm mb-8">Team Topaz shared album</p>
+
+        {photo && (
+          <div className="rounded-xl overflow-hidden border-2 border-navy border-opacity-10 mb-6">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={photo} alt="Team Topaz" className="w-full h-auto" />
+          </div>
+        )}
 
         <div className="border-2 border-navy border-opacity-20 rounded-xl p-6 bg-cream-light mb-4">
           <p className="text-navy font-bold mb-1">Shared iCloud Album</p>
