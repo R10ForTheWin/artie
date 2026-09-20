@@ -102,13 +102,14 @@ export default async function DashboardPage() {
 
         {/* Mileage Charts — newest season first */}
         <div className="mb-8 space-y-6">
-          {seasons.map(({ season, data }) => (
+          {seasons.map(({ season, data }, i) => (
             <MileageChart
               key={season.label}
               data={data}
               title={season.label}
               subtitle={formatSeasonRange(season)}
               showSwims={season.showSwims}
+              defaultOpen={i === 0}
             />
           ))}
         </div>
