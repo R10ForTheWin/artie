@@ -200,3 +200,46 @@ export async function importStravaActivity(athleteId: number, activityId: number
 
   return 'imported';
 }
+
+export type StravaAppStatus = 'ok' | 'inactive' | 'no-connection' | 'unknown';
+
+let statusCache: { value: StravaAppStatus; at: number } | null = null;
+const STATUS_TTL_MS = 5 * 60 * 1000;
+
+/**
+ * Strava's Developer Program (June 2026) requires the account that OWNS the API
+ * application to hold an active Strava subscription. When it lapses, every call
+ * returns 403 with resource "Application" / code "Inactive" — for every athlete,
+ * regardless of their own subscription. Surfaced on /strava so a dead sync is
+ * visible instead of silently importing nothing.
+ */
+export async function checkStravaAppStatus(): Promise<StravaAppStatus> {
+  if (statusCache && Date.now() - statusCache.at < STATUS_TTL_MS) return statusCache.value;
+
+  const cache = (value: StravaAppStatus) => {
+    statusCache = { value, at: Date.now() };
+    return value;
+  };
+
+  const r = await pool.query('SELECT * FROM strava_tokens LIMIT 1');
+  const token: StravaToken | undefined = r.rows[0];
+  if (!token) return cache('no-connection');
+
+  try {
+    const res = await fetch('https://www.strava.com/api/v3/athlete', {
+      headers: { Authorization: `Bearer ${token.access_token}` },
+    });
+    if (res.ok) return cache('ok');
+    if (res.status === 401) return cache('ok'); // stale token, not an app-level problem
+    if (res.status === 403) {
+      const body = await res.json().catch(() => null);
+      const inactive = body?.errors?.some(
+        (e: { resource?: string; code?: string }) => e.resource === 'Application' && e.code === 'Inactive'
+      );
+      return cache(inactive ? 'inactive' : 'unknown');
+    }
+    return cache('unknown');
+  } catch {
+    return cache('unknown');
+  }
+}

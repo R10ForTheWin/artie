@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { pool, initSchema } from '@/lib/db';
 import { TEAMMATES } from '@/lib/teammates';
+import { checkStravaAppStatus } from '@/lib/strava';
 import StripeBar from '@/components/StripeBar';
 
 export const dynamic = 'force-dynamic';
@@ -22,6 +23,11 @@ export default async function StravaPage({
   );
   const imports = importsResult.rows;
 
+  const appStatus = await checkStravaAppStatus();
+  const lastImport = imports[0]?.created_at
+    ? new Date(imports[0].created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    : null;
+
   return (
     <main className="min-h-screen bg-white flex flex-col">
       <StripeBar />
@@ -37,6 +43,35 @@ export default async function StravaPage({
         <p className="text-navy opacity-50 text-sm mb-8">
           Connect your Strava account and paddle workouts will auto-import whenever you sync your Garmin.
         </p>
+
+        {appStatus === 'inactive' && (
+          <div className="border-2 border-terracotta bg-terracotta/10 rounded-xl px-5 py-4 mb-6">
+            <p className="text-terracotta font-black uppercase tracking-widest text-sm mb-2">
+              Strava sync is paused
+            </p>
+            <p className="text-navy opacity-70 text-sm leading-relaxed">
+              Strava now requires the account that owns ARTIE&apos;s API app to have an active Strava
+              subscription. Until it&apos;s renewed, new workouts won&apos;t import automatically.
+              {lastImport && <> Last successful import was {lastImport}.</>}
+            </p>
+            <div className="flex flex-wrap gap-x-5 gap-y-2 mt-3">
+              <a
+                href="https://www.strava.com/settings/api"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-terracotta font-bold text-sm underline hover:opacity-70 transition-opacity"
+              >
+                Check app status on Strava →
+              </a>
+              <Link
+                href="/upload"
+                className="text-navy font-bold text-sm underline hover:text-gold transition-colors"
+              >
+                Upload a workout manually instead →
+              </Link>
+            </div>
+          </div>
+        )}
 
         {params.connected && (
           <div className="border-2 border-green-500 bg-green-50 rounded-xl px-5 py-4 mb-6">
