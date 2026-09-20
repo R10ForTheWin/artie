@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { pool, initSchema } from '@/lib/db';
 import { formatDistanceMiles } from '@/lib/formatters';
 import { TEAMMATES } from '@/lib/teammates';
-import { SEASONS, formatSeasonRange } from '@/lib/seasons';
+import { SEASONS, formatSeasonRange, seasonMembers } from '@/lib/seasons';
 import MileageChart from '@/components/MileageChart';
 import WorkoutTable from '@/components/WorkoutTable';
 import StripeBar from '@/components/StripeBar';
@@ -36,10 +36,11 @@ export default async function DashboardPage() {
   });
 
   const seasons = SEASONS.map((season) => {
-    const mileageMap = Object.fromEntries(TEAMMATES.map((t) => [t, 0]));
-    const oceanSwimMap = Object.fromEntries(TEAMMATES.map((t) => [t, 0]));
-    const poolSwimMap = Object.fromEntries(TEAMMATES.map((t) => [t, 0]));
-    const lastDateMap = Object.fromEntries(TEAMMATES.map((t) => [t, '']));
+    const roster = seasonMembers(season);
+    const mileageMap = Object.fromEntries(roster.map((t) => [t, 0]));
+    const oceanSwimMap = Object.fromEntries(roster.map((t) => [t, 0]));
+    const poolSwimMap = Object.fromEntries(roster.map((t) => [t, 0]));
+    const lastDateMap = Object.fromEntries(roster.map((t) => [t, '']));
 
     for (const w of workouts) {
       if (!(w.name in mileageMap) || !w.distance_m) continue;
@@ -50,7 +51,7 @@ export default async function DashboardPage() {
       if (w.workout_date > lastDateMap[w.name]) lastDateMap[w.name] = w.workout_date;
     }
 
-    const data = TEAMMATES
+    const data = roster
       .map((name, i) => ({
         name,
         miles: parseFloat(mileageMap[name].toFixed(2)),
