@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { ACTIVITIES, ACTIVITY_LABELS, type Activity } from '@/lib/activity';
 import { TEAMMATES } from '@/lib/teammates';
 import { COURSES } from '@/lib/courses';
 import { formatDistance, formatDuration, formatSpeed } from '@/lib/formatters';
@@ -17,6 +18,7 @@ export default function UploadForm() {
   const [mode, setMode] = useState<'phone' | 'computer' | null>(null);
   const [name, setName] = useState('');
   const [location, setLocation] = useState('');
+  const [activity, setActivity] = useState<Activity>('paddle');
   const [overviewFile, setOverviewFile] = useState<File | null>(null);
   const [lapsFiles, setLapsFiles] = useState<File[]>([]);
   const [fitFile, setFitFile] = useState<File | null>(null);
@@ -135,6 +137,7 @@ export default function UploadForm() {
     const formData = new FormData();
     formData.append('name', name);
     formData.append('location', location);
+    formData.append('activity', activity);
     if (garminUrl) {
       formData.append('garminUrl', garminUrl);
       if (workoutDate) formData.append('workoutDate', workoutDate);
@@ -200,6 +203,19 @@ export default function UploadForm() {
                   <option value="">Select Your Name</option>
                   {TEAMMATES.map((t) => (
                     <option key={t} value={t}>{t}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Activity */}
+              <div>
+                <select
+                  value={activity}
+                  onChange={(e) => setActivity(e.target.value as Activity)}
+                  className="w-full bg-white border-2 border-navy text-navy rounded-lg px-4 py-3 font-semibold focus:outline-none focus:border-gold appearance-none"
+                >
+                  {ACTIVITIES.map((a) => (
+                    <option key={a} value={a}>{ACTIVITY_LABELS[a]}</option>
                   ))}
                 </select>
               </div>

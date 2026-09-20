@@ -2,9 +2,11 @@ import Link from 'next/link';
 import { pool, initSchema } from '@/lib/db';
 import { formatDistanceMiles } from '@/lib/formatters';
 import { TEAMMATES } from '@/lib/teammates';
+import { SEASONS, formatSeasonRange } from '@/lib/seasons';
 import MileageChart from '@/components/MileageChart';
 import WorkoutTable from '@/components/WorkoutTable';
 import StripeBar from '@/components/StripeBar';
+import type { Activity } from '@/lib/activity';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,6 +23,7 @@ interface Workout {
   file_name: string;
   file_type: string;
   is_race: boolean | null;
+  activity: Activity;
 }
 
 export default async function DashboardPage() {
@@ -32,21 +35,42 @@ export default async function DashboardPage() {
     return (teammateOrder[a.name] ?? 99) - (teammateOrder[b.name] ?? 99);
   });
 
-  const CHART_START = '2026-03-01';
-  const mileageMap = Object.fromEntries(TEAMMATES.map((t) => [t, 0]));
-  const lastDateMap = Object.fromEntries(TEAMMATES.map((t) => [t, '']));
-  for (const w of workouts) {
-    if (w.name in mileageMap && w.distance_m) {
-      if (w.workout_date >= CHART_START) mileageMap[w.name] += formatDistanceMiles(w.distance_m);
+  const seasons = SEASONS.map((season) => {
+    const mileageMap = Object.fromEntries(TEAMMATES.map((t) => [t, 0]));
+    const oceanSwimMap = Object.fromEntries(TEAMMATES.map((t) => [t, 0]));
+    const poolSwimMap = Object.fromEntries(TEAMMATES.map((t) => [t, 0]));
+    const lastDateMap = Object.fromEntries(TEAMMATES.map((t) => [t, '']));
+
+    for (const w of workouts) {
+      if (!(w.name in mileageMap) || !w.distance_m) continue;
+      if (w.workout_date < season.start || w.workout_date > season.end) continue;
+      const bucket =
+        w.activity === 'ocean_swim' ? oceanSwimMap : w.activity === 'pool_swim' ? poolSwimMap : mileageMap;
+      bucket[w.name] += formatDistanceMiles(w.distance_m);
       if (w.workout_date > lastDateMap[w.name]) lastDateMap[w.name] = w.workout_date;
     }
-  }
-  const chartData = TEAMMATES
-    .map((name, i) => ({ name, miles: parseFloat(mileageMap[name].toFixed(2)), lastDate: lastDateMap[name], order: i }))
-    .sort((a, b) => b.lastDate.localeCompare(a.lastDate) || a.order - b.order)
-    .map(({ name, miles }) => ({ name, miles }));
 
-  const totalMiles = Object.values(mileageMap).reduce((a, b) => a + b, 0);
+    const data = TEAMMATES
+      .map((name, i) => ({
+        name,
+        miles: parseFloat(mileageMap[name].toFixed(2)),
+        oceanSwimMiles: parseFloat(oceanSwimMap[name].toFixed(2)),
+        poolSwimMiles: parseFloat(poolSwimMap[name].toFixed(2)),
+        lastDate: lastDateMap[name],
+        order: i,
+      }))
+      .sort((a, b) => b.lastDate.localeCompare(a.lastDate) || a.order - b.order)
+      .map(({ name, miles, oceanSwimMiles, poolSwimMiles }) => ({ name, miles, oceanSwimMiles, poolSwimMiles }));
+
+    // Paddle-only total, so the headline number stays comparable season to season
+    const paddleMiles = Object.values(mileageMap).reduce((a, b) => a + b, 0);
+    const swimMiles =
+      Object.values(oceanSwimMap).reduce((a, b) => a + b, 0) + Object.values(poolSwimMap).reduce((a, b) => a + b, 0);
+
+    return { season, data, paddleMiles, swimMiles };
+  });
+
+  const currentSeason = seasons[0];
 
   const racesResult = await pool.query('SELECT race_date FROM races');
   const raceDates = new Set(racesResult.rows.map((r: { race_date: string }) => r.race_date));
@@ -71,12 +95,21 @@ export default async function DashboardPage() {
         </div>
 
         <p className="text-navy opacity-40 text-sm mb-6">
-          {workouts.length} workouts · {totalMiles.toFixed(1)} total miles
+          {workouts.length} workouts · {currentSeason.paddleMiles.toFixed(1)} paddle miles this season
+          {currentSeason.swimMiles > 0 && <> · {currentSeason.swimMiles.toFixed(1)} swim miles</>}
         </p>
 
-        {/* Mileage Chart */}
-        <div className="mb-8">
-          <MileageChart data={chartData} />
+        {/* Mileage Charts — newest season first */}
+        <div className="mb-8 space-y-6">
+          {seasons.map(({ season, data }) => (
+            <MileageChart
+              key={season.label}
+              data={data}
+              title={season.label}
+              subtitle={formatSeasonRange(season)}
+              showSwims={season.showSwims}
+            />
+          ))}
         </div>
 
         {/* Workout Feed */}

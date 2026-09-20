@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { formatDate, formatDistanceShort, formatPace } from '@/lib/formatters';
+import type { Activity } from '@/lib/activity';
 
 interface Workout {
   id: number;
@@ -16,6 +17,7 @@ interface Workout {
   file_name: string;
   file_type: string;
   is_race: boolean | null;
+  activity: Activity;
 }
 
 const STRAVA_SPORT_LABELS: Record<string, string> = {

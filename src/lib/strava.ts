@@ -1,4 +1,5 @@
 import { pool, isCrossSourceDuplicate } from './db';
+import { classifyActivity } from './activity';
 
 const CLIENT_ID = process.env.STRAVA_CLIENT_ID!;
 const CLIENT_SECRET = process.env.STRAVA_CLIENT_SECRET!;
@@ -6,6 +7,12 @@ const CLIENT_SECRET = process.env.STRAVA_CLIENT_SECRET!;
 const PADDLE_SPORTS = new Set([
   'StandUpPaddling', 'Canoeing', 'Kayaking', 'Rowing', 'Paddling',
 ]);
+
+// Strava reports open-water and pool sessions alike as plain "Swim"; the split
+// between ocean and pool is made on the workout edit page.
+const SWIM_SPORTS = new Set(['Swim']);
+
+const IMPORTED_SPORTS = new Set([...PADDLE_SPORTS, ...SWIM_SPORTS]);
 
 const MILE_M = 1609.344;
 
@@ -138,7 +145,9 @@ export async function importStravaActivity(athleteId: number, activityId: number
   if (!actRes.ok) throw new Error(`Strava API error: ${actRes.status}`);
   const act = await actRes.json();
 
-  if (!PADDLE_SPORTS.has(act.sport_type)) return 'skipped';
+  if (!IMPORTED_SPORTS.has(act.sport_type)) return 'skipped';
+
+  const activity = classifyActivity(act.sport_type);
 
   const workout_date = (act.start_date_local ?? act.start_date ?? new Date().toISOString()).split('T')[0];
 
@@ -180,8 +189,8 @@ export async function importStravaActivity(athleteId: number, activityId: number
   }
 
   await pool.query(
-    `INSERT INTO workouts (name, file_name, file_type, workout_date, duration_s, distance_m, avg_speed_ms, max_speed_ms, avg_hr, max_hr, calories, mile_splits)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+    `INSERT INTO workouts (name, file_name, file_type, workout_date, duration_s, distance_m, avg_speed_ms, max_speed_ms, avg_hr, max_hr, calories, mile_splits, activity)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
     [
       token.name,
       `strava-${activityId}`,
@@ -195,6 +204,7 @@ export async function importStravaActivity(athleteId: number, activityId: number
       act.max_heartrate ? Math.round(act.max_heartrate) : null,
       act.calories ?? null,
       mile_splits ? JSON.stringify(mile_splits) : null,
+      activity,
     ]
   );
 

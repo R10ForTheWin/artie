@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { ACTIVITIES, ACTIVITY_LABELS, type Activity } from '@/lib/activity';
 import { useRouter } from 'next/navigation';
 import { TEAMMATES } from '@/lib/teammates';
 import { COURSES } from '@/lib/courses';
@@ -9,6 +10,7 @@ interface Props {
   id: number;
   name: string;
   location: string | null;
+  activity?: Activity;
   workout_date: string;
 }
 
@@ -36,11 +38,12 @@ function DeleteButton({ id }: { id: number }) {
   );
 }
 
-export default function WorkoutEditForm({ id, name, location, workout_date }: Props) {
+export default function WorkoutEditForm({ id, name, location, workout_date, activity }: Props) {
   const [editing, setEditing] = useState(false);
   const [editName, setEditName] = useState(name);
   const [editLocation, setEditLocation] = useState(location || '');
   const [editDate, setEditDate] = useState(workout_date.split('T')[0]);
+  const [editActivity, setEditActivity] = useState<Activity>(activity ?? 'paddle');
   const [saving, setSaving] = useState(false);
   const router = useRouter();
 
@@ -49,7 +52,7 @@ export default function WorkoutEditForm({ id, name, location, workout_date }: Pr
     await fetch(`/api/workouts/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: editName, location: editLocation, workout_date: editDate }),
+      body: JSON.stringify({ name: editName, location: editLocation, workout_date: editDate, activity: editActivity }),
     });
     setSaving(false);
     setEditing(false);
@@ -82,6 +85,13 @@ export default function WorkoutEditForm({ id, name, location, workout_date }: Pr
           className="w-full bg-white border-2 border-navy text-navy rounded-lg px-3 py-2 font-semibold text-sm focus:outline-none focus:border-gold appearance-none">
           <option value="">— None —</option>
           {COURSES.map((c) => <option key={c} value={c}>{c}</option>)}
+        </select>
+      </div>
+      <div>
+        <label className="block text-navy text-xs font-black uppercase tracking-wider opacity-50 mb-1">Activity</label>
+        <select value={editActivity} onChange={(e) => setEditActivity(e.target.value as Activity)}
+          className="w-full bg-white border-2 border-navy text-navy rounded-lg px-3 py-2 font-semibold text-sm focus:outline-none focus:border-gold appearance-none">
+          {ACTIVITIES.map((a) => <option key={a} value={a}>{ACTIVITY_LABELS[a]}</option>)}
         </select>
       </div>
       <div>

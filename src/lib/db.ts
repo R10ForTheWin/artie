@@ -195,6 +195,9 @@ export async function initSchema() {
 
     ALTER TABLE workouts ADD COLUMN IF NOT EXISTS is_race BOOLEAN;
 
+    -- 'paddle' | 'swim' — everything logged before ocean swims were tracked is a paddle
+    ALTER TABLE workouts ADD COLUMN IF NOT EXISTS activity TEXT NOT NULL DEFAULT 'paddle';
+
     -- DJ practiced on Santa Cruz Classic day, not a race
     UPDATE workouts SET is_race = false WHERE id = 130;
   `);

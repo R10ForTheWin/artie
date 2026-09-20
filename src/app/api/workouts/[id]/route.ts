@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { pool } from '@/lib/db';
+import { isActivity } from '@/lib/activity';
 
 export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -13,11 +14,14 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const body = await req.json();
-  const { name, location, workout_date } = body;
+  const { name, location, workout_date, activity } = body;
+  const nextActivity = isActivity(activity) ? activity : null;
 
   const result = await pool.query(
-    `UPDATE workouts SET name = $1, location = $2, workout_date = $3 WHERE id = $4 RETURNING *`,
-    [name, location || null, workout_date, id]
+    `UPDATE workouts SET name = $1, location = $2, workout_date = $3,
+            activity = COALESCE($5, activity)
+     WHERE id = $4 RETURNING *`,
+    [name, location || null, workout_date, id, nextActivity]
   );
   if (result.rowCount === 0) {
     return NextResponse.json({ error: 'Workout not found' }, { status: 404 });

@@ -6,12 +6,14 @@ import WorkoutEditForm from '@/components/WorkoutEditForm';
 import RouteMap from '@/components/RouteMap';
 import CalorieCard from '@/components/CalorieCard';
 import { notFound } from 'next/navigation';
+import type { Activity } from '@/lib/activity';
 
 export const dynamic = 'force-dynamic';
 
 interface Workout {
   id: number;
   name: string;
+  activity: Activity;
   workout_date: string;
   distance_m: number | null;
   duration_s: number | null;
@@ -64,7 +66,7 @@ export default async function WorkoutDetailPage({ params, searchParams }: { para
           <Link href="/dashboard" className="text-navy opacity-50 hover:opacity-100 text-sm font-bold uppercase tracking-wider">
             ← Back
           </Link>
-          <WorkoutEditForm id={w.id} name={w.name} location={w.location} workout_date={w.workout_date} />
+          <WorkoutEditForm id={w.id} name={w.name} location={w.location} workout_date={w.workout_date} activity={w.activity} />
         </div>
 
         <div className="mt-6 mb-2">
