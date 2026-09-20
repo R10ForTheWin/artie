@@ -138,15 +138,23 @@ export default function RaceCountdowns({ races, workoutLinks = {} }: { races: Ra
           <h2 className="text-navy font-black uppercase tracking-widest text-lg mb-5">Previous Races</h2>
           <div className="space-y-6">
             {past.map((race, raceIdx) => (
-              <div key={race.id}>
-                <div className="flex items-center gap-4 mb-3">
+              /* <details> keeps this a server component — no client JS needed to collapse */
+              <details key={race.id} className="group">
+                <summary className="flex items-center gap-3 mb-3 cursor-pointer list-none [&::-webkit-details-marker]:hidden rounded hover:bg-navy/5 transition-colors">
+                  <svg
+                    width="14" height="14" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"
+                    className="shrink-0 text-navy opacity-60 transition-transform group-open:rotate-90"
+                  >
+                    <polyline points="9 18 15 12 9 6" />
+                  </svg>
                   <Image src={race.logo ?? '/default-race.jpg'} alt={race.name} width={70} height={70} className="flex-shrink-0 object-contain" />
-                  <div>
+                  <div className="min-w-0">
                     <p className="text-navy font-bold text-base">{race.name}</p>
                     {race.location && <p className="text-navy text-xs opacity-50">{race.location}</p>}
                     <p className="text-navy text-xs opacity-40">{formatDate(race.race_date)}</p>
                   </div>
-                </div>
+                </summary>
 
                 {race.results && race.results.length > 0 && (() => {
                   const dateKey = race.race_date.slice(0, 10);
@@ -228,7 +236,7 @@ export default function RaceCountdowns({ races, workoutLinks = {} }: { races: Ra
                 {race.paddleguru_url && (!race.results || race.results.length === 0) && (
                   <SyncResultsButton raceId={race.id} />
                 )}
-              </div>
+              </details>
             ))}
           </div>
         </div>
