@@ -53,3 +53,13 @@ artie.db-wal
 ChatGPT\ Image*
 39409142*
 r10.jpg
+
+# Scratch route maps / reference images dropped in the project root.
+# App assets live in public/ — these are working files, not served.
+# Tracked root logos are re-included below.
+/*.png
+/*.jpg
+/*.jpeg
+!/ARTIE for Github.png
+!/RT Logo White.png
+!/RT logo.png
