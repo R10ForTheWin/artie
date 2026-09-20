@@ -24,9 +24,6 @@ export default async function StravaPage({
   const imports = importsResult.rows;
 
   const appStatus = await checkStravaAppStatus();
-  const lastImport = imports[0]?.created_at
-    ? new Date(imports[0].created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-    : null;
 
   return (
     <main className="min-h-screen bg-white flex flex-col">
@@ -45,31 +42,23 @@ export default async function StravaPage({
         </p>
 
         {appStatus === 'inactive' && (
-          <div className="border-2 border-terracotta bg-terracotta/10 rounded-xl px-5 py-4 mb-6">
-            <p className="text-terracotta font-black uppercase tracking-widest text-sm mb-2">
-              Strava sync is paused
-            </p>
+          <div className="border-2 border-navy/15 bg-navy/5 rounded-xl px-5 py-4 mb-6">
             <p className="text-navy opacity-70 text-sm leading-relaxed">
-              Strava now requires the account that owns ARTIE&apos;s API app to have an active Strava
-              subscription. Until it&apos;s renewed, new workouts won&apos;t import automatically.
-              {lastImport && <> Last successful import was {lastImport}.</>}
-            </p>
-            <div className="flex flex-wrap gap-x-5 gap-y-2 mt-3">
-              <a
-                href="https://www.strava.com/settings/api"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-terracotta font-bold text-sm underline hover:opacity-70 transition-opacity"
-              >
-                Check app status on Strava →
-              </a>
-              <Link
-                href="/upload"
-                className="text-navy font-bold text-sm underline hover:text-gold transition-colors"
-              >
-                Upload a workout manually instead →
+              Strava now requires a paid Strava membership for automatic updates. If you&apos;re not a
+              paying Strava member, you can still update ARTIE{' '}
+              <Link href="/upload" className="text-navy font-bold underline hover:text-gold transition-colors">
+                here
               </Link>
-            </div>
+              .
+            </p>
+            <a
+              href="https://www.strava.com/settings/api"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block mt-3 text-navy opacity-40 text-xs font-bold uppercase tracking-wider hover:opacity-70 transition-opacity"
+            >
+              Strava app settings →
+            </a>
           </div>
         )}
 
