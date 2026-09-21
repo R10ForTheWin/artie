@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import StripeBar from '@/components/StripeBar';
 import GarminCsvImport from '@/components/GarminCsvImport';
+import FitUpload from '@/components/FitUpload';
 import ReggieImport from '@/components/ReggieImport';
 import { reggieConfig } from '@/lib/reggie';
 
@@ -21,29 +22,57 @@ export default function ImportPage() {
           </Link>
         </div>
 
-        <h1 className="text-navy font-black uppercase tracking-widest text-3xl mb-2">Garmin Import</h1>
+        <h1 className="text-navy font-black uppercase tracking-widest text-3xl mb-2">Add Workouts</h1>
         <p className="text-navy opacity-50 text-sm mb-8">
-          Drop in a Garmin Connect CSV export and every paddle and swim in it lands in ARTIE.
-          Anything already logged is skipped, so re-importing the same file is safe.
+          Two ways in — a whole season at once from a CSV, or one workout at a time from your phone.
+          Either way, anything already logged is skipped, so nothing doubles up.
         </p>
 
-        <GarminCsvImport />
+        {/* Batch route */}
+        <div className="border-2 border-navy/20 rounded-xl p-5 space-y-4 mb-5">
+          <div>
+            <p className="text-navy font-black uppercase tracking-widest text-sm">Many at once</p>
+            <p className="text-navy opacity-50 text-sm mt-1 leading-relaxed">
+              A Garmin CSV export. Best for catching up on a season. Needs a computer —
+              the Garmin phone app can&apos;t export CSV.
+            </p>
+          </div>
+          <GarminCsvImport />
+        </div>
+
+        {/* Phone route */}
+        <FitUpload />
 
         {reggie && (
-          <div className="mt-8">
+          <div className="mt-5">
             <ReggieImport athlete={reggie.athlete} />
           </div>
         )}
 
-        <details className="mt-10 group">
-          <summary className="cursor-pointer list-none [&::-webkit-details-marker]:hidden text-navy opacity-50 hover:opacity-100 text-xs font-bold uppercase tracking-wider">
-            How to get the CSV →
+        <details className="mt-8 group">
+          <summary className="cursor-pointer list-none [&::-webkit-details-marker]:hidden text-navy opacity-50 hover:opacity-100 text-xs font-black uppercase tracking-wider">
+            How to get a Garmin CSV →
           </summary>
-          <ol className="mt-3 space-y-1.5 text-navy opacity-60 text-sm list-decimal list-inside leading-relaxed">
-            <li>Open <a href="https://connect.garmin.com/modern/activities" target="_blank" rel="noopener noreferrer" className="underline hover:text-gold">Garmin Connect → Activities</a></li>
-            <li>Filter to the activities you want, and scroll so they all load</li>
-            <li>Click <strong>Export CSV</strong> (top right) — it downloads automatically</li>
+          <ol className="mt-3 space-y-2 text-navy opacity-60 text-sm list-decimal list-inside leading-relaxed">
+            <li>On a computer, open <a href="https://connect.garmin.com/modern/activities" target="_blank" rel="noopener noreferrer" className="underline hover:text-gold">Garmin Connect → Activities</a></li>
+            <li>
+              <strong className="text-navy opacity-100">Scroll to the bottom until every workout you want has loaded.</strong>{' '}
+              Garmin only exports what is on screen, so without this you get about
+              twenty activities instead of your season.
+            </li>
+            <li>Click <strong>Export CSV</strong> at the top right</li>
             <li>Come back here and pick that file</li>
+          </ol>
+        </details>
+
+        <details className="mt-3 group">
+          <summary className="cursor-pointer list-none [&::-webkit-details-marker]:hidden text-navy opacity-50 hover:opacity-100 text-xs font-black uppercase tracking-wider">
+            How to get a .fit file on your phone →
+          </summary>
+          <ol className="mt-3 space-y-2 text-navy opacity-60 text-sm list-decimal list-inside leading-relaxed">
+            <li>Open the activity in the Garmin Connect app</li>
+            <li>Tap the <strong>···</strong> menu, then <strong>Export Original</strong></li>
+            <li>Save it to Files, then pick it above</li>
           </ol>
         </details>
       </div>
