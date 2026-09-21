@@ -4,7 +4,7 @@ import { parseWorkoutFile } from '@/lib/parsers';
 import { injectMapLocation } from '@/lib/parsers/gpxParser';
 import { parseLapsImage } from '@/lib/parsers/imageParser';
 import { TEAMMATES } from '@/lib/teammates';
-import { isActivity, type Activity } from '@/lib/activity';
+import { isActivity, classifyActivity, type Activity } from '@/lib/activity';
 
 export async function GET() {
   await initSchema();
@@ -24,7 +24,7 @@ function parseDurationToSeconds(str: string): number | null {
   return null;
 }
 
-async function fetchGarminActivityFromPage(activityId: string, workoutDate: string): Promise<import('@/lib/parsers').ParsedWorkout & { map_image_url: string | null }> {
+async function fetchGarminActivityFromPage(activityId: string, workoutDate: string): Promise<import('@/lib/parsers').ParsedWorkout & { map_image_url: string | null; title: string | null }> {
   const pageUrl = `https://connect.garmin.com/modern/activity/${activityId}`;
   const res = await fetch(pageUrl, {
     headers: {
@@ -68,6 +68,7 @@ async function fetchGarminActivityFromPage(activityId: string, workoutDate: stri
     max_hr: null,
     calories: null,
     map_image_url: imageMatch ? imageMatch[1] : null,
+    title: titleMatch ? titleMatch[1] : null,
   };
 }
 
@@ -81,7 +82,9 @@ export async function POST(req: NextRequest) {
     const garminUrl = (formData.get('garminUrl') as string) || null;
     const workoutDate = (formData.get('workoutDate') as string) || new Date().toISOString();
     const rawActivity = formData.get('activity');
-    const activity: Activity = isActivity(rawActivity) ? rawActivity : 'paddle';
+    // 'auto' (or nothing) lets each path infer the sport where it can
+    const explicitActivity: Activity | null = isActivity(rawActivity) ? rawActivity : null;
+    let activity: Activity = explicitActivity ?? 'paddle';
 
     if (!name || !TEAMMATES.includes(name as typeof TEAMMATES[number])) {
       return NextResponse.json({ error: 'Invalid teammate name' }, { status: 400 });
@@ -100,6 +103,7 @@ export async function POST(req: NextRequest) {
 
       try {
         const parsed = await fetchGarminActivityFromPage(activityId, workoutDate);
+        if (!explicitActivity && parsed.title) activity = classifyActivity(parsed.title);
 
         let mile_splits: number[] | null = null;
         if (lapsFiles.length > 0) {

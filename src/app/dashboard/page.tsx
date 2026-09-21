@@ -90,9 +90,6 @@ export default async function DashboardPage() {
           <Link href="/upload" className="bg-navy text-white font-black uppercase tracking-wider text-xs px-4 py-2.5 rounded-lg hover:bg-terracotta transition-colors whitespace-nowrap">
             + Upload
           </Link>
-          <Link href="/import" className="border-2 border-navy/20 text-navy font-black uppercase tracking-wider text-xs px-4 py-2.5 rounded-lg hover:border-navy/60 transition-colors whitespace-nowrap">
-            Import CSV
-          </Link>
           <Link href="/strava" className="bg-terracotta text-white font-black uppercase tracking-wider text-xs px-4 py-2.5 rounded-lg hover:bg-gold transition-colors whitespace-nowrap">
             Sync Strava
           </Link>
