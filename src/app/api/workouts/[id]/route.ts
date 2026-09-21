@@ -4,10 +4,20 @@ import { isActivity } from '@/lib/activity';
 
 export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const result = await pool.query('DELETE FROM workouts WHERE id = $1 RETURNING id', [id]);
+  const result = await pool.query(
+    'DELETE FROM workouts WHERE id = $1 RETURNING id, name, workout_date',
+    [id]
+  );
   if (result.rowCount === 0) {
     return NextResponse.json({ error: 'Workout not found' }, { status: 404 });
   }
+  // Remember the deletion so a later CSV or Reggie import doesn't put it back.
+  const { name, workout_date } = result.rows[0];
+  await pool.query(
+    `INSERT INTO deleted_workouts (name, workout_date) VALUES ($1, $2)
+     ON CONFLICT (name, workout_date) DO NOTHING`,
+    [name, workout_date]
+  );
   return NextResponse.json({ deleted: id });
 }
 

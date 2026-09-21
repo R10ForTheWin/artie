@@ -198,6 +198,20 @@ export async function initSchema() {
     -- 'paddle' | 'swim' — everything logged before ocean swims were tracked is a paddle
     ALTER TABLE workouts ADD COLUMN IF NOT EXISTS activity TEXT NOT NULL DEFAULT 'paddle';
 
+    -- Tombstones, so a bulk import never resurrects a workout that was deleted
+    -- on purpose. Keyed by person and date because that is how imports dedupe.
+    CREATE TABLE IF NOT EXISTS deleted_workouts (
+      name         TEXT NOT NULL,
+      workout_date TEXT NOT NULL,
+      deleted_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+      PRIMARY KEY (name, workout_date)
+    );
+
+    -- DJ's Beer Can Regatta was deleted before tombstones existed
+    INSERT INTO deleted_workouts (name, workout_date)
+    VALUES ('DJ', '2026-07-02')
+    ON CONFLICT (name, workout_date) DO NOTHING;
+
     -- DJ practiced on Santa Cruz Classic day, not a race
     UPDATE workouts SET is_race = false WHERE id = 130;
   `);
