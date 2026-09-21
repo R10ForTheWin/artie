@@ -45,7 +45,10 @@ export async function initSchema() {
       created_at  TIMESTAMPTZ DEFAULT NOW()
     );
 
-    CREATE UNIQUE INDEX IF NOT EXISTS races_name_unique ON races (LOWER(name));
+    -- A race recurs every year, so the name alone cannot be unique — it is the
+    -- name and the date together that identify one running of it.
+    DROP INDEX IF EXISTS races_name_unique;
+    CREATE UNIQUE INDEX IF NOT EXISTS races_name_date_unique ON races (LOWER(name), race_date);
 
     ALTER TABLE workouts ADD COLUMN IF NOT EXISTS mile_splits JSONB;
     ALTER TABLE workouts ADD COLUMN IF NOT EXISTS mile_bearings JSONB;
@@ -58,27 +61,36 @@ export async function initSchema() {
     ALTER TABLE races ADD COLUMN IF NOT EXISTS distance_m REAL;
     ALTER TABLE races ADD COLUMN IF NOT EXISTS course_record TEXT;
 
+    -- Free text so it can hold "$95" or "$75 early / $95 after Mar 1"
+    ALTER TABLE races ADD COLUMN IF NOT EXISTS entry_price TEXT;
+    -- Next season's races are carried over from this season until the organisers
+    -- post real dates, so the card can say the details are not yet confirmed.
+    ALTER TABLE races ADD COLUMN IF NOT EXISTS details_confirmed BOOLEAN NOT NULL DEFAULT true;
+
     UPDATE races SET distance_m = 12874.8 WHERE LOWER(name) = 'the lifeguard lap' AND distance_m IS NULL;
 
+    -- Next season is a placeholder: no results, and last season's sign-up links do not apply
+    UPDATE races SET results = NULL, paddleguru_url = NULL WHERE NOT details_confirmed;
+
     UPDATE races SET paddleguru_url = 'https://paddleguru.com/races/TheLifeguardLap2026'
-      WHERE LOWER(name) = 'the lifeguard lap';
+      WHERE LOWER(name) = 'the lifeguard lap' AND race_date < '2027-01-01';
 
     UPDATE races SET paddleguru_url = 'https://paddleguru.com/races/Malibudownwinder2026'
-      WHERE LOWER(name) = 'malibu downwinder' AND paddleguru_url IS NULL;
+      WHERE LOWER(name) = 'malibu downwinder' AND paddleguru_url IS NULL AND race_date < '2027-01-01';
 
     UPDATE races SET distance_m = 13486 WHERE LOWER(name) = 'malibu downwinder' AND distance_m IS NULL;
 
     UPDATE races SET paddleguru_url = 'https://paddleguru.com/races/THELOOP2026'
-      WHERE LOWER(name) = 'the loop' AND paddleguru_url IS NULL;
+      WHERE LOWER(name) = 'the loop' AND paddleguru_url IS NULL AND race_date < '2027-01-01';
 
     UPDATE races SET paddleguru_url = 'https://paddleguru.com/races/NACElMorroClassic2026'
-      WHERE LOWER(name) = 'el morro classic' AND paddleguru_url IS NULL;
+      WHERE LOWER(name) = 'el morro classic' AND paddleguru_url IS NULL AND race_date < '2027-01-01';
 
     UPDATE races SET paddleguru_url = 'https://paddleguru.com/races/19thAnnualSeasideSlide'
-      WHERE LOWER(name) = 'seaside slide' AND paddleguru_url IS NULL;
+      WHERE LOWER(name) = 'seaside slide' AND paddleguru_url IS NULL AND race_date < '2027-01-01';
 
     UPDATE races SET paddleguru_url = 'https://paddleguru.com/races/CatalinaClassicPaddleboardRace2026'
-      WHERE LOWER(name) = 'catalina classic' AND paddleguru_url IS NULL;
+      WHERE LOWER(name) = 'catalina classic' AND paddleguru_url IS NULL AND race_date < '2027-01-01';
 
     CREATE TABLE IF NOT EXISTS strava_tokens (
       id            SERIAL PRIMARY KEY,
@@ -110,7 +122,8 @@ export async function initSchema() {
     SELECT 'South Bay Paddle', '2026-06-20', null, '/logos/south-bay-paddle.jpg'
     WHERE NOT EXISTS (SELECT 1 FROM races WHERE LOWER(name) = 'south bay paddle');
 
-    UPDATE races SET race_date = '2026-06-20' WHERE LOWER(name) = 'south bay paddle';
+    UPDATE races SET race_date = '2026-06-20'
+    WHERE LOWER(name) = 'south bay paddle' AND race_date < '2027-01-01';
 
     INSERT INTO races (name, race_date, location, logo)
     SELECT 'R10 Paddleboard Race', '2026-06-06', null, '/logos/r10-race.jpg'
@@ -140,7 +153,7 @@ export async function initSchema() {
       {"place": 15, "name": "Jeff Hooykaas",      "time": "1:12:57"},
       {"place": 16, "name": "Jon Wood",           "time": "1:06:18"}
     ]'::jsonb
-    WHERE LOWER(name) = 'adler paddler' AND results IS NULL;
+    WHERE LOWER(name) = 'adler paddler' AND results IS NULL AND race_date < '2027-01-01';
 
     DELETE FROM races WHERE LOWER(name) LIKE '%lifeguard%' AND LOWER(name) != 'the lifeguard lap';
 
@@ -149,7 +162,7 @@ export async function initSchema() {
     WHERE NOT EXISTS (SELECT 1 FROM races WHERE LOWER(name) = 'the lifeguard lap');
 
     UPDATE races SET logo = '/logos/lifeguard-lap.png', race_date = '2026-04-11', location = 'Port San Luis, California'
-    WHERE LOWER(name) = 'the lifeguard lap';
+    WHERE LOWER(name) = 'the lifeguard lap' AND race_date < '2027-01-01';
 
     INSERT INTO races (name, race_date, location, logo)
     SELECT 'El Morro Classic', '2026-05-30', null, '/logos/el-morro-classic.png'

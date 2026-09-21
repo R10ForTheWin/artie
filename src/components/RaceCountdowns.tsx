@@ -19,6 +19,9 @@ interface Race {
   results: Finisher[] | null;
   paddleguru_url: string | null;
   course_record: string | null;
+  distance_m: number | null;
+  entry_price: string | null;
+  details_confirmed: boolean;
 }
 
 function wordMatch(text: string, word: string): boolean {
@@ -119,9 +122,36 @@ export default function RaceCountdowns({ races, workoutLinks = {} }: { races: Ra
                   </div>
                 </div>
                 <div className="mt-2">
-                  <p className="text-navy font-bold text-base">{race.name}</p>
-                  {race.location && <p className="text-navy text-xs opacity-50">{race.location}</p>}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="text-navy font-bold text-base">{race.name}</p>
+                    {!race.details_confirmed && (
+                      <span className="px-2 py-0.5 rounded-full bg-navy/10 text-navy text-[10px] font-black uppercase tracking-wider">
+                        Not yet confirmed
+                      </span>
+                    )}
+                  </div>
                   <p className="text-navy text-xs opacity-40 mt-0.5">{formatDate(race.race_date)}</p>
+                  <dl className="mt-2 space-y-0.5 text-xs">
+                    <div className="flex gap-2">
+                      <dt className="text-navy opacity-40 w-16 shrink-0">Where</dt>
+                      <dd className="text-navy opacity-70">{race.location ?? 'TBC'}</dd>
+                    </div>
+                    <div className="flex gap-2">
+                      <dt className="text-navy opacity-40 w-16 shrink-0">Distance</dt>
+                      <dd className="text-navy opacity-70">
+                        {race.distance_m ? `${(race.distance_m / 1609.344).toFixed(1)} mi` : 'TBC'}
+                      </dd>
+                    </div>
+                    <div className="flex gap-2">
+                      <dt className="text-navy opacity-40 w-16 shrink-0">Entry</dt>
+                      <dd className="text-navy opacity-70">{race.entry_price ?? 'TBC'}</dd>
+                    </div>
+                  </dl>
+                  {!race.details_confirmed && (
+                    <p className="text-navy opacity-30 text-[11px] mt-2 leading-relaxed">
+                      Carried over from last season — the organisers haven&apos;t posted {new Date(race.race_date).getUTCFullYear()} details yet.
+                    </p>
+                  )}
                 </div>
                 {race.course_record && (
                   <p className="text-navy text-xs opacity-40 mt-2 pt-2 border-t border-navy/10">CR: {race.course_record}</p>

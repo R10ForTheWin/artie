@@ -14,6 +14,9 @@ interface Race {
   results: { place: number; name: string; time: string }[] | null;
   paddleguru_url: string | null;
   course_record: string | null;
+  distance_m: number | null;
+  entry_price: string | null;
+  details_confirmed: boolean;
 }
 
 export default async function RacesPage() {
