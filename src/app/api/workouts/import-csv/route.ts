@@ -71,8 +71,8 @@ export async function POST(req: NextRequest) {
         const res = await client.query(
           `INSERT INTO workouts
              (name, file_name, file_type, workout_date, duration_s, distance_m,
-              avg_speed_ms, calories, location, source, activity)
-           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,'garmin',$10)
+              avg_speed_ms, calories, avg_hr, max_hr, location, source, activity)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,'garmin',$12)
            RETURNING id, workout_date`,
           [
             name,
@@ -83,6 +83,8 @@ export async function POST(req: NextRequest) {
             r.distance_m,
             avgSpeed,
             r.calories,
+            r.avg_hr,
+            r.max_hr,
             r.location,
             r.activity,
           ]

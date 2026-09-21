@@ -11,6 +11,8 @@ export interface GarminCsvRow {
   distance_m: number | null;
   duration_s: number | null;
   calories: number | null;
+  avg_hr: number | null;
+  max_hr: number | null;
 }
 
 /** Garmin activity types we track, mapped onto ARTIE activities. */
@@ -90,6 +92,8 @@ export function parseGarminCsv(text: string, swimUnit: SwimUnit = 'yards'): Garm
   const iDist = col('Distance');
   const iTime = col('Time');
   const iCal = col('Calories');
+  const iAvgHr = col('Avg HR');
+  const iMaxHr = col('Max HR');
   if (iType < 0 || iDate < 0) return [];
 
   const rows: GarminCsvRow[] = [];
@@ -117,6 +121,9 @@ export function parseGarminCsv(text: string, swimUnit: SwimUnit = 'yards'): Garm
       distance_m: dist !== null ? Math.round(toMeters(dist, activity, swimUnit) * 10) / 10 : null,
       duration_s: durationToSeconds(c[iTime]),
       calories: num(c[iCal]),
+      // Garmin writes '--' when the strap was not worn; num() turns that into null
+      avg_hr: num(c[iAvgHr]),
+      max_hr: num(c[iMaxHr]),
     });
   }
   return rows;
