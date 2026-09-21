@@ -108,7 +108,12 @@ export default function OceanTempCard() {
                 axisLine={{ stroke: '#1B2A4A', strokeOpacity: 0.3 }}
                 tickLine={false}
                 tickFormatter={(v) => `${v}°`}
-                domain={['auto', 'auto']}
+                /* Pad the range so the historical-average line never sits flat on the
+                   axis, where it reads as a chart artifact rather than a real value. */
+                domain={[
+                  (dataMin: number) => Math.floor(dataMin - 2),
+                  (dataMax: number) => Math.ceil(dataMax + 2),
+                ]}
               />
               <Tooltip
                 contentStyle={{
