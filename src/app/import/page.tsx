@@ -67,13 +67,21 @@ export default function ImportPage() {
 
         <details className="mt-3 group">
           <summary className="cursor-pointer list-none [&::-webkit-details-marker]:hidden text-navy opacity-50 hover:opacity-100 text-xs font-black uppercase tracking-wider">
-            How to get a .fit file on your phone →
+            How to get a .fit file →
           </summary>
           <ol className="mt-3 space-y-2 text-navy opacity-60 text-sm list-decimal list-inside leading-relaxed">
-            <li>Open the activity in the Garmin Connect app</li>
-            <li>Tap the <strong>···</strong> menu, then <strong>Export Original</strong></li>
-            <li>Save it to Files, then pick it above</li>
+            <li>
+              <strong className="text-navy opacity-100">The Garmin app can&apos;t do this</strong> — it
+              exports no files at all. Use the website, which works in your phone&apos;s browser too.
+            </li>
+            <li>Open <a href="https://connect.garmin.com/modern/activities" target="_blank" rel="noopener noreferrer" className="underline hover:text-gold">connect.garmin.com</a> and tap the activity</li>
+            <li>Tap the <strong>gear icon</strong> at the top right, then <strong>Export Original</strong></li>
+            <li>Save the file, then pick it above</li>
           </ol>
+          <p className="mt-2 text-navy opacity-40 text-xs leading-relaxed">
+            Only worth the trouble if you want heart rate and mile splits. Otherwise pasting the
+            activity link on the upload page is far quicker.
+          </p>
         </details>
       </div>
 

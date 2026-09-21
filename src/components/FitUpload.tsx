@@ -12,9 +12,10 @@ interface Result {
 }
 
 /**
- * Phone-friendly path: the Garmin mobile app can share a single activity as a
- * .fit file even though it cannot export CSV, and a FIT carries better data than
- * the CSV anyway (heart rate, mile splits). Several files can go at once.
+ * The richest data ARTIE can take: a FIT carries heart rate and mile splits,
+ * which a pasted Garmin link cannot (that only scrapes distance, time and speed).
+ * The catch is that the Garmin mobile app exports no files at all — the file has
+ * to come from connect.garmin.com, which does at least work in a phone browser.
  */
 export default function FitUpload() {
   const router = useRouter();
@@ -69,8 +70,8 @@ export default function FitUpload() {
       <div>
         <p className="text-navy font-black uppercase tracking-widest text-sm">One workout at a time</p>
         <p className="text-navy opacity-50 text-sm mt-1 leading-relaxed">
-          Works on your phone. Share an activity out of the Garmin app as a <strong>.fit</strong> file
-          and pick it here — it carries heart rate and mile splits, which the CSV does not.
+          A <strong>.fit</strong> file carries heart rate and mile splits, which neither the CSV nor a
+          pasted link can. It comes from the Garmin website, not the app — see below.
         </p>
       </div>
 
