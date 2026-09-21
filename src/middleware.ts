@@ -1,50 +1,44 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { SESSION_COOKIE, verifySession } from '@/lib/auth';
 
 const REDIRECT_TO = process.env.REDIRECT_TO?.trim();
+const AUTH_SECRET = process.env.AUTH_SECRET?.trim();
 
-export function middleware(request: NextRequest) {
-  if (!REDIRECT_TO) return NextResponse.next();
+/** Reachable without signing in. */
+const OPEN = ['/login', '/api/auth', '/logos', '/photos/', '/artie-logo.png', '/default-race.jpg'];
 
-  const html = `<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="refresh" content="10;url=${REDIRECT_TO}">
-  <title>Artie has moved!</title>
-  <style>
-    body { font-family: -apple-system, sans-serif; max-width: 480px; margin: 60px auto; padding: 24px; text-align: center; background: #f5f5f5; }
-    h1 { font-size: 1.6em; color: #1a1a1a; }
-    p { color: #555; line-height: 1.6; }
-    a.btn { display: inline-block; margin: 16px 0; padding: 14px 28px; background: #1B2A4A; color: white; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 1.1em; }
-    .steps { text-align: left; background: white; border-radius: 12px; padding: 20px 24px; margin-top: 24px; }
-    .steps h2 { font-size: 1em; margin-top: 0; }
-    .steps ol { padding-left: 20px; color: #333; }
-    .steps li { margin-bottom: 8px; }
-  </style>
-</head>
-<body>
-  <h1>🚀 Artie has a new home!</h1>
-  <p>We've moved to a faster, more reliable server. You'll be redirected automatically in 10 seconds.</p>
-  <a class="btn" href="${REDIRECT_TO}">Go Now</a>
-  <div class="steps">
-    <h2>📱 Update your Home Screen icon:</h2>
-    <ol>
-      <li><strong>Delete</strong> the old Artie icon from your home screen</li>
-      <li>Tap <strong>Go Now</strong> above to open the new site in Safari</li>
-      <li>Tap the <strong>Share</strong> button (box with arrow ↑)</li>
-      <li>Scroll down and tap <strong>"Add to Home Screen"</strong></li>
-      <li>Tap <strong>Add</strong> — done!</li>
-    </ol>
-  </div>
-</body>
-</html>`;
+export async function middleware(request: NextRequest) {
+  if (REDIRECT_TO) {
+    return new NextResponse(
+      `<!DOCTYPE html><html><head><meta charset="utf-8">` +
+      `<meta name="viewport" content="width=device-width, initial-scale=1">` +
+      `<meta http-equiv="refresh" content="10;url=${REDIRECT_TO}"><title>Artie has moved!</title></head>` +
+      `<body style="font-family:-apple-system,sans-serif;max-width:480px;margin:60px auto;padding:24px;text-align:center">` +
+      `<h1>Artie has a new home</h1><p>Redirecting in 10 seconds.</p>` +
+      `<a href="${REDIRECT_TO}" style="display:inline-block;margin:16px 0;padding:14px 28px;background:#1B2A4A;color:#fff;border-radius:8px;text-decoration:none;font-weight:bold">Go now</a>` +
+      `</body></html>`,
+      { status: 200, headers: { 'Content-Type': 'text/html' } }
+    );
+  }
 
-  return new NextResponse(html, {
-    status: 200,
-    headers: { 'Content-Type': 'text/html' },
-  });
+  // Without a secret there is nothing to verify against, so leave ARTIE open
+  // rather than locking everyone out the moment this deploys.
+  if (!AUTH_SECRET) return NextResponse.next();
+
+  const { pathname } = request.nextUrl;
+  if (OPEN.some((p) => pathname === p || pathname.startsWith(p))) return NextResponse.next();
+
+  const name = await verifySession(request.cookies.get(SESSION_COOKIE)?.value, AUTH_SECRET);
+  if (name) return NextResponse.next();
+
+  if (pathname.startsWith('/api/')) {
+    return NextResponse.json({ error: 'Sign in first.' }, { status: 401 });
+  }
+  const login = request.nextUrl.clone();
+  login.pathname = '/login';
+  login.search = pathname === '/' ? '' : `?next=${encodeURIComponent(pathname)}`;
+  return NextResponse.redirect(login);
 }
 
 export const config = {

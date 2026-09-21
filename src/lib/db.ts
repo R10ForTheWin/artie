@@ -92,6 +92,14 @@ export async function initSchema() {
     UPDATE races SET paddleguru_url = 'https://paddleguru.com/races/CatalinaClassicPaddleboardRace2026'
       WHERE LOWER(name) = 'catalina classic' AND paddleguru_url IS NULL AND race_date < '2027-01-01';
 
+    -- Sign-in roster. pin_hash NULL means "set a PIN on next sign-in", which is
+    -- also what a reset does, so there is no separate pending state.
+    CREATE TABLE IF NOT EXISTS people (
+      name       TEXT PRIMARY KEY,
+      pin_hash   TEXT,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
     CREATE TABLE IF NOT EXISTS strava_tokens (
       id            SERIAL PRIMARY KEY,
       name          TEXT NOT NULL UNIQUE,
