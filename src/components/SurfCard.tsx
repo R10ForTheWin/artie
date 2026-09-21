@@ -34,18 +34,31 @@ function fmtHour(h: number) {
   return h === 12 ? '12p' : h > 12 ? `${h - 12}p` : `${h}a`;
 }
 
-export default function SurfCard() {
+interface SurfCardProps {
+  /** Omit to use the default spot */
+  lat?: number;
+  lon?: number;
+  buoy?: string;
+  spotLabel?: string;
+}
+
+export default function SurfCard({ lat, lon, buoy, spotLabel = 'Topaz St' }: SurfCardProps = {}) {
+  const query = new URLSearchParams();
+  if (lat !== undefined) query.set('lat', String(lat));
+  if (lon !== undefined) query.set('lon', String(lon));
+  if (buoy) query.set('buoy', buoy);
+  const surfUrl = `/api/surf${query.toString() ? '?' + query : ''}`;
   const [data, setData] = useState<SurfData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const controller = new AbortController();
-    fetch('/api/surf', { signal: controller.signal })
+    fetch(surfUrl, { signal: controller.signal })
       .then(r => r.json())
       .then(d => { setData(d); setLoading(false); })
       .catch(e => { if (e.name !== 'AbortError') { setData({ morning: null, morningLabel: '' }); setLoading(false); } });
     return () => controller.abort();
-  }, []);
+  }, [surfUrl]);
 
   const m = data?.morning;
 
@@ -56,7 +69,7 @@ export default function SurfCard() {
         <div>
           <p className="text-navy font-bold text-sm whitespace-nowrap">Morning Surf</p>
           <p className="text-navy opacity-40 text-xs mt-0.5">
-            Topaz St · 6–11am{data?.morningLabel ? ` · ${data.morningLabel}` : ''}
+            {spotLabel} · 6–11am{data?.morningLabel ? ` · ${data.morningLabel}` : ''}
           </p>
         </div>
 

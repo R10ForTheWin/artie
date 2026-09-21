@@ -23,10 +23,12 @@ function parseNDBCText(text: string, dayMap: Map<string, number[]>) {
   }
 }
 
-async function fetchHistoricalYear(year: number): Promise<string | null> {
+const DEFAULT_BUOY = '46222';
+
+async function fetchHistoricalYear(year: number, buoy: string): Promise<string | null> {
   try {
     const res = await fetch(
-      `https://www.ndbc.noaa.gov/data/historical/stdmet/46222h${year}.txt.gz`,
+      `https://www.ndbc.noaa.gov/data/historical/stdmet/${buoy}h${year}.txt.gz`,
       { next: { revalidate: 86400 } } // 24h cache — archive files rarely change
     );
     if (!res.ok) return null;
@@ -41,15 +43,17 @@ async function fetchHistoricalYear(year: number): Promise<string | null> {
   }
 }
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
+    const raw = new URL(req.url).searchParams.get('buoy') ?? '';
+    const buoy = /^\d{5}$/.test(raw) ? raw : DEFAULT_BUOY;
     const currentYear = new Date().getFullYear();
     const dayMap = new Map<string, number[]>();
 
     const [prevYearText, currYearText, realtimeRes] = await Promise.all([
-      fetchHistoricalYear(currentYear - 1),
-      fetchHistoricalYear(currentYear),
-      fetch('https://www.ndbc.noaa.gov/data/realtime2/46222.txt', {
+      fetchHistoricalYear(currentYear - 1, buoy),
+      fetchHistoricalYear(currentYear, buoy),
+      fetch(`https://www.ndbc.noaa.gov/data/realtime2/${buoy}.txt`, {
         next: { revalidate: 3600 },
       }),
     ]);

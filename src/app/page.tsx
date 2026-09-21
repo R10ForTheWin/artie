@@ -1,8 +1,6 @@
 import Link from 'next/link';
 import StripeBar from '@/components/StripeBar';
-import OceanTempCard from '@/components/OceanTempCard';
-import SurfCard from '@/components/SurfCard';
-import WebcamEmbed from '@/components/WebcamEmbed';
+import BreakCarousel from '@/components/BreakCarousel';
 
 export default function HomePage() {
   return (
@@ -41,10 +39,8 @@ export default function HomePage() {
           </Link>
         </div>
 
-        <div className="w-full max-w-xs mt-2 flex flex-col gap-2">
-          <WebcamEmbed src="https://webcams.windy.com/webcams/stream/1481996596" />
-          <OceanTempCard />
-          <SurfCard />
+        <div className="w-full max-w-xs mt-2">
+          <BreakCarousel />
         </div>
       </div>
 

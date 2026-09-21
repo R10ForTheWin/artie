@@ -27,7 +27,13 @@ const RANGES = [7, 30, 90, 180, 365] as const;
 type Range = typeof RANGES[number];
 const RANGE_LABELS: Record<Range, string> = { 7: '7D', 30: '1M', 90: '3M', 180: '6M', 365: '1Y' };
 
-export default function OceanTempCard() {
+interface OceanTempCardProps {
+  buoy?: string;
+  buoyLabel?: string;
+}
+
+export default function OceanTempCard({ buoy, buoyLabel = 'MB' }: OceanTempCardProps = {}) {
+  const tempUrl = buoy ? `/api/ocean-temp?buoy=${buoy}` : '/api/ocean-temp';
   const [data, setData] = useState<OceanTempData | null>(null);
   const [expanded, setExpanded] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -35,12 +41,12 @@ export default function OceanTempCard() {
 
   useEffect(() => {
     const controller = new AbortController();
-    fetch('/api/ocean-temp', { signal: controller.signal })
+    fetch(tempUrl, { signal: controller.signal })
       .then((r) => r.json())
       .then((d) => { setData(d); setLoading(false); })
       .catch((e) => { if (e.name !== 'AbortError') setLoading(false); });
     return () => controller.abort();
-  }, []);
+  }, [tempUrl]);
 
   const allData = data?.history?.map((d) => ({ ...d, label: formatLabel(d.date) })) ?? [];
   const chartData = allData.slice(-range);
@@ -51,7 +57,7 @@ export default function OceanTempCard() {
       <div className="flex items-center justify-between gap-2">
         <div>
           <p className="text-navy font-bold text-sm whitespace-nowrap">Ocean Temp</p>
-          <p className="text-navy opacity-40 text-xs mt-0.5">MB · NOAA Buoy 46222</p>
+          <p className="text-navy opacity-40 text-xs mt-0.5">{buoyLabel} · NOAA Buoy {buoy ?? '46222'}</p>
         </div>
 
         {loading ? (

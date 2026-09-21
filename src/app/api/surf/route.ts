@@ -1,10 +1,11 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, type NextRequest } from 'next/server';
 
 export const revalidate = 1800;
 
-// Topaz Street, Manhattan Beach, CA
-const LAT = 33.886;
-const LON = -118.406;
+// Topaz Street, Manhattan Beach, CA — the default when no break is given
+const DEFAULT_LAT = 33.886;
+const DEFAULT_LON = -118.406;
+const DEFAULT_BUOY = '46222';
 
 // Coast faces ~270° (west). Offshore wind = coming FROM the east (90°).
 function computeWindState(avgSpeedMph: number, avgDirDeg: number): string {
@@ -51,7 +52,7 @@ function parseNdbcWaveHeight(text: string): number | null {
   return null;
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
     const nowPT = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }));
     const ptHour = nowPT.getHours();
@@ -64,8 +65,13 @@ export async function GET() {
     const targetDate = ptHour < 11 ? todayStr : tomorrowStr;
     const morningLabel = targetDate === todayStr ? 'Today' : 'Tomorrow';
 
-    // --- NDBC buoy 46222 for wave height (known to work from Railway) ---
-    const ndbcRes = await fetch('https://www.ndbc.noaa.gov/data/realtime2/46222.txt', {
+    const sp = req.nextUrl.searchParams;
+    const LAT = Number(sp.get('lat')) || DEFAULT_LAT;
+    const LON = Number(sp.get('lon')) || DEFAULT_LON;
+    const BUOY = /^\d{5}$/.test(sp.get('buoy') ?? '') ? sp.get('buoy')! : DEFAULT_BUOY;
+
+    // --- NDBC buoy for wave height (known to work from Railway) ---
+    const ndbcRes = await fetch(`https://www.ndbc.noaa.gov/data/realtime2/${BUOY}.txt`, {
       next: { revalidate: 1800 },
     });
     if (!ndbcRes.ok) throw new Error(`NDBC fetch failed: ${ndbcRes.status}`);
