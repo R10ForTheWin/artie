@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 
 export const revalidate = 1800;
 
-// Topaz Street, Manhattan Beach, CA — the default when no break is given
+// Manhattan Beach — the fallback when a caller gives no break coordinates
 const DEFAULT_LAT = 33.886;
 const DEFAULT_LON = -118.406;
 const DEFAULT_BUOY = '46222';

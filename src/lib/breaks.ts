@@ -24,12 +24,13 @@ export const BREAKS: Break[] = [
   {
     id: 'topaz',
     name: 'Topaz',
+    // Windy cam "Redondo Beach › West: Topaz Jetty"
     webcam: 'https://webcams.windy.com/webcams/stream/1481996596',
-    lat: 33.886,
-    lon: -118.406,
+    lat: 33.8385,
+    lon: -118.3945,
     buoy: '46222',
-    buoyLabel: 'MB',
-    spotLabel: 'Topaz St',
+    buoyLabel: 'SM Bay',
+    spotLabel: 'Topaz Jetty',
   },
   {
     id: 'manhattan-pier',
@@ -38,7 +39,7 @@ export const BREAKS: Break[] = [
     lat: 33.8847,
     lon: -118.4109,
     buoy: '46222',
-    buoyLabel: 'MB',
+    buoyLabel: 'SM Bay',
     spotLabel: 'Manhattan Beach Pier',
   },
 ];
