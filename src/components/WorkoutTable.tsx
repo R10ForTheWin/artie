@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { formatDate, formatDistanceShort, formatPace } from '@/lib/formatters';
-import type { Activity } from '@/lib/activity';
+import { ACTIVITY_COLORS, ACTIVITY_LABELS, type Activity } from '@/lib/activity';
 
 interface Workout {
   id: number;
@@ -101,6 +101,7 @@ export default function WorkoutTable({ workouts, raceDates = new Set() }: { work
               <th className={th}>Athlete</th>
               <th className={th}>Date</th>
               <th className={th}>Dist</th>
+              <th className={th}>Type</th>
               <th className={`${th} sm:hidden`}></th>
               <th className={`${th} hidden sm:table-cell`}>Pace</th>
               <th className={`${th} hidden sm:table-cell`}>Fastest Mi</th>
@@ -120,7 +121,7 @@ export default function WorkoutTable({ workouts, raceDates = new Set() }: { work
                     onClick={() => toggle(key)}
                     className={`cursor-pointer border-b-2 border-navy/20 transition-colors ${isOpen ? 'bg-navy/5 hover:bg-navy/10' : 'bg-navy/10 hover:bg-navy/20'}`}
                   >
-                    <td colSpan={9} className="px-4 py-3">
+                    <td colSpan={10} className="px-4 py-3">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <svg
@@ -158,6 +159,17 @@ export default function WorkoutTable({ workouts, raceDates = new Set() }: { work
                         <td className={`${td} text-navy font-bold`}>{w.name}</td>
                         <td className={`${td} text-navy opacity-70 whitespace-nowrap`}>{formatDate(w.workout_date)}</td>
                         <td className={`${td} text-gold font-bold whitespace-nowrap`}>{formatDistanceShort(w.distance_m)}</td>
+                        <td className={`${td} whitespace-nowrap`}>
+                          <span className="flex items-center gap-1.5">
+                            <span
+                              className="w-2 h-2 rounded-full shrink-0"
+                              style={{ background: ACTIVITY_COLORS[w.activity ?? 'paddle'] }}
+                            />
+                            <span className="text-navy opacity-70 text-xs">
+                              {ACTIVITY_LABELS[w.activity ?? 'paddle']}
+                            </span>
+                          </span>
+                        </td>
                         <td className={`${td} sm:hidden`} onClick={(e) => e.stopPropagation()}>
                           <button onClick={() => router.push(`/dashboard/workout/${w.id}`)} className={btnClass} style={{fontSize: '9px'}}>{btnLabel}</button>
                         </td>
