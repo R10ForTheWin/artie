@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { pool, initSchema } from '@/lib/db';
 import { TEAMMATES } from '@/lib/teammates';
+import { sessionName } from '@/lib/auth';
 import { parseGarminCsv, csvFileName, type SwimUnit } from '@/lib/parsers/garminCsv';
 
 export const dynamic = 'force-dynamic';
@@ -17,13 +18,17 @@ export async function POST(req: NextRequest) {
   try {
     await initSchema();
     const form = await req.formData();
-    const name = form.get('name') as string;
+    let name = form.get('name') as string;
     const file = form.get('file') as File | null;
     const swimUnit = ((form.get('swimUnit') as string) || 'yards') as SwimUnit;
     const commit = form.get('commit') === 'true';
 
-    if (!name || !TEAMMATES.includes(name as (typeof TEAMMATES)[number])) {
-      return NextResponse.json({ error: 'Pick who these workouts belong to.' }, { status: 400 });
+    const signedIn = await sessionName(req);
+    if (signedIn) name = signedIn;
+    if (!name) return NextResponse.json({ error: 'Pick who these workouts belong to.' }, { status: 400 });
+    if (!(TEAMMATES as readonly string[]).includes(name)) {
+      const { rows } = await pool.query('SELECT 1 FROM people WHERE LOWER(name) = LOWER($1)', [name]);
+      if (rows.length === 0) return NextResponse.json({ error: 'Not a known paddler.' }, { status: 400 });
     }
     if (!file) return NextResponse.json({ error: 'No CSV file provided.' }, { status: 400 });
 

@@ -8,10 +8,15 @@ export const dynamic = 'force-dynamic';
 
 const SOURCES: { what: string; where: string; gets: string; badge?: 'easiest' | 'most data' }[] = [
   {
-    what: 'Garmin link',
-    where: 'Garmin iOS app → share the activity → copy link',
-    gets: 'Distance, time, average speed and a map thumbnail',
+    what: "Garmin's share picture",
+    where: 'Garmin app → the activity → Share → Copy, then paste it here',
+    gets: 'Distance, time and the sport, read straight off the card',
     badge: 'easiest',
+  },
+  {
+    what: 'Garmin link',
+    where: 'connect.garmin.com → the activity → copy the address bar',
+    gets: 'Distance, time, average speed and a map thumbnail',
   },
   {
     what: '.gpx file — for paddles and ocean swims',

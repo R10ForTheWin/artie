@@ -25,7 +25,9 @@ const KIND_LABEL: Record<Kind, string> = {
   image: 'Screenshot',
 };
 
-const GARMIN_URL = /https?:\/\/connect\.garmin\.com\/(?:modern|app)\/activity\/\d+/;
+// Garmin shares activity links in several shapes — with or without /modern/ or
+// /app/, with or without the scheme, and sometimes wrapped in other text.
+const GARMIN_URL = /(?:https?:\/\/)?(?:www\.)?connect\.garmin\.com\/(?:modern\/|app\/)?activity\/\d+/i;
 
 function kindOf(file: File): Kind | null {
   const n = file.name.toLowerCase();
@@ -45,13 +47,27 @@ export default function UniversalDrop() {
   const [activity, setActivity] = useState<Activity | 'auto'>('auto');
   const [items, setItems] = useState<Item[]>([]);
   const [over, setOver] = useState(false);
+  const [linkText, setLinkText] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [signedInAs, setSignedInAs] = useState<string | null>(null);
+  const [roster, setRoster] = useState<string[]>([...TEAMMATES]);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const saved = localStorage.getItem('artie_csv_name');
-    if (saved && (TEAMMATES as readonly string[]).includes(saved)) setName(saved);
+    // Signed in? Then that is who this is, and the picker is just noise.
+    fetch('/api/auth')
+      .then((r) => r.json())
+      .then((d: { me: string | null; people: { name: string }[] }) => {
+        if (d.people?.length) setRoster(d.people.map((p) => p.name));
+        if (d.me) { setSignedInAs(d.me); setName(d.me); return; }
+        const saved = localStorage.getItem('artie_csv_name');
+        if (saved) setName(saved);
+      })
+      .catch(() => {
+        const saved = localStorage.getItem('artie_csv_name');
+        if (saved) setName(saved);
+      });
   }, []);
   useEffect(() => { if (name) localStorage.setItem('artie_csv_name', name); }, [name]);
 
@@ -74,8 +90,13 @@ export default function UniversalDrop() {
 
   function addText(text: string) {
     const m = text.match(GARMIN_URL);
-    if (!m) { setError('That does not look like a Garmin activity link.'); return; }
-    add([{ id: m[0], kind: 'link', label: m[0].replace(/^https?:\/\//, ''), url: m[0], status: 'ready' }]);
+    if (!m) {
+      const snippet = text.trim().slice(0, 60);
+      setError(`That does not look like a Garmin activity link${snippet ? ` — got "${snippet}${text.trim().length > 60 ? '…' : ''}"` : ''}.`);
+      return;
+    }
+    const url = m[0].startsWith('http') ? m[0] : `https://${m[0]}`;
+    add([{ id: url, kind: 'link', label: url.replace(/^https?:\/\//, ''), url, status: 'ready' }]);
   }
 
   async function send(item: Item): Promise<{ ok: boolean; detail: string }> {
@@ -98,7 +119,13 @@ export default function UniversalDrop() {
     const res = await fetch('/api/workouts', { method: 'POST', body: fd });
     const j = await res.json();
     if (!res.ok) return { ok: false, detail: j.error ?? 'failed' };
-    return { ok: true, detail: j.workout_date?.slice(0, 10) ?? 'added' };
+    // Say what ARTIE understood, not just that something happened
+    const bits = [
+      j.workout_date?.slice(0, 10),
+      j.distance_m ? `${(j.distance_m / 1609.344).toFixed(2)} mi` : null,
+      j.activity ? ACTIVITY_LABELS[j.activity as Activity] : null,
+    ].filter(Boolean);
+    return { ok: true, detail: bits.join(' · ') || 'added' };
   }
 
   async function run() {
@@ -126,20 +153,30 @@ export default function UniversalDrop() {
     <div
       className="space-y-4"
       onPaste={(e) => {
+        // A paste into the link box is the box's business — preventing it here
+        // stopped the pasted text ever appearing.
+        const el = e.target as HTMLElement;
+        if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') return;
         const text = e.clipboardData.getData('text');
         const files = Array.from(e.clipboardData.files);
         if (files.length) { e.preventDefault(); addFiles(files); }
         else if (text.trim()) { e.preventDefault(); addText(text); }
       }}
     >
-      <select
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        className="w-full bg-white border-2 border-navy text-navy rounded-lg px-4 py-3 font-semibold focus:outline-none focus:border-gold appearance-none"
-      >
-        <option value="">Who is this?</option>
-        {TEAMMATES.map((t) => <option key={t} value={t}>{t}</option>)}
-      </select>
+      {signedInAs ? (
+        <p className="text-navy opacity-50 text-sm">
+          Logging for <strong className="opacity-100 text-navy">{signedInAs}</strong>
+        </p>
+      ) : (
+        <select
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className="w-full bg-white border-2 border-navy text-navy rounded-lg px-4 py-3 font-semibold focus:outline-none focus:border-gold appearance-none"
+        >
+          <option value="">Who is this?</option>
+          {roster.map((t) => <option key={t} value={t}>{t}</option>)}
+        </select>
+      )}
 
       <div
         onDragOver={(e) => { e.preventDefault(); setOver(true); }}
@@ -174,8 +211,19 @@ export default function UniversalDrop() {
       <input
         type="text"
         inputMode="url"
+        value={linkText}
         placeholder="…or paste a Garmin link here"
-        onChange={(e) => { if (GARMIN_URL.test(e.target.value)) { addText(e.target.value); e.target.value = ''; } }}
+        onPaste={(e) => {
+          // Garmin's iOS share sheet copies a picture, not a link
+          const files = Array.from(e.clipboardData.files);
+          if (files.length) { e.preventDefault(); addFiles(files); setLinkText(''); }
+        }}
+        onChange={(e) => {
+          const v = e.target.value;
+          setLinkText(v);
+          setError('');
+          if (GARMIN_URL.test(v)) { addText(v); setLinkText(''); }
+        }}
         className="w-full bg-white border-2 border-navy/20 text-navy rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-gold"
       />
 
@@ -208,7 +256,11 @@ export default function UniversalDrop() {
               <span className={`shrink-0 text-xs font-bold ${
                 i.status === 'done' ? 'text-green-700' : i.status === 'error' ? 'text-terracotta' : 'text-navy opacity-40'
               }`}>
-                {i.status === 'working' ? '…' : i.detail ?? (i.status === 'ready' ? 'ready' : '')}
+                {i.status === 'working'
+                  ? 'reading…'
+                  : i.status === 'done'
+                  ? `✓ ${i.detail ?? 'added'}`
+                  : i.detail ?? (i.status === 'ready' ? 'ready' : '')}
               </span>
             </li>
           ))}

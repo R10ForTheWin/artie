@@ -67,3 +67,14 @@ export function normaliseName(raw: unknown): string | null {
 export function isValidPin(raw: unknown): raw is string {
   return typeof raw === 'string' && /^\d{4,8}$/.test(raw);
 }
+
+/**
+ * The signed-in name for a route handler, or null when sign-in is off.
+ * Routes prefer this over anything the client sends, so a paddler cannot log
+ * workouts as someone else just by changing a form field.
+ */
+export async function sessionName(req: { cookies: { get(n: string): { value: string } | undefined } }): Promise<string | null> {
+  const secret = process.env.AUTH_SECRET;
+  if (!secret) return null;
+  return verifySession(req.cookies.get(SESSION_COOKIE)?.value, secret);
+}

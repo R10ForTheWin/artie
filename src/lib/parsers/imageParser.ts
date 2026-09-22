@@ -34,9 +34,14 @@ export async function parseImage(buffer: Buffer, mimeType: string): Promise<Pars
           {
             type: 'text',
             text: `Extract workout data from this fitness app screenshot and return ONLY valid JSON with these fields:
-- workout_date: ISO 8601 date string (YYYY-MM-DD), use today's date if not shown
+- workout_date: ISO 8601 date string (YYYY-MM-DD). Today is ${new Date().toISOString().slice(0, 10)}.
+  Share cards often show a month and day with no year — in that case assume the most
+  recent such date on or before today, never a previous year. Use today if no date shows.
 - duration_s: total duration in seconds (integer), convert h:m:s or mm:ss accordingly
-- distance_m: distance in meters (float), convert miles × 1609.34 if needed
+- distance_m: distance in meters (float). Convert by the unit shown: miles × 1609.344,
+  yards × 0.9144, km × 1000, and ignore thousands separators such as "2,427 yd"
+- sport: the activity name exactly as shown, e.g. "Open Water Swimming", "Pool Swim",
+  "Stand Up Paddleboarding", or null if it is not written anywhere
 - avg_speed_ms: average speed in m/s (float), convert min/mile pace: m/s = 1609.34 / (pace_seconds)
 - max_speed_ms: max speed in m/s (float), same conversion
 - calories: calories burned (integer)
@@ -56,6 +61,7 @@ Use null for any field not visible. Return ONLY the JSON object, no other text.`
   const parsed = JSON.parse(jsonText);
 
   return {
+    sport: parsed.sport ?? null,
     workout_date: parsed.workout_date ?? new Date().toISOString().split('T')[0],
     duration_s: parsed.duration_s ?? null,
     distance_m: parsed.distance_m ?? null,

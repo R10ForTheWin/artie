@@ -4,6 +4,7 @@ import { parseWorkoutFile } from '@/lib/parsers';
 import { injectMapLocation } from '@/lib/parsers/gpxParser';
 import { parseLapsImage } from '@/lib/parsers/imageParser';
 import { TEAMMATES } from '@/lib/teammates';
+import { sessionName } from '@/lib/auth';
 import { isActivity, classifyActivity, type Activity } from '@/lib/activity';
 
 export async function GET() {
@@ -13,7 +14,7 @@ export async function GET() {
 }
 
 function extractGarminActivityId(url: string): string | null {
-  const match = url.match(/connect\.garmin\.com\/(?:modern|app)\/activity\/(\d+)/);
+  const match = url.match(/connect\.garmin\.com\/(?:modern\/|app\/)?activity\/(\d+)/i);
   return match ? match[1] : null;
 }
 
@@ -72,10 +73,17 @@ async function fetchGarminActivityFromPage(activityId: string, workoutDate: stri
   };
 }
 
+/** Anyone on the sign-in roster, falling back to the original hard-coded list. */
+async function isKnownPaddler(name: string): Promise<boolean> {
+  if ((TEAMMATES as readonly string[]).includes(name)) return true;
+  const { rows } = await pool.query('SELECT 1 FROM people WHERE LOWER(name) = LOWER($1)', [name]);
+  return rows.length > 0;
+}
+
 export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
-    const name = formData.get('name') as string;
+    let name = formData.get('name') as string;
     const location = (formData.get('location') as string) || null;
     const file = formData.get('file') as File | null;
     const lapsFiles = formData.getAll('lapsFile') as File[];
@@ -86,8 +94,11 @@ export async function POST(req: NextRequest) {
     const explicitActivity: Activity | null = isActivity(rawActivity) ? rawActivity : null;
     let activity: Activity = explicitActivity ?? 'paddle';
 
-    if (!name || !TEAMMATES.includes(name as typeof TEAMMATES[number])) {
-      return NextResponse.json({ error: 'Invalid teammate name' }, { status: 400 });
+    // When signed in, that is who this workout belongs to — whatever the form said
+    const signedIn = await sessionName(req);
+    if (signedIn) name = signedIn;
+    if (!name || !(await isKnownPaddler(name))) {
+      return NextResponse.json({ error: 'Not a known paddler' }, { status: 400 });
     }
 
     let buffer: Buffer;
@@ -180,6 +191,8 @@ export async function POST(req: NextRequest) {
     }
 
     const parsed = await parseWorkoutFile(buffer, ext, mimeType);
+    // A Garmin share card names its sport; trust it over the 'paddle' default
+    if (!explicitActivity && parsed.sport) activity = classifyActivity(parsed.sport);
 
     // Mile splits: from parsed file (GPX) or laps screenshots (concatenated)
     let mile_splits: number[] | null = parsed.mile_splits ?? null;
@@ -227,7 +240,7 @@ export async function POST(req: NextRequest) {
       ]
     );
 
-    return NextResponse.json(result.rows[0], { status: 201 });
+    return NextResponse.json({ ...result.rows[0], activity }, { status: 201 });
   } catch (err) {
     console.error('Upload error:', err);
     return NextResponse.json({ error: 'Failed to parse workout file' }, { status: 500 });

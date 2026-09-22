@@ -3,6 +3,8 @@ import { parseGpx } from './gpxParser';
 import { parseImage } from './imageParser';
 
 export interface ParsedWorkout {
+  /** Sport name when the source states one — lets ARTIE pick the activity itself. */
+  sport?: string | null;
   workout_date: string;
   duration_s: number | null;
   distance_m: number | null;
