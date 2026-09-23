@@ -22,6 +22,7 @@ interface Race {
   distance_m: number | null;
   entry_price: string | null;
   details_confirmed: boolean;
+  prior_paddleguru_url?: string | null;
 }
 
 function wordMatch(text: string, word: string): boolean {
@@ -153,6 +154,26 @@ export default function RaceCountdowns({ races, workoutLinks = {} }: { races: Ra
                     </p>
                   )}
                 </div>
+                {race.paddleguru_url ? (
+                  <a
+                    href={`${race.paddleguru_url.replace(/\/(results|register)\/?$/, '')}/register`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block mt-3 bg-navy text-white text-center font-black uppercase tracking-widest text-xs py-2.5 rounded-lg hover:bg-terracotta transition-colors"
+                  >
+                    Register on PaddleGuru →
+                  </a>
+                ) : race.prior_paddleguru_url ? (
+                  <a
+                    href={race.prior_paddleguru_url.replace(/\/(results|register)\/?$/, '')}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block mt-3 border-2 border-navy/20 text-navy text-center font-black uppercase tracking-widest text-xs py-2.5 rounded-lg hover:border-navy/60 transition-colors"
+                  >
+                    Last year&apos;s race page →
+                  </a>
+                ) : null}
+
                 {race.course_record && (
                   <p className="text-navy text-xs opacity-40 mt-2 pt-2 border-t border-navy/10">CR: {race.course_record}</p>
                 )}

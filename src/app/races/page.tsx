@@ -17,12 +17,24 @@ interface Race {
   distance_m: number | null;
   entry_price: string | null;
   details_confirmed: boolean;
+  /** Last year's PaddleGuru page, for a race whose next one is not posted yet. */
+  prior_paddleguru_url?: string | null;
 }
 
 export default async function RacesPage() {
   await initSchema();
   const result = await pool.query('SELECT * FROM races ORDER BY race_date ASC');
   const races = result.rows as Race[];
+
+  // A placeholder for next season has no sign-up page yet, so offer the most
+  // recent one this race did have — labelled as last year's, not as registration.
+  const latestUrlByName = new Map<string, string>();
+  for (const r of races) {
+    if (r.paddleguru_url) latestUrlByName.set(r.name.toLowerCase(), r.paddleguru_url);
+  }
+  for (const r of races) {
+    if (!r.paddleguru_url) r.prior_paddleguru_url = latestUrlByName.get(r.name.toLowerCase()) ?? null;
+  }
 
   // Build map of { raceDate -> { name -> workoutId } } for past races
   const pastDates = races.filter((r) => r.race_date < new Date().toISOString().slice(0, 10)).map((r) => r.race_date);
