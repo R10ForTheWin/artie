@@ -1,80 +1,70 @@
 import Link from 'next/link';
 import { pool, initSchema } from '@/lib/db';
-import { formatPace, formatSpeed, formatDuration, formatDate } from '@/lib/formatters';
+import { formatPace, formatDate } from '@/lib/formatters';
 import StripeBar from '@/components/StripeBar';
 
 export const dynamic = 'force-dynamic';
 
-interface TopazRow {
+interface SplitWorkout {
   id: number;
   name: string;
   workout_date: string;
   location: string | null;
-  duration_s: number;
-  distance_m: number;
+  mile_splits: number[];
 }
 
-interface SplitRow {
+interface Best {
   id: number;
   name: string;
   workout_date: string;
   location: string | null;
-  split_s: number;
-  mile_index: number;
+  start: number; // 1-based first mile of the stretch
+  total_s: number;
+}
+
+const STRETCHES = [1, 2, 3];
+
+/** Records need the seconds: 546 → "9:06", 3725 → "1:02:05" */
+function clock(total: number): string {
+  const t = Math.round(total);
+  const h = Math.floor(t / 3600), m = Math.floor((t % 3600) / 60), s = t % 60;
+  return h ? `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}` : `${m}:${String(s).padStart(2, '0')}`;
+}
+const medals = ['🥇', '🥈', '🥉'];
+
+/** The fastest run of `n` back-to-back miles in one workout. */
+function bestStretch(splits: number[], n: number): { start: number; total: number } | null {
+  if (splits.length < n) return null;
+  let best: { start: number; total: number } | null = null;
+  for (let i = 0; i + n <= splits.length; i++) {
+    const total = splits.slice(i, i + n).reduce((a, b) => a + b, 0);
+    if (!best || total < best.total) best = { start: i + 1, total };
+  }
+  return best;
 }
 
 export default async function RecordsPage() {
   await initSchema();
 
-  // Unnest mile_splits array and find top 3 fastest individual miles
-  const result = await pool.query<SplitRow>(`
-    SELECT w.id, w.name, w.workout_date, w.location, s.split_s, s.ord as mile_index
-    FROM workouts w,
-    LATERAL jsonb_array_elements_text(w.mile_splits) WITH ORDINALITY AS s(split_s, ord)
-    WHERE w.mile_splits IS NOT NULL
-    ORDER BY s.split_s::numeric ASC
-    LIMIT 3
-  `);
-
-  const top3 = result.rows;
-
-  // Top 3 fastest ~10 mile Topaz workouts by duration
-  const topazResult = await pool.query<TopazRow>(`
-    SELECT id, name, workout_date, location, duration_s, distance_m
+  // Paddles only: a swim's or a kayak import's miles aren't comparable
+  const { rows } = await pool.query<SplitWorkout>(`
+    SELECT id, name, workout_date, location, mile_splits
     FROM workouts
-    WHERE LOWER(location) LIKE '%topaz%'
-      AND distance_m >= 14000
-      AND duration_s IS NOT NULL
-    ORDER BY duration_s ASC
-    LIMIT 3
+    WHERE activity = 'paddle' AND mile_splits IS NOT NULL AND jsonb_array_length(mile_splits) > 0
   `);
-  const topaz3 = topazResult.rows;
 
-  // Top 3 fastest Mothers Beach → Venice Pier & Back workouts by duration
-  const mdrResult = await pool.query<TopazRow>(`
-    SELECT id, name, workout_date, location, duration_s, distance_m
-    FROM workouts
-    WHERE LOWER(location) LIKE '%mdr%'
-      AND distance_m >= 8000
-      AND duration_s IS NOT NULL
-    ORDER BY duration_s ASC
-    LIMIT 3
-  `);
-  const mdr3 = mdrResult.rows;
+  // Each board lists a workout once, so one great day can't take every medal
+  const boards = STRETCHES.map((n) => {
+    const bests: Best[] = [];
+    for (const w of rows) {
+      const splits = w.mile_splits.map(Number).filter((s) => s > 0);
+      const b = bestStretch(splits, n);
+      if (b) bests.push({ id: w.id, name: w.name, workout_date: w.workout_date, location: w.location, start: b.start, total_s: b.total });
+    }
+    return { n, top: bests.sort((a, b) => a.total_s - b.total_s).slice(0, 3) };
+  });
 
-  // Top 3 fastest Oxnard to Anacapa Loop workouts by duration
-  const anacapaResult = await pool.query<TopazRow>(`
-    SELECT id, name, workout_date, location, duration_s, distance_m
-    FROM workouts
-    WHERE (LOWER(location) LIKE '%anacapa%' OR LOWER(location) LIKE '%oxnard%')
-      AND distance_m >= 30000
-      AND duration_s IS NOT NULL
-    ORDER BY duration_s ASC
-    LIMIT 3
-  `);
-  const anacapa3 = anacapaResult.rows;
-
-  const medals = ['🥇', '🥈', '🥉'];
+  const people = [...new Set(rows.map((r) => r.name))].sort();
 
   return (
     <main className="min-h-screen bg-white flex flex-col">
@@ -86,132 +76,47 @@ export default async function RecordsPage() {
         </Link>
 
         <h1 className="text-navy font-black uppercase tracking-widest text-3xl mt-6 mb-1">Records</h1>
+        <p className="text-navy opacity-50 text-sm">
+          Fastest back-to-back miles in any paddle. Only workouts with mile splits count —{' '}
+          {rows.length} so far{people.length ? ` (${people.join(', ')})` : ''}. Add Laps screenshots to a workout to get yours in.
+        </p>
 
-        <div className="mt-8">
-          <h2 className="text-navy font-black uppercase tracking-widest text-sm mb-4 opacity-60">Fastest Mile — Top 3</h2>
-
-          {top3.length === 0 ? (
-            <p className="text-navy opacity-40 text-sm">No mile splits recorded yet — upload a workout with laps data.</p>
-          ) : (
-            <div className="space-y-3">
-              {top3.map((row, i) => (
-                <Link key={i} href={`/dashboard/workout/${row.id}?mile=${row.mile_index}`}
-                  className="flex items-center justify-between border-2 border-navy border-opacity-20 rounded-xl px-5 py-4 bg-white hover:border-gold transition-colors">
-                  <div className="flex items-center gap-4">
-                    <span className="text-2xl">{medals[i]}</span>
-                    <div>
-                      <p className="text-navy font-black uppercase tracking-wider text-sm">{row.name}</p>
-                      <p className="text-navy opacity-40 text-xs mt-0.5">
-                        {new Date(row.workout_date.split('T')[0] + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                        {row.location ? ` · ${row.location}` : ''}
-                      </p>
+        {boards.map(({ n, top }) => (
+          <div key={n} className="mt-8">
+            <h2 className="text-navy font-black uppercase tracking-widest text-sm mb-4 opacity-60">
+              Fastest {n} mile{n > 1 ? 's' : ''}
+            </h2>
+            {top.length === 0 ? (
+              <p className="text-navy opacity-40 text-sm">No workouts with {n}+ mile splits yet.</p>
+            ) : (
+              <div className="space-y-3">
+                {top.map((row, i) => (
+                  <Link
+                    key={row.id}
+                    href={`/dashboard/workout/${row.id}?mile=${row.start}&span=${n}`}
+                    className="flex items-center justify-between gap-3 border-2 border-navy border-opacity-20 rounded-xl px-5 py-4 bg-white hover:border-gold transition-colors"
+                  >
+                    <div className="flex items-center gap-4 min-w-0">
+                      <span className="text-2xl">{medals[i]}</span>
+                      <div className="min-w-0">
+                        <p className="text-navy font-black uppercase tracking-wider text-sm">{row.name}</p>
+                        <p className="text-navy opacity-40 text-xs mt-0.5 truncate">
+                          {formatDate(row.workout_date)}
+                          {n > 1 ? ` · miles ${row.start}–${row.start + n - 1}` : ` · mile ${row.start}`}
+                          {row.location ? ` · ${row.location}` : ''}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-gold font-black text-xl">{formatPace(row.split_s)}</p>
-                    <p className="text-navy opacity-50 text-xs mt-0.5">{formatSpeed(1609.344 / row.split_s)}</p>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          )}
-        </div>
-        <div className="mt-10">
-          <h2 className="text-navy font-black uppercase tracking-widest text-sm mb-1 opacity-60">Fastest Topaz Jetty → R10 → Back</h2>
-          <p className="text-navy opacity-30 text-xs mb-3">~10 mi · excludes mid-paddle break</p>
-          <div className="rounded-xl overflow-hidden border-2 border-navy border-opacity-10 mb-4">
-            <img src="/courses/topaz-r10.png" alt="Topaz Jetty to R10 course map" className="w-full" />
+                    <div className="text-right shrink-0">
+                      <p className="text-gold font-black text-xl tabular-nums">{clock(row.total_s)}</p>
+                      {n > 1 && <p className="text-navy opacity-50 text-xs mt-0.5 tabular-nums">{formatPace(row.total_s / n)}</p>}
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
-
-          {topaz3.length === 0 ? (
-            <p className="text-navy opacity-40 text-sm">No qualifying workouts yet.</p>
-          ) : (
-            <div className="space-y-3">
-              {topaz3.map((row, i) => (
-                <Link key={i} href={`/dashboard/workout/${row.id}`}
-                  className="flex items-center justify-between border-2 border-navy border-opacity-20 rounded-xl px-5 py-4 bg-white hover:border-gold transition-colors">
-                  <div className="flex items-center gap-4">
-                    <span className="text-2xl">{medals[i]}</span>
-                    <div>
-                      <p className="text-navy font-black uppercase tracking-wider text-sm">{row.name}</p>
-                      <p className="text-navy opacity-40 text-xs mt-0.5">
-                        {formatDate(row.workout_date)}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-gold font-black text-xl">{formatDuration(row.duration_s)}</p>
-                    <p className="text-navy opacity-50 text-xs mt-0.5">{(row.distance_m * 0.000621371).toFixed(2)} mi</p>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          )}
-        </div>
-        <div className="mt-10">
-          <h2 className="text-navy font-black uppercase tracking-widest text-sm mb-1 opacity-60">Fastest Mothers Beach → Venice Pier &amp; Back</h2>
-          <p className="text-navy opacity-30 text-xs mb-3">~6 mi</p>
-          <div className="rounded-xl overflow-hidden border-2 border-navy border-opacity-10 mb-4">
-            <img src="/courses/mdr-venice.png" alt="Mothers Beach to Venice Pier course map" className="w-full" />
-          </div>
-
-          {mdr3.length === 0 ? (
-            <p className="text-navy opacity-40 text-sm">No qualifying workouts yet — be the first!</p>
-          ) : (
-            <div className="space-y-3">
-              {mdr3.map((row, i) => (
-                <Link key={i} href={`/dashboard/workout/${row.id}`}
-                  className="flex items-center justify-between border-2 border-navy border-opacity-20 rounded-xl px-5 py-4 bg-white hover:border-gold transition-colors">
-                  <div className="flex items-center gap-4">
-                    <span className="text-2xl">{medals[i]}</span>
-                    <div>
-                      <p className="text-navy font-black uppercase tracking-wider text-sm">{row.name}</p>
-                      <p className="text-navy opacity-40 text-xs mt-0.5">
-                        {formatDate(row.workout_date)}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-gold font-black text-xl">{formatDuration(row.duration_s)}</p>
-                    <p className="text-navy opacity-50 text-xs mt-0.5">{(row.distance_m * 0.000621371).toFixed(2)} mi</p>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          )}
-        </div>
-        <div className="mt-10">
-          <h2 className="text-navy font-black uppercase tracking-widest text-sm mb-1 opacity-60">Fastest Oxnard to Anacapa Loop</h2>
-          <p className="text-navy opacity-30 text-xs mb-3">~25 mi</p>
-          <div className="rounded-xl overflow-hidden border-2 border-navy border-opacity-10 mb-4">
-            <img src="/courses/anacapa-loop.png" alt="Oxnard to Anacapa Loop course map" className="w-full" />
-          </div>
-
-          {anacapa3.length === 0 ? (
-            <p className="text-navy opacity-40 text-sm">No qualifying workouts yet — be the first!</p>
-          ) : (
-            <div className="space-y-3">
-              {anacapa3.map((row, i) => (
-                <Link key={i} href={`/dashboard/workout/${row.id}`}
-                  className="flex items-center justify-between border-2 border-navy border-opacity-20 rounded-xl px-5 py-4 bg-white hover:border-gold transition-colors">
-                  <div className="flex items-center gap-4">
-                    <span className="text-2xl">{medals[i]}</span>
-                    <div>
-                      <p className="text-navy font-black uppercase tracking-wider text-sm">{row.name}</p>
-                      <p className="text-navy opacity-40 text-xs mt-0.5">
-                        {formatDate(row.workout_date)}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-gold font-black text-xl">{formatDuration(row.duration_s)}</p>
-                    <p className="text-navy opacity-50 text-xs mt-0.5">{(row.distance_m * 0.000621371).toFixed(2)} mi</p>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          )}
-        </div>
+        ))}
       </div>
 
       <StripeBar side="bottom" />

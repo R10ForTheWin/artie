@@ -45,10 +45,13 @@ const SCREEN_LABEL: Record<string, string> = {
   overview: 'Overview', stats: 'Stats', laps: 'Laps', charts: 'Charts', share: 'Share card', other: 'Screenshot',
 };
 
-export default async function WorkoutDetailPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ mile?: string }> }) {
+export default async function WorkoutDetailPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ mile?: string; span?: string }> }) {
   const { id } = await params;
-  const { mile } = await searchParams;
+  const { mile, span } = await searchParams;
   const highlightMile = mile ? parseInt(mile, 10) : undefined;
+  // Records link a run of miles (?mile=4&span=3 → miles 4–6)
+  const highlightSpan = Math.max(1, Math.min(10, span ? parseInt(span, 10) || 1 : 1));
+  const inHighlight = (m: number) => highlightMile !== undefined && m >= highlightMile && m < highlightMile + highlightSpan;
   await initSchema();
   const [result, hrResult] = await Promise.all([
     pool.query('SELECT * FROM workouts WHERE id = $1', [id]),
@@ -193,7 +196,7 @@ export default async function WorkoutDetailPage({ params, searchParams }: { para
                 </thead>
                 <tbody>
                   {w.mile_splits.map((s, i) => {
-                    const isHighlight = highlightMile === i + 1;
+                    const isHighlight = inHighlight(i + 1);
                     return (
                       <tr key={i} className={`border-b border-navy border-opacity-10 ${isHighlight ? 'bg-gold bg-opacity-20' : i % 2 === 0 ? 'bg-white' : 'bg-cream-light'}`}>
                         <td className={`px-4 py-2 font-bold ${isHighlight ? 'text-gold' : 'text-navy'}`}>{i + 1}</td>
