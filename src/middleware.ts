@@ -6,7 +6,9 @@ const REDIRECT_TO = process.env.REDIRECT_TO?.trim();
 const AUTH_SECRET = process.env.AUTH_SECRET?.trim();
 
 /** Reachable without signing in. */
-const OPEN = ['/login', '/api/auth', '/logos', '/photos/', '/artie-logo.png', '/default-race.jpg'];
+// The home-screen icon and manifest are fetched without the sign-in cookie, so
+// they must stay public or iOS saves a blank white tile.
+const OPEN = ['/login', '/api/auth', '/logos', '/photos/', '/artie-logo.png', '/default-race.jpg', '/apple-touch-icon.png', '/manifest.json'];
 
 export async function middleware(request: NextRequest) {
   if (REDIRECT_TO) {
