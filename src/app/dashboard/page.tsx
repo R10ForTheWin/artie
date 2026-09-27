@@ -110,22 +110,29 @@ export default async function DashboardPage() {
           {currentSeason.swimMiles > 0 && <> · {currentSeason.swimMiles.toFixed(1)} swim miles</>}
         </p>
 
-        {/* Mileage Charts — newest season first */}
-        <div className="mb-8 space-y-6">
-          {seasons.map(({ season, data }, i) => (
-            <MileageChart
-              key={season.label}
-              data={data}
-              title={season.label}
-              subtitle={formatSeasonRange(season)}
-              showSwims={season.showSwims}
-              defaultOpen={i === 0}
-            />
-          ))}
+        {/* Each season's chart heads its own months, newest first. Anything
+            older than the oldest season stays with that last section. */}
+        <div className="space-y-10">
+          {seasons.map(({ season, data }, i) => {
+            const isLast = i === seasons.length - 1;
+            const inSeason = workouts.filter((w) => {
+              const d = w.workout_date.slice(0, 10);
+              return d <= season.end && (d >= season.start || isLast);
+            });
+            return (
+              <section key={season.label} className="space-y-4">
+                <MileageChart
+                  data={data}
+                  title={season.label}
+                  subtitle={formatSeasonRange(season)}
+                  showSwims={season.showSwims}
+                  defaultOpen={i === 0}
+                />
+                {inSeason.length > 0 && <WorkoutTable workouts={inSeason} raceDates={raceDates} showHint={i === 0} />}
+              </section>
+            );
+          })}
         </div>
-
-        {/* Workout Feed */}
-        <WorkoutTable workouts={workouts} raceDates={raceDates} />
 
       </div>
 

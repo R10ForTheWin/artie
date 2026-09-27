@@ -52,7 +52,7 @@ function monthLabel(key: string): string {
 const th = 'px-2 py-2 text-left text-navy font-black uppercase tracking-wider text-xs opacity-70';
 const td = 'px-2 py-2 text-xs';
 
-export default function WorkoutTable({ workouts, raceDates = new Set() }: { workouts: Workout[]; raceDates?: Set<string> }) {
+export default function WorkoutTable({ workouts, raceDates = new Set(), showHint = true }: { workouts: Workout[]; raceDates?: Set<string>; showHint?: boolean }) {
   const router = useRouter();
 
   const currentMonth = new Date().toISOString().slice(0, 7);
@@ -85,14 +85,14 @@ export default function WorkoutTable({ workouts, raceDates = new Set() }: { work
 
   return (
     <>
-      <div className="flex items-center gap-2 mb-2 sm:hidden text-navy opacity-40">
+      {showHint && <div className="flex items-center gap-2 mb-2 sm:hidden text-navy opacity-40">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
           <rect x="4" y="2" width="10" height="16" rx="2"/>
           <path d="M17 8l3 3-3 3"/>
           <path d="M20 11H14"/>
         </svg>
         <span className="text-xs font-bold uppercase tracking-wider">Rotate for more data</span>
-      </div>
+      </div>}
 
       <div className="border-2 border-navy border-opacity-20 rounded-lg overflow-x-auto" data-swipe-ignore>
         <table className="w-full">
