@@ -315,6 +315,7 @@ export default function UniversalDrop() {
       )}
 
       {!link && (
+        <div className="space-y-1.5">
         <input
           type="text"
           inputMode="url"
@@ -337,6 +338,16 @@ export default function UniversalDrop() {
           }}
           className="w-full bg-white border-2 border-navy/20 text-navy rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-gold"
         />
+        <p className="flex flex-wrap items-center gap-1 text-[11px] font-semibold text-navy opacity-50">
+          Garmin app:
+          {['Activity', 'Share', 'Web Link', 'Copy'].map((step, i) => (
+            <span key={step} className="flex items-center gap-1">
+              {i > 0 && <span aria-hidden="true">→</span>}
+              <span className="bg-cream-light text-navy rounded px-1.5 py-0.5">{step}</span>
+            </span>
+          ))}
+        </p>
+        </div>
       )}
 
       <div
@@ -373,8 +384,8 @@ export default function UniversalDrop() {
         <div className="space-y-1">
           <p className="text-navy font-bold text-sm">Combine your Garmin link + screenshots for more data.</p>
           <p className="text-navy opacity-60 text-sm leading-relaxed">
-            In the Garmin app, open the activity and tap Share → Copy link, then paste it above. Then screenshot its
-            Overview, Stats, Laps and Charts tabs and choose them all at once.
+            Paste the activity&apos;s web link above, then screenshot its Overview, Stats, Laps and Charts tabs in the
+            Garmin app and choose them all at once.
           </p>
         </div>
       )}
