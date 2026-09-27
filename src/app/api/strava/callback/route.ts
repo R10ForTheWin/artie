@@ -7,7 +7,7 @@ export async function GET(req: NextRequest) {
   const code = req.nextUrl.searchParams.get('code');
   const name = req.nextUrl.searchParams.get('state');
   const error = req.nextUrl.searchParams.get('error');
-  const baseUrl = 'https://artie-production-1b13.up.railway.app';
+  const baseUrl = 'https://artie-r10.up.railway.app';
 
   await initSchema();
   if (error || !code || !name || !(await getPerson(name))) {

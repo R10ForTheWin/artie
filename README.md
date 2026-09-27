@@ -3,7 +3,7 @@
 AI coordination platform for prone paddle teams training for the Catalina Classic.
 
 ## Live Demo
-[Try the live app](https://artie-production-1b13.up.railway.app)
+[Try the live app](https://artie-r10.up.railway.app)
 
 ## What It Does
 - Tracks team mileage

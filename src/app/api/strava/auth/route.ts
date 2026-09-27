@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid name' }, { status: 400 });
   }
 
-  const baseUrl = 'https://artie-production-1b13.up.railway.app';
+  const baseUrl = 'https://artie-r10.up.railway.app';
   const params = new URLSearchParams({
     client_id: process.env.STRAVA_CLIENT_ID!,
     redirect_uri: `${baseUrl}/api/strava/callback`,
