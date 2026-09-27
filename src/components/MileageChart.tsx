@@ -32,7 +32,6 @@ export default function MileageChart({ data, title, subtitle, showSwims = false,
   const rowHeight = showSwims ? 46 : 30;
   const chartHeight = chartData.length * rowHeight + 32;
   const isEmpty = data.every(d => d.miles === 0 && d.oceanSwimMiles === 0 && d.poolSwimMiles === 0);
-  const totalMiles = data.reduce((a, d) => a + d.miles + d.oceanSwimMiles + d.poolSwimMiles, 0);
 
   return (
     <div className="border-2 border-navy border-opacity-20 rounded-lg bg-white overflow-hidden">
@@ -51,12 +50,8 @@ export default function MileageChart({ data, title, subtitle, showSwims = false,
           </svg>
           <div className="min-w-0">
             <h2 className="text-navy font-black uppercase tracking-widest text-lg">{title}</h2>
-            {subtitle && <p className="text-navy opacity-40 text-xs font-bold uppercase tracking-wider mt-1">{subtitle}</p>}
           </div>
         </div>
-        <span className="text-navy opacity-40 text-xs font-semibold shrink-0 tabular-nums">
-          {totalMiles.toFixed(1)} mi
-        </span>
       </button>
 
       {open && (

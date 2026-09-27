@@ -13,23 +13,28 @@ export default function WebcamSnapshot({ src, liveUrl, liveLabel }: { src: strin
     return () => clearInterval(id);
   }, []);
 
-  return (
-    <div className="relative rounded-xl overflow-hidden border-2 border-navy border-opacity-10 bg-navy/5" style={{ height: 180 }}>
+  const photo = (
+    <>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={`${src}${src.includes('?') ? '&' : '?'}t=${stamp}`} alt="Latest webcam photo" className="w-full h-full object-cover" />
       <span className="absolute left-2 bottom-2 rounded-md bg-black/55 text-white text-[10px] font-bold uppercase tracking-wider px-2 py-1">
         Latest photo
       </span>
       {liveUrl && (
-        <a
-          href={liveUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="absolute right-2 bottom-2 rounded-md bg-navy text-white text-[11px] font-black uppercase tracking-wider px-2.5 py-1.5 hover:bg-terracotta transition-colors"
-        >
+        <span className="absolute right-2 bottom-2 rounded-md bg-navy text-white text-[11px] font-black uppercase tracking-wider px-2.5 py-1.5 group-hover:bg-terracotta transition-colors">
           {liveLabel ?? 'Watch live'} ↗
-        </a>
+        </span>
       )}
-    </div>
+    </>
+  );
+  const box = 'group relative block rounded-xl overflow-hidden border-2 border-navy border-opacity-10 bg-navy/5';
+
+  // The whole photo is the tap target for the live stream, not just the badge
+  return liveUrl ? (
+    <a href={liveUrl} target="_blank" rel="noopener noreferrer" className={box} style={{ height: 180 }} aria-label="Watch the live stream">
+      {photo}
+    </a>
+  ) : (
+    <div className={box} style={{ height: 180 }}>{photo}</div>
   );
 }

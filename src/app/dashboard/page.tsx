@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { pool, initSchema } from '@/lib/db';
 import { formatDistanceMiles } from '@/lib/formatters';
 import { TEAMMATES } from '@/lib/teammates';
-import { SEASONS, formatSeasonRange, seasonMembers } from '@/lib/seasons';
+import { SEASONS, seasonMembers } from '@/lib/seasons';
 import MileageChart from '@/components/MileageChart';
 import WorkoutTable from '@/components/WorkoutTable';
 import StripeBar from '@/components/StripeBar';
@@ -124,7 +124,6 @@ export default async function DashboardPage() {
                 <MileageChart
                   data={data}
                   title={season.label}
-                  subtitle={formatSeasonRange(season)}
                   showSwims={season.showSwims}
                   defaultOpen={i === 0}
                 />
