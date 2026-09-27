@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import StepPath from './StepPath';
 import { TEAMMATES } from '@/lib/teammates';
 import { ACTIVITIES, ACTIVITY_LABELS, classifyActivity, type Activity } from '@/lib/activity';
 
@@ -338,15 +339,7 @@ export default function UniversalDrop() {
           }}
           className="w-full bg-white border-2 border-navy/20 text-navy rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-gold"
         />
-        <p className="flex flex-wrap items-center gap-1 text-[11px] font-semibold text-navy opacity-50">
-          Garmin app:
-          {['Activity', 'Share', 'Web Link', 'Copy'].map((step, i) => (
-            <span key={step} className="flex items-center gap-1">
-              {i > 0 && <span aria-hidden="true">→</span>}
-              <span className="bg-cream-light text-navy rounded px-1.5 py-0.5">{step}</span>
-            </span>
-          ))}
-        </p>
+        <StepPath label="Garmin app:" steps={['Activity', 'Share', 'Web Link', 'Copy']} />
         </div>
       )}
 

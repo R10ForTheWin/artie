@@ -3,31 +3,34 @@ import StripeBar from '@/components/StripeBar';
 import UniversalDrop from '@/components/UniversalDrop';
 import ReggieImport from '@/components/ReggieImport';
 import { reggieConfig } from '@/lib/reggie';
+import StepPath from '@/components/StepPath';
 
 export const dynamic = 'force-dynamic';
 
 /**
  * The Garmin phone app can't export files, so all three of these come from
- * connect.garmin.com — which works fine in a phone's browser.
+ * connect.garmin.com — and downloading (or unzipping) a file is fiddly on a
+ * phone, so they're marked as computer jobs.
  */
-const OTHER_WAYS: { what: string; is: string; when: string; where: string }[] = [
+const OTHER_WAYS: { what: string; is: string; when: string; steps: string[]; note?: string }[] = [
   {
     what: '.gpx file',
-    is: "The GPS track Garmin recorded — every point of your route.",
+    is: 'The GPS track Garmin recorded — every point of your route.',
     when: 'Adds the real route map, the direction of each mile, and water temp.',
-    where: 'connect.garmin.com → open the activity → gear icon (top right) → Export to GPX',
+    steps: ['connect.garmin.com', 'the activity', 'gear icon (top right)', 'Export to GPX'],
   },
   {
     what: '.fit file',
     is: "Your watch's own recording of the workout.",
     when: 'Exact numbers straight from the watch — time, distance, speed, calories and mile splits — with nothing read off a picture. More steps than screenshots, so use it if you want exact figures or already have the file.',
-    where: 'connect.garmin.com → open the activity → gear icon → Export Original. It downloads as a .zip; tap it to unzip, then add the .fit inside.',
+    steps: ['connect.garmin.com', 'the activity', 'gear icon', 'Export Original'],
+    note: 'It downloads as a .zip. Unzip it and add the .fit inside.',
   },
   {
     what: 'CSV export',
     is: 'A spreadsheet of many workouts at once, summary numbers only.',
     when: 'For catching up on a whole season in one go. Anything already logged is skipped.',
-    where: 'connect.garmin.com → Activities → All Activities → Export CSV (top right)',
+    steps: ['connect.garmin.com', 'Activities', 'All Activities', 'Export CSV (top right)'],
   },
 ];
 
@@ -65,14 +68,23 @@ export default function UploadPage() {
           <dl className="mt-4 space-y-5">
             {OTHER_WAYS.map((w) => (
               <div key={w.what}>
-                <dt className="text-navy font-bold text-sm">{w.what}</dt>
-                <dd className="text-navy opacity-70 text-sm leading-relaxed mt-0.5">{w.is} {w.when}</dd>
-                <dd className="text-navy opacity-45 text-xs leading-relaxed mt-1">{w.where}</dd>
+                <dt className="flex items-center gap-2 flex-wrap">
+                  <span className="text-navy font-bold text-sm">{w.what}</span>
+                  <span className="inline-flex items-center gap-1 rounded-full bg-navy text-white px-2 py-0.5 text-[10px] font-black uppercase tracking-wider">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <rect x="4" y="4" width="16" height="11" rx="1.5" />
+                      <path d="M2 19h20" />
+                    </svg>
+                    Best on a computer
+                  </span>
+                </dt>
+                <dd className="text-navy opacity-70 text-sm leading-relaxed mt-1">{w.is} {w.when}</dd>
+                <dd className="mt-2"><StepPath steps={w.steps} note={w.note} /></dd>
               </div>
             ))}
           </dl>
           <p className="text-navy opacity-40 text-xs mt-5 leading-relaxed">
-            The Garmin app can&apos;t export files, so these come from connect.garmin.com. It works in your phone&apos;s browser.
+            The Garmin app can&apos;t export files, so these all come from the Garmin Connect website.
           </p>
         </details>
       </div>
