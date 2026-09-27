@@ -314,6 +314,31 @@ export default function UniversalDrop() {
         </div>
       )}
 
+      {!link && (
+        <input
+          type="text"
+          inputMode="url"
+          value={linkText}
+          placeholder="Paste your Garmin link"
+          onPaste={(e) => {
+            const pasted = Array.from(e.clipboardData.files);
+            if (pasted.length) { e.preventDefault(); addFiles(pasted); setLinkText(''); return; }
+            // Garmin's Share → Copy puts the link on a second line under "Check out
+            // my … activity". A one-line input keeps only the first line, so the
+            // link is lost unless it's read from the clipboard here.
+            const text = e.clipboardData.getData('text');
+            if (text.trim()) { e.preventDefault(); addLink(text); setLinkText(''); }
+          }}
+          onChange={(e) => {
+            const v = e.target.value;
+            setLinkText(v);
+            setError('');
+            if (GARMIN_URL.test(v)) { addLink(v); setLinkText(''); }
+          }}
+          className="w-full bg-white border-2 border-navy/20 text-navy rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-gold"
+        />
+      )}
+
       <div
         onDragOver={(e) => { e.preventDefault(); setOver(true); }}
         onDragLeave={() => setOver(false)}
@@ -343,37 +368,13 @@ export default function UniversalDrop() {
         />
       </div>
 
-      {!link && (
-        <input
-          type="text"
-          inputMode="url"
-          value={linkText}
-          placeholder="Paste your Garmin link"
-          onPaste={(e) => {
-            const pasted = Array.from(e.clipboardData.files);
-            if (pasted.length) { e.preventDefault(); addFiles(pasted); setLinkText(''); return; }
-            // Garmin's Share → Copy puts the link on a second line under "Check out
-            // my … activity". A one-line input keeps only the first line, so the
-            // link is lost unless it's read from the clipboard here.
-            const text = e.clipboardData.getData('text');
-            if (text.trim()) { e.preventDefault(); addLink(text); setLinkText(''); }
-          }}
-          onChange={(e) => {
-            const v = e.target.value;
-            setLinkText(v);
-            setError('');
-            if (GARMIN_URL.test(v)) { addLink(v); setLinkText(''); }
-          }}
-          className="w-full bg-white border-2 border-navy/20 text-navy rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-gold"
-        />
-      )}
 
       {!hasBundle && files.length === 0 && (
         <div className="space-y-1">
           <p className="text-navy font-bold text-sm">Combine your Garmin link + screenshots for more data.</p>
           <p className="text-navy opacity-60 text-sm leading-relaxed">
-            In the Garmin app, screenshot the activity&apos;s Overview, Stats, Laps and Charts tabs and choose them all
-            at once. Paste the link too (Share → Copy link).
+            In the Garmin app, open the activity and tap Share → Copy link, then paste it above. Then screenshot its
+            Overview, Stats, Laps and Charts tabs and choose them all at once.
           </p>
         </div>
       )}
