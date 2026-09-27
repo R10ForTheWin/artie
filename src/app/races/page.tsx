@@ -64,6 +64,14 @@ export default async function RacesPage() {
           </Link>
         </div>
         <h1 className="text-navy font-black uppercase tracking-widest text-3xl mb-6">Races</h1>
+        <div className="grid grid-cols-2 gap-2 mb-6">
+          <Link href="/races/tracker" className="bg-navy text-white font-bold uppercase tracking-widest text-center py-2.5 px-3 rounded-lg text-xs hover:opacity-80 transition-opacity">
+            Live Dot Race Tracker
+          </Link>
+          <Link href="/races/video" className="bg-terracotta text-white font-bold uppercase tracking-widest text-center py-2.5 px-3 rounded-lg text-xs hover:opacity-80 transition-opacity">
+            Live Race Video Feed
+          </Link>
+        </div>
         <RaceCountdowns races={races} matchers={matchers} workoutLinks={workoutLinks} />
       </div>
       <StripeBar side="bottom" />
