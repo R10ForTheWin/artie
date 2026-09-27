@@ -1,6 +1,7 @@
 /**
- * Paddle News. Each entry links out to the original; the photo, headline and
- * summary are what the publisher offers for sharing, not the article itself.
+ * Paddle News. Each entry links out to the original; the headline and summary
+ * are what the publisher offers for sharing, not the article itself. Photos are
+ * the crew's own, hosted here.
  * Newest first.
  */
 export interface Article {
@@ -10,7 +11,7 @@ export interface Article {
   headline: string;
   byline?: string;
   summary: string;
-  image?: { src: string; caption?: string; credit?: string };
+  image?: { src: string; caption?: string; credit?: string; /** CSS object-position for the crop */ position?: string };
   /** A line on why it matters to the crew */
   note?: string;
 }
@@ -24,10 +25,11 @@ export const ARTICLES: Article[] = [
     byline: 'Jack Dolan',
     summary:
       "The 32-mile Catalina Classic is one of the most grueling endurance contests on the planet — an ultra-marathon of the sea — and an annual rite of passage in Southern California surf culture. This year's race was pure hell.",
+    // The crew's own photo: the LA Times image server wouldn't load on other sites
     image: {
-      src: 'https://ca-times.brightspotcdn.com/dims4/default/4a7951f/2147483647/strip/true/crop/3840x2016+0+272/resize/1200x630!/quality/75/?url=https%3A%2F%2Fcalifornia-times-brightspot.s3.amazonaws.com%2F25%2F7a%2Fd0b7c5fb41f0b0ce5f567a19152b%2F20230827rc-paddle011.jpg',
-      caption: 'Liz Hunter collapses after winning the women’s division of the 2023 Catalina Classic.',
-      credit: 'Ringo Chiu / For The Times',
+      src: '/photos/team-01.jpg',
+      caption: 'Prone boards under the Manhattan Beach Pier, the Catalina Classic’s finish line.',
+      position: 'center 70%',
     },
     note: 'The race this crew trains for all year: Catalina Island to the Manhattan Beach Pier.',
   },

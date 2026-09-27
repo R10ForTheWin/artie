@@ -22,7 +22,7 @@ export default function NewsPage() {
                 <a href={a.url} target="_blank" rel="noopener noreferrer" className="block">
                   <figure className="relative">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={a.image.src} alt={a.image.caption ?? a.headline} className="w-full aspect-[1200/630] object-cover" />
+                    <img src={a.image.src} alt={a.image.caption ?? a.headline} className="w-full aspect-[1200/630] object-cover" style={{ objectPosition: a.image.position }} />
                     {(a.image.caption || a.image.credit) && (
                       <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 to-transparent px-4 pt-10 pb-3 text-white text-[11px] leading-snug">
                         {a.image.caption}
