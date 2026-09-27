@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { BREAKS } from '@/lib/breaks';
 import WebcamEmbed from './WebcamEmbed';
+import WebcamSnapshot from './WebcamSnapshot';
 import OceanTempCard from './OceanTempCard';
 import SurfCard from './SurfCard';
 
@@ -77,7 +78,9 @@ export default function BreakCarousel() {
         {BREAKS.map((b) => (
           <div key={b.id} className="w-full shrink-0 snap-center overflow-hidden">
             <div className="flex flex-col gap-2 min-w-0">
-              <WebcamEmbed src={b.webcam} />
+              {b.snapshot
+                ? <WebcamSnapshot {...b.snapshot} />
+                : b.webcam && <WebcamEmbed src={b.webcam} />}
               <OceanTempCard buoy={b.buoy} buoyLabel={b.buoyLabel} />
               <SurfCard lat={b.lat} lon={b.lon} buoy={b.buoy} spotLabel={b.spotLabel} />
             </div>

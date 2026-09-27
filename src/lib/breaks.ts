@@ -3,7 +3,12 @@ export interface Break {
   /** Shown on the carousel tab */
   name: string;
   /** Full iframe src — Windy and YouTube embeds both work */
-  webcam: string;
+  webcam?: string;
+  /**
+   * For a camera that only posts still photos: the newest-photo URL, shown
+   * instead of an embed, plus a link to a live stream that can't be embedded.
+   */
+  snapshot?: { src: string; liveUrl?: string; liveLabel?: string };
   /** Open-Meteo lookup for morning wind */
   lat: number;
   lon: number;
@@ -45,10 +50,14 @@ export const BREAKS: Break[] = [
   {
     id: 'hermosa-pier-south',
     name: 'Hermosa',
-    // Windy cam "Hermosa Beach" — rooftop just south of the pier, looking toward
-    // PV. It sends Windy snapshots rather than video, so the live player only
-    // says "not available"; the day player loops today's snapshots instead.
-    webcam: 'https://webcams.windy.com/webcams/public/embed/player/1536866179/day',
+    // Windy cam "Hermosa Beach", on a rooftop just south of the pier looking
+    // toward PV. It only posts still photos (Windy's players show "not
+    // available" or a day-long timelapse), so show the newest one. The live
+    // video is HDOnTap's, which blocks embedding, so it opens in a new tab.
+    snapshot: {
+      src: 'https://imgproxy.windy.com/_/full/plain/current/1536866179/original.jpg',
+      liveUrl: 'https://hdontap.com/stream/732858/hermosa-beach-pier-south-live-webcam/',
+    },
     lat: 33.8612,
     lon: -118.4000,
     buoy: '46222',
