@@ -3,10 +3,10 @@ import { pool, initSchema } from '@/lib/db';
 import { TEAMMATES } from '@/lib/teammates';
 import {
   SESSION_COOKIE, SESSION_MAX_AGE, authEnabled, signSession, verifySession,
-  normaliseName, isValidPin,
+  normaliseName,
 } from '@/lib/auth';
 import {
-  adminName, getPerson, listPeople, createPerson, claimPin, checkPin, resetPin, changePin,
+  adminName, getPerson, listPeople, createPerson,
 } from '@/lib/people';
 
 export const dynamic = 'force-dynamic';
@@ -52,7 +52,7 @@ export async function GET(req: NextRequest) {
     enabled: authEnabled(),
     me,
     isAdmin: me !== null && me === adminName(),
-    people: people.map((p) => ({ name: p.name, needsPin: p.pin_hash === null })),
+    people: people.map((p) => ({ name: p.name })),
   });
 }
 
@@ -70,64 +70,27 @@ export async function POST(req: NextRequest) {
     return res;
   }
 
-  // Admin clearing someone's PIN so they can set a new one
-  if (action === 'reset') {
-    const me = await currentUser(req);
-    if (!me || me !== adminName()) return bad('Only the admin can reset a PIN.', 403);
-    const target = normaliseName(body.name);
-    if (!target) return bad('Which paddler?');
-    if (target === adminName()) return bad('Change your own PIN instead of resetting it.');
-    return (await resetPin(target)) ? NextResponse.json({ ok: true }) : bad('No such paddler.', 404);
-  }
-
-  // Someone changing their own PIN
-  if (action === 'change') {
-    const me = await currentUser(req);
-    if (!me) return bad('Sign in first.', 401);
-    if (!isValidPin(body.pin) || !isValidPin(body.newPin)) return bad('PINs are 4 to 8 digits.');
-    return (await changePin(me, body.pin, body.newPin))
-      ? NextResponse.json({ ok: true })
-      : bad('That current PIN is not right.', 403);
-  }
+  // The team code is the only gate. Once someone has it they are crew, and a
+  // PIN on top was one more thing to forget — sessions last a year per device,
+  // so the code is rarely asked for twice.
+  const teamCode = process.env.TEAM_CODE?.trim().toLowerCase();
+  if (!teamCode) return bad(`Sign-in is closed right now — ask ${adminName()}.`, 403);
+  if (String(body.teamCode ?? '').trim().toLowerCase() !== teamCode) return bad('That team code is not right.', 403);
 
   const name = normaliseName(body.name);
-  if (!name) return bad('Enter a name.');
-  if (!isValidPin(body.pin)) return bad('Your PIN should be 4 to 8 digits.');
+  if (!name) return bad('Enter your name.');
 
   // Adding yourself to the roster
-  const teamCode = process.env.TEAM_CODE?.trim().toLowerCase();
-  const codeMatches = String(body.teamCode ?? '').trim().toLowerCase() === teamCode;
-
   if (action === 'join') {
-    // Only people the crew has told the code can add themselves. No code set
-    // means joining is closed rather than open to anyone who finds the URL.
-    if (!teamCode) return bad(`Joining is closed right now — ask ${adminName()} to add you.`, 403);
-    if (!codeMatches) return bad('That team code is not right.', 403);
     // Race results are matched on first and last name together
     const lastName = normaliseName(body.lastName);
     if (!lastName) return bad('Add your last name so ARTIE can find you in race results.');
     if (await getPerson(name)) return bad('That name is taken — sign in instead.', 409);
-    if (!(await createPerson(name, body.pin, lastName))) return bad('Could not add that name.');
+    if (!(await createPerson(name, lastName))) return bad('Could not add that name.');
     return withSession(name, secret, { joined: true });
   }
 
   const person = await getPerson(name);
   if (!person) return bad('No paddler by that name — new here? Tap Join.', 404);
-
-  // First sign-in, or the first after a reset: whatever they type becomes the PIN.
-  // That would let a stranger claim any crew name that has no PIN yet, so it
-  // takes the team code too.
-  if (person.pin_hash === null) {
-    if (teamCode && !codeMatches) {
-      return NextResponse.json(
-        { error: body.teamCode ? 'That team code is not right.' : 'First time signing in — enter the team code to set your PIN.', needsTeamCode: true },
-        { status: 403 }
-      );
-    }
-    if (!(await claimPin(person.name, body.pin))) return bad('That PIN is already set.', 409);
-    return withSession(person.name, secret, { pinSet: true });
-  }
-
-  if (!(await checkPin(person.name, body.pin))) return bad('That PIN is not right.', 403);
   return withSession(person.name, secret, {});
 }

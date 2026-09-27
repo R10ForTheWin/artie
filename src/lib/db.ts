@@ -92,8 +92,8 @@ export async function initSchema() {
     UPDATE races SET paddleguru_url = 'https://paddleguru.com/races/CatalinaClassicPaddleboardRace2026'
       WHERE LOWER(name) = 'catalina classic' AND paddleguru_url IS NULL AND race_date < '2027-01-01';
 
-    -- Sign-in roster. pin_hash NULL means "set a PIN on next sign-in", which is
-    -- also what a reset does, so there is no separate pending state.
+    -- Sign-in roster. Signing in takes the team code, not a PIN; pin_hash is
+    -- left over from when it did and is no longer read.
     CREATE TABLE IF NOT EXISTS people (
       name       TEXT PRIMARY KEY,
       pin_hash   TEXT,

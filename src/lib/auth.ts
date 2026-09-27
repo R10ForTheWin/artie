@@ -1,10 +1,9 @@
 /**
- * PIN sign-in for ARTIE.
+ * Sign-in for ARTIE: your name plus the team code.
  *
  * Sessions are a signed cookie rather than server state, so middleware can check
  * them without a database round trip. Signing uses Web Crypto (HMAC-SHA256) so
- * the same code runs in Edge middleware and in Node route handlers; PIN hashing
- * uses node:crypto scrypt and therefore only ever runs in a route handler.
+ * the same code runs in Edge middleware and in Node route handlers.
  *
  * With AUTH_SECRET unset the whole thing stays off and ARTIE behaves as it
  * always has — better than bricking the app the moment this deploys.
@@ -62,10 +61,6 @@ export function normaliseName(raw: unknown): string | null {
   if (name.length < 2 || name.length > 24) return null;
   if (!/^[\p{L}][\p{L}\p{M}'’. -]*$/u.test(name)) return null;
   return name;
-}
-
-export function isValidPin(raw: unknown): raw is string {
-  return typeof raw === 'string' && /^\d{4,8}$/.test(raw);
 }
 
 /**
