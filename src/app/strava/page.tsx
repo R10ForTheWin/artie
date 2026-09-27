@@ -38,7 +38,7 @@ export default async function StravaPage({
       <div className="flex-1 px-6 py-10 max-w-lg mx-auto w-full">
         <div className="mb-8">
           <Link href="/dashboard" className="text-navy opacity-50 hover:opacity-100 text-sm font-bold uppercase tracking-wider">
-            ← Dashboard
+            ← Mileage Tracker
           </Link>
         </div>
 
