@@ -1,20 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { pool } from '@/lib/db';
 import { fetchPaddleGuruResults } from '@/lib/paddleguru';
-import { TEAMMATES, TEAMMATE_ALIASES, MATCH_ALIAS_ONLY } from '@/lib/teammates';
-
-function findTeammate(fullName: string): string | null {
-  const lower = fullName.toLowerCase();
-  for (const t of TEAMMATES) {
-    const aliases = TEAMMATE_ALIASES[t] ?? [];
-    if (MATCH_ALIAS_ONLY.has(t)) {
-      if (aliases.some(a => lower.includes(a.toLowerCase()))) return t;
-    } else {
-      if (lower.includes(t.toLowerCase()) || aliases.some(a => lower.includes(a.toLowerCase()))) return t;
-    }
-  }
-  return null;
-}
+import { buildMatchers, matchPerson } from '@/lib/nameMatch';
 
 function parseTimeToSeconds(time: string): number {
   const parts = time.split(':').map(Number);
@@ -55,8 +42,10 @@ export async function POST(
 
   // Auto-create workouts for teammates found in results
   if (race.distance_m && race.race_date) {
+    const people = await pool.query('SELECT name, last_name FROM people');
+    const matchers = buildMatchers(people.rows);
     for (const result of results) {
-      const teammate = findTeammate(result.name);
+      const teammate = matchPerson(result.name, matchers);
       if (!teammate) continue;
 
       const duration_s = parseTimeToSeconds(result.time) || null;

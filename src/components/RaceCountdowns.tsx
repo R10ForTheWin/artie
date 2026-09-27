@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import { formatDate, daysUntil } from '@/lib/formatters';
-import { TEAMMATES, TEAMMATE_ALIASES, MATCH_ALIAS_ONLY, type Teammate } from '@/lib/teammates';
+import { matchPerson, type Matcher } from '@/lib/nameMatch';
 import SyncResultsButton from './SyncResultsButton';
 
 interface Finisher {
@@ -25,16 +25,8 @@ interface Race {
   prior_paddleguru_url?: string | null;
 }
 
-function wordMatch(text: string, word: string): boolean {
-  return new RegExp(`\\b${word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(text);
-}
-
-function isTeammate(name: string): boolean {
-  return TEAMMATES.some((t) => {
-    const nameMatch = !MATCH_ALIAS_ONLY.has(t) && wordMatch(name, t);
-    const aliasMatch = (TEAMMATE_ALIASES[t] ?? []).some((alias) => wordMatch(name, alias));
-    return nameMatch || aliasMatch;
-  });
+function isTeammate(name: string, matchers: Matcher[]): boolean {
+  return matchPerson(name, matchers) !== null;
 }
 
 const HIGHLIGHT_COLORS = [
@@ -45,10 +37,10 @@ const HIGHLIGHT_COLORS = [
 
 const CONTEXT_WINDOW = 3;
 
-function contextRows(finishers: Finisher[]): (Finisher | null)[] {
+function contextRows(finishers: Finisher[], matchers: Matcher[]): (Finisher | null)[] {
   const keep = new Set<number>();
   finishers.forEach((f, i) => {
-    if (isTeammate(f.name)) {
+    if (isTeammate(f.name, matchers)) {
       for (let j = Math.max(0, i - CONTEXT_WINDOW); j <= Math.min(finishers.length - 1, i + CONTEXT_WINDOW); j++) {
         keep.add(j);
       }
@@ -66,7 +58,7 @@ function contextRows(finishers: Finisher[]): (Finisher | null)[] {
   return result;
 }
 
-export default function RaceCountdowns({ races, workoutLinks = {} }: { races: Race[]; workoutLinks?: Record<string, Record<string, number>> }) {
+export default function RaceCountdowns({ races, matchers, workoutLinks = {} }: { races: Race[]; matchers: Matcher[]; workoutLinks?: Record<string, Record<string, number>> }) {
   const upcoming = races.filter((r) => daysUntil(r.race_date) >= 0);
   const past = races.filter((r) => daysUntil(r.race_date) < 0).sort((a, b) => b.race_date.localeCompare(a.race_date));
 
@@ -214,7 +206,7 @@ export default function RaceCountdowns({ races, workoutLinks = {} }: { races: Ra
                   const highlightColor = HIGHLIGHT_COLORS[raceIdx % HIGHLIGHT_COLORS.length];
 
                   const renderTable = (finishers: Finisher[]) => {
-                    const rows = contextRows(finishers);
+                    const rows = contextRows(finishers, matchers);
                     return (
                       <table className="w-full text-sm">
                         <tbody>
@@ -226,14 +218,9 @@ export default function RaceCountdowns({ races, workoutLinks = {} }: { races: Ra
                                 </tr>
                               );
                             }
-                            const highlight = isTeammate(f.name);
-                            const workoutId = highlight
-                              ? Object.entries(byName).find(([n]) => {
-                                  const teammate = n as Teammate;
-                                  if (wordMatch(f.name, n)) return true;
-                                  return (TEAMMATE_ALIASES[teammate] ?? []).some((alias) => wordMatch(f.name, alias));
-                                })?.[1]
-                              : undefined;
+                            const person = matchPerson(f.name, matchers);
+                            const highlight = person !== null;
+                            const workoutId = person ? byName[person] : undefined;
                             return (
                               <tr key={`${f.division ?? ''}-${f.place}-${f.name}`} className={highlight ? `${highlightColor} rounded` : ''}>
                                 <td className={`py-1 px-2 w-8 font-bold tabular-nums ${highlight ? 'text-navy' : 'text-navy opacity-30'}`}>{f.place}</td>
@@ -260,7 +247,7 @@ export default function RaceCountdowns({ races, workoutLinks = {} }: { races: Ra
                     }, {} as Record<string, Finisher[]>);
                     // Only show divisions containing at least one teammate
                     const teammateGroups = Object.entries(groups).filter(([, finishers]) =>
-                      finishers.some((f) => isTeammate(f.name))
+                      finishers.some((f) => isTeammate(f.name, matchers))
                     );
                     return (
                       <div className="space-y-4">

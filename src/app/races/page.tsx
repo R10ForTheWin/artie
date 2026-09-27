@@ -1,5 +1,6 @@
 import { pool, initSchema } from '@/lib/db';
 import RaceCountdowns from '@/components/RaceCountdowns';
+import { buildMatchers } from '@/lib/nameMatch';
 import StripeBar from '@/components/StripeBar';
 import Link from 'next/link';
 
@@ -25,6 +26,8 @@ export default async function RacesPage() {
   await initSchema();
   const result = await pool.query('SELECT * FROM races ORDER BY race_date ASC');
   const races = result.rows as Race[];
+  const peopleResult = await pool.query('SELECT name, last_name FROM people');
+  const matchers = buildMatchers(peopleResult.rows);
 
   // A placeholder for next season has no sign-up page yet, so offer the most
   // recent one this race did have — labelled as last year's, not as registration.
@@ -61,7 +64,7 @@ export default async function RacesPage() {
           </Link>
         </div>
         <h1 className="text-navy font-black uppercase tracking-widest text-3xl mb-6">Races</h1>
-        <RaceCountdowns races={races} workoutLinks={workoutLinks} />
+        <RaceCountdowns races={races} matchers={matchers} workoutLinks={workoutLinks} />
       </div>
       <StripeBar side="bottom" />
     </main>

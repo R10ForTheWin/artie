@@ -39,11 +39,11 @@ export async function listPeople(): Promise<Person[]> {
   return rows.map((r: { name: string; pin_hash: string | null }) => ({ ...r, is_admin: r.name === adminName() }));
 }
 
-export async function createPerson(name: string, pin: string): Promise<boolean> {
+export async function createPerson(name: string, pin: string, lastName: string): Promise<boolean> {
   const res = await pool.query(
-    `INSERT INTO people (name, pin_hash) VALUES ($1, $2)
+    `INSERT INTO people (name, pin_hash, last_name) VALUES ($1, $2, $3)
      ON CONFLICT (name) DO NOTHING RETURNING name`,
-    [name, hashPin(pin)]
+    [name, hashPin(pin), lastName]
   );
   return (res.rowCount ?? 0) > 0;
 }

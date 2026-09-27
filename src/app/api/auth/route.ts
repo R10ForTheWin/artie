@@ -99,8 +99,11 @@ export async function POST(req: NextRequest) {
     const teamCode = process.env.TEAM_CODE?.trim().toLowerCase();
     if (!teamCode) return bad(`Joining is closed right now — ask ${adminName()} to add you.`, 403);
     if (String(body.teamCode ?? '').trim().toLowerCase() !== teamCode) return bad('That team code is not right.', 403);
+    // Race results are matched on first and last name together
+    const lastName = normaliseName(body.lastName);
+    if (!lastName) return bad('Add your last name so ARTIE can find you in race results.');
     if (await getPerson(name)) return bad('That name is taken — sign in instead.', 409);
-    if (!(await createPerson(name, body.pin))) return bad('Could not add that name.');
+    if (!(await createPerson(name, body.pin, lastName))) return bad('Could not add that name.');
     return withSession(name, secret, { joined: true });
   }
 

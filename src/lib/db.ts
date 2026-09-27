@@ -99,6 +99,8 @@ export async function initSchema() {
       pin_hash   TEXT,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
+    -- Lets race results pick out people who added themselves
+    ALTER TABLE people ADD COLUMN IF NOT EXISTS last_name TEXT;
 
     CREATE TABLE IF NOT EXISTS strava_tokens (
       id            SERIAL PRIMARY KEY,
