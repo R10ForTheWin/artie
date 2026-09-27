@@ -7,7 +7,7 @@ import { reggieConfig } from '@/lib/reggie';
 export const dynamic = 'force-dynamic';
 
 /**
- * The Garmin phone app can't export files, so both of these come from
+ * The Garmin phone app can't export files, so all three of these come from
  * connect.garmin.com — which works fine in a phone's browser.
  */
 const OTHER_WAYS: { what: string; is: string; when: string; where: string }[] = [
@@ -16,6 +16,12 @@ const OTHER_WAYS: { what: string; is: string; when: string; where: string }[] = 
     is: "The GPS track Garmin recorded — every point of your route.",
     when: 'Adds the real route map, the direction of each mile, and water temp.',
     where: 'connect.garmin.com → open the activity → gear icon (top right) → Export to GPX',
+  },
+  {
+    what: '.fit file',
+    is: "Your watch's own recording of the workout.",
+    when: 'Exact numbers straight from the watch — time, distance, speed, calories and mile splits — with nothing read off a picture. More steps than screenshots, so use it if you want exact figures or already have the file.',
+    where: 'connect.garmin.com → open the activity → gear icon → Export Original. It downloads as a .zip; tap it to unzip, then add the .fit inside.',
   },
   {
     what: 'CSV export',
