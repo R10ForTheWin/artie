@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { TEAMMATES } from '@/lib/teammates';
+import { initSchema } from '@/lib/db';
+import { getPerson } from '@/lib/people';
 
 export async function GET(req: NextRequest) {
   const name = req.nextUrl.searchParams.get('name');
-  if (!name || !TEAMMATES.includes(name as typeof TEAMMATES[number])) {
+  await initSchema();
+  if (!name || !(await getPerson(name))) {
     return NextResponse.json({ error: 'Invalid name' }, { status: 400 });
   }
 

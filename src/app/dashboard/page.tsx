@@ -35,8 +35,18 @@ export default async function DashboardPage() {
     return (teammateOrder[a.name] ?? 99) - (teammateOrder[b.name] ?? 99);
   });
 
+  // People who added themselves aren't in the hard-coded season rosters. They
+  // join a season's chart once they log something inside it.
+  const peopleResult = await pool.query('SELECT name FROM people');
+  const joiners = (peopleResult.rows as { name: string }[])
+    .map((p) => p.name)
+    .filter((n) => !(TEAMMATES as readonly string[]).includes(n));
+
   const seasons = SEASONS.map((season) => {
-    const roster = seasonMembers(season);
+    const activeJoiners = joiners.filter((n) =>
+      workouts.some((w) => w.name === n && w.workout_date >= season.start && w.workout_date <= season.end)
+    );
+    const roster: string[] = [...seasonMembers(season), ...activeJoiners];
     const mileageMap = Object.fromEntries(roster.map((t) => [t, 0]));
     const oceanSwimMap = Object.fromEntries(roster.map((t) => [t, 0]));
     const poolSwimMap = Object.fromEntries(roster.map((t) => [t, 0]));

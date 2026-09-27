@@ -18,6 +18,7 @@ export default function LoginForm() {
   const [mode, setMode] = useState<'signin' | 'join'>('signin');
   const [name, setName] = useState('');
   const [newName, setNewName] = useState('');
+  const [teamCode, setTeamCode] = useState('');
   const [pin, setPin] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -45,7 +46,7 @@ export default function LoginForm() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(
-          mode === 'join' ? { action: 'join', name: newName, pin } : { name, pin }
+          mode === 'join' ? { action: 'join', name: newName, pin, teamCode } : { name, pin }
         ),
       });
       const json = await res.json();
@@ -70,14 +71,26 @@ export default function LoginForm() {
           {roster?.people.map((p) => <option key={p.name} value={p.name}>{p.name}</option>)}
         </select>
       ) : (
-        <input
-          type="text"
-          value={newName}
-          onChange={(e) => setNewName(e.target.value)}
-          placeholder="Your name"
-          autoComplete="name"
-          className={field}
-        />
+        <>
+          <input
+            type="text"
+            value={teamCode}
+            onChange={(e) => { setTeamCode(e.target.value); setError(''); }}
+            placeholder="Team code"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
+            className={field}
+          />
+          <input
+            type="text"
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+            placeholder="Your name"
+            autoComplete="name"
+            className={field}
+          />
+        </>
       )}
 
       <div>
@@ -104,7 +117,7 @@ export default function LoginForm() {
 
       <button
         type="submit"
-        disabled={busy || pin.length < 4 || (mode === 'signin' ? !name : newName.trim().length < 2)}
+        disabled={busy || pin.length < 4 || (mode === 'signin' ? !name : newName.trim().length < 2 || !teamCode.trim())}
         className="w-full bg-navy text-white font-black uppercase tracking-widest py-3 rounded-lg hover:bg-terracotta transition-colors disabled:opacity-40"
       >
         {busy ? 'One sec…' : mode === 'join' ? 'Join ARTIE' : settingNewPin ? 'Set my PIN' : 'Sign in'}

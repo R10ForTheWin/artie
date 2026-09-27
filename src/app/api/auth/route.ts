@@ -94,6 +94,11 @@ export async function POST(req: NextRequest) {
 
   // Adding yourself to the roster
   if (action === 'join') {
+    // Only people the crew has told the code can add themselves. No code set
+    // means joining is closed rather than open to anyone who finds the URL.
+    const teamCode = process.env.TEAM_CODE?.trim().toLowerCase();
+    if (!teamCode) return bad(`Joining is closed right now — ask ${adminName()} to add you.`, 403);
+    if (String(body.teamCode ?? '').trim().toLowerCase() !== teamCode) return bad('That team code is not right.', 403);
     if (await getPerson(name)) return bad('That name is taken — sign in instead.', 409);
     if (!(await createPerson(name, body.pin))) return bad('Could not add that name.');
     return withSession(name, secret, { joined: true });

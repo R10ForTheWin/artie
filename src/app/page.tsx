@@ -42,6 +42,12 @@ export default function HomePage() {
         <div className="w-full max-w-xs mt-2">
           <BreakCarousel />
         </div>
+
+        <div className="mt-auto pt-8 flex flex-col items-center gap-2">
+          <p className="text-navy opacity-40 text-[10px] font-bold uppercase tracking-widest">Powered by</p>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/sbbc-logo.png" alt="South Bay Boardriders Club" className="w-24 h-auto opacity-80" />
+        </div>
       </div>
 
       <StripeBar side="bottom" />

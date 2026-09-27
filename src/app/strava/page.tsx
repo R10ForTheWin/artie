@@ -15,6 +15,12 @@ export default async function StravaPage({
   await initSchema();
   const result = await pool.query('SELECT name FROM strava_tokens');
   const connected = new Set<string>(result.rows.map((r: { name: string }) => r.name));
+  // Original crew first, then anyone who added themselves
+  const peopleResult = await pool.query('SELECT name FROM people ORDER BY LOWER(name)');
+  const roster = [
+    ...TEAMMATES,
+    ...(peopleResult.rows as { name: string }[]).map((p) => p.name).filter((n) => !(TEAMMATES as readonly string[]).includes(n)),
+  ];
 
   const importsResult = await pool.query(
     `SELECT name, file_name, workout_date, distance_m, created_at
@@ -74,7 +80,7 @@ export default async function StravaPage({
         )}
 
         <div className="space-y-3">
-          {TEAMMATES.map((name) => (
+          {roster.map((name) => (
             <div key={name} className="flex items-center justify-between border-2 border-navy border-opacity-20 rounded-xl px-5 py-4 bg-white">
               <span className="text-navy font-black uppercase tracking-widest">{name}</span>
               {connected.has(name) ? (

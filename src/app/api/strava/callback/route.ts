@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { pool, initSchema } from '@/lib/db';
 import { backfillSplitsFromStrava } from '@/lib/strava';
-import { TEAMMATES } from '@/lib/teammates';
+import { getPerson } from '@/lib/people';
 
 export async function GET(req: NextRequest) {
   const code = req.nextUrl.searchParams.get('code');
@@ -9,7 +9,8 @@ export async function GET(req: NextRequest) {
   const error = req.nextUrl.searchParams.get('error');
   const baseUrl = 'https://artie-production-1b13.up.railway.app';
 
-  if (error || !code || !name || !TEAMMATES.includes(name as typeof TEAMMATES[number])) {
+  await initSchema();
+  if (error || !code || !name || !(await getPerson(name))) {
     return NextResponse.redirect(`${baseUrl}/strava?error=auth_failed`);
   }
 
