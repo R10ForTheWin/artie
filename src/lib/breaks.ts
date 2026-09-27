@@ -45,8 +45,10 @@ export const BREAKS: Break[] = [
   {
     id: 'hermosa-pier-south',
     name: 'Hermosa',
-    // Windy cam "Hermosa Beach" — rooftop just south of the pier, looking toward PV
-    webcam: 'https://webcams.windy.com/webcams/stream/1536866179',
+    // Windy cam "Hermosa Beach" — rooftop just south of the pier, looking toward
+    // PV. It sends Windy snapshots rather than video, so the live player only
+    // says "not available"; the day player loops today's snapshots instead.
+    webcam: 'https://webcams.windy.com/webcams/public/embed/player/1536866179/day',
     lat: 33.8612,
     lon: -118.4000,
     buoy: '46222',

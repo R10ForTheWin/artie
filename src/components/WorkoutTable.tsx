@@ -94,7 +94,7 @@ export default function WorkoutTable({ workouts, raceDates = new Set() }: { work
         <span className="text-xs font-bold uppercase tracking-wider">Rotate for more data</span>
       </div>
 
-      <div className="border-2 border-navy border-opacity-20 rounded-lg overflow-hidden" data-swipe-ignore>
+      <div className="border-2 border-navy border-opacity-20 rounded-lg overflow-x-auto" data-swipe-ignore>
         <table className="w-full">
           <thead>
             <tr className="border-b-2 border-navy border-opacity-20 bg-cream-light">
@@ -135,7 +135,7 @@ export default function WorkoutTable({ workouts, raceDates = new Set() }: { work
                             {monthLabel(key)}
                           </span>
                         </div>
-                        <span className="text-navy opacity-40 text-xs font-semibold">
+                        <span className="text-navy opacity-40 text-xs font-semibold whitespace-nowrap">
                           {rows.length} workout{rows.length !== 1 ? 's' : ''}
                         </span>
                       </div>
@@ -157,7 +157,11 @@ export default function WorkoutTable({ workouts, raceDates = new Set() }: { work
                         className={`border-b border-navy border-opacity-10 cursor-pointer hover:bg-gold hover:bg-opacity-10 transition-colors ${i % 2 === 0 ? 'bg-white' : 'bg-cream-light'}`}
                       >
                         <td className={`${td} text-navy font-bold`}>{w.name}</td>
-                        <td className={`${td} text-navy opacity-70 whitespace-nowrap`}>{formatDate(w.workout_date)}</td>
+                        <td className={`${td} text-navy opacity-70 whitespace-nowrap`}>
+                          {/* The month header already says the year, and a phone has no room for it */}
+                          <span className="sm:hidden">{formatDate(w.workout_date).replace(/,\s*\d{4}$/, '')}</span>
+                          <span className="hidden sm:inline">{formatDate(w.workout_date)}</span>
+                        </td>
                         <td className={`${td} text-gold font-bold whitespace-nowrap`}>{formatDistanceShort(w.distance_m)}</td>
                         <td className={`${td} whitespace-nowrap`}>
                           <span className="flex items-center gap-1.5">
@@ -170,8 +174,15 @@ export default function WorkoutTable({ workouts, raceDates = new Set() }: { work
                             </span>
                           </span>
                         </td>
-                        <td className={`${td} sm:hidden`} onClick={(e) => e.stopPropagation()}>
-                          <button onClick={() => router.push(`/dashboard/workout/${w.id}`)} className={btnClass} style={{fontSize: '9px'}}>{btnLabel}</button>
+                        {/* The whole row opens the workout, so a phone gets a slim cue
+                            instead of a button that pushed the table off screen */}
+                        <td className={`${td} sm:hidden text-right whitespace-nowrap`}>
+                          {isRace && (
+                            <span className="bg-terracotta text-white font-black uppercase tracking-wider px-1.5 py-0.5 rounded mr-1" style={{ fontSize: '9px' }}>
+                              Race
+                            </span>
+                          )}
+                          <span aria-hidden="true" className="text-navy opacity-40 font-bold">›</span>
                         </td>
                         <td className={`${td} text-navy opacity-70 whitespace-nowrap hidden sm:table-cell`}>{formatPace(w.avg_speed_ms ? 1609.344 / w.avg_speed_ms : null)}</td>
                         <td className={`${td} text-navy opacity-70 whitespace-nowrap hidden sm:table-cell`}>{formatPace(fastestMile(w.mile_splits))}</td>

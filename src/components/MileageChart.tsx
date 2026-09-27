@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LabelList } from 'recharts';
 import { ACTIVITY_COLORS, ACTIVITY_LABELS } from '@/lib/activity';
 
 interface Props {
@@ -22,8 +22,15 @@ const SWIMS = [
 
 export default function MileageChart({ data, title, subtitle, showSwims = false, defaultOpen = true }: Props) {
   const [open, setOpen] = useState(defaultOpen);
-  const chartData = data.map(d => ({ ...d, label: d.name.length > 8 ? d.name.slice(0, 8) : d.name }));
   const series = showSwims ? [PADDLE, ...SWIMS] : [PADDLE];
+  // A leaderboard: one row per person, most miles on top. Rows stack downward,
+  // so a bigger crew makes the chart taller instead of crushing names together.
+  const shownTotal = (d: Props['data'][number]) => d.miles + (showSwims ? d.oceanSwimMiles + d.poolSwimMiles : 0);
+  const chartData = data
+    .map((d, i) => ({ ...d, order: i, label: d.name.length > 10 ? d.name.slice(0, 10) : d.name }))
+    .sort((a, b) => shownTotal(b) - shownTotal(a) || a.order - b.order);
+  const rowHeight = showSwims ? 46 : 30;
+  const chartHeight = chartData.length * rowHeight + 32;
   const isEmpty = data.every(d => d.miles === 0 && d.oceanSwimMiles === 0 && d.poolSwimMiles === 0);
   const totalMiles = data.reduce((a, d) => a + d.miles + d.oceanSwimMiles + d.poolSwimMiles, 0);
 
@@ -70,22 +77,27 @@ export default function MileageChart({ data, title, subtitle, showSwims = false,
       {isEmpty ? (
         <p className="text-navy opacity-30 text-sm py-12 text-center">No miles logged this season yet.</p>
       ) : (
-        <ResponsiveContainer width="100%" height={240}>
-          <BarChart data={chartData} margin={{ top: 4, right: 8, left: 0, bottom: 48 }}>
-            <XAxis
+        <ResponsiveContainer width="100%" height={chartHeight}>
+          <BarChart
+            data={chartData}
+            layout="vertical"
+            barCategoryGap={showSwims ? 6 : 5}
+            barGap={1}
+            margin={{ top: 0, right: 40, left: 0, bottom: 0 }}
+          >
+            <YAxis
+              type="category"
               dataKey="label"
-              tick={{ fill: '#1B2A4A', fontWeight: 700, fontSize: 11 }}
+              width={72}
+              interval={0}
+              tick={{ fill: '#1B2A4A', fontWeight: 700, fontSize: 12 }}
               axisLine={{ stroke: '#1B2A4A', strokeOpacity: 0.3 }}
               tickLine={false}
-              interval={0}
-              angle={-45}
-              textAnchor="end"
-              dx={-4}
-              dy={4}
             />
-            <YAxis
-              tick={{ fill: '#1B2A4A', fontSize: 12, opacity: 0.6 }}
-              axisLine={{ stroke: '#1B2A4A', strokeOpacity: 0.3 }}
+            <XAxis
+              type="number"
+              tick={{ fill: '#1B2A4A', fontSize: 11, opacity: 0.6 }}
+              axisLine={false}
               tickLine={false}
               tickFormatter={(v) => `${v} mi`}
             />
@@ -99,8 +111,15 @@ export default function MileageChart({ data, title, subtitle, showSwims = false,
                 dataKey={key}
                 name={ACTIVITY_LABELS[activity]}
                 fill={ACTIVITY_COLORS[activity]}
-                radius={[4, 4, 0, 0]}
-              />
+                radius={[0, 4, 4, 0]}
+              >
+                <LabelList
+                  dataKey={key}
+                  position="right"
+                  formatter={(v: unknown) => (typeof v === 'number' && v > 0 ? v.toFixed(1) : '')}
+                  style={{ fill: '#1B2A4A', fontSize: 10, fontWeight: 700, opacity: 0.7 }}
+                />
+              </Bar>
             ))}
           </BarChart>
         </ResponsiveContainer>
