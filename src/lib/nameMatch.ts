@@ -1,4 +1,4 @@
-import { TEAMMATES, TEAMMATE_ALIASES, MATCH_ALIAS_ONLY, type Teammate } from './teammates';
+import { TEAMMATES, TEAMMATE_ALIASES, MATCH_ALIAS_ONLY, FULL_NAMES, type Teammate } from './teammates';
 
 /**
  * Who counts as crew in a race result. A finisher matches a person when every
@@ -25,10 +25,11 @@ export function buildMatchers(people: { name: string; last_name: string | null }
   const lastByName = new Map(people.map((p) => [p.name, p.last_name?.trim() || null]));
   const crew: Matcher[] = TEAMMATES.map((t: Teammate) => {
     const last = lastByName.get(t);
+    const full = FULL_NAMES[t];
     return {
       name: t,
       groups: [
-        ...(MATCH_ALIAS_ONLY.has(t) ? [] : [[t]]),
+        ...(full ? [full.split(/\s+/)] : MATCH_ALIAS_ONLY.has(t) ? [] : [[t]]),
         ...(TEAMMATE_ALIASES[t] ?? []).map((a) => [a]),
         ...(last ? [[t, last]] : []),
       ],

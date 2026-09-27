@@ -45,7 +45,9 @@ function withSession(name: string, secret: string, body: Record<string, unknown>
 export async function GET(req: NextRequest) {
   await ensureRoster();
   const me = await currentUser(req);
-  const people = await listPeople();
+  // The roster is for the crew. Someone signed out types their name instead of
+  // picking it, so the sign-in page doesn't hand the list to any visitor.
+  const people = me || !authEnabled() ? await listPeople() : [];
   return NextResponse.json({
     enabled: authEnabled(),
     me,
@@ -93,12 +95,14 @@ export async function POST(req: NextRequest) {
   if (!isValidPin(body.pin)) return bad('Your PIN should be 4 to 8 digits.');
 
   // Adding yourself to the roster
+  const teamCode = process.env.TEAM_CODE?.trim().toLowerCase();
+  const codeMatches = String(body.teamCode ?? '').trim().toLowerCase() === teamCode;
+
   if (action === 'join') {
     // Only people the crew has told the code can add themselves. No code set
     // means joining is closed rather than open to anyone who finds the URL.
-    const teamCode = process.env.TEAM_CODE?.trim().toLowerCase();
     if (!teamCode) return bad(`Joining is closed right now — ask ${adminName()} to add you.`, 403);
-    if (String(body.teamCode ?? '').trim().toLowerCase() !== teamCode) return bad('That team code is not right.', 403);
+    if (!codeMatches) return bad('That team code is not right.', 403);
     // Race results are matched on first and last name together
     const lastName = normaliseName(body.lastName);
     if (!lastName) return bad('Add your last name so ARTIE can find you in race results.');
@@ -108,10 +112,18 @@ export async function POST(req: NextRequest) {
   }
 
   const person = await getPerson(name);
-  if (!person) return bad('No paddler by that name yet.', 404);
+  if (!person) return bad('No paddler by that name — new here? Tap Join.', 404);
 
-  // First sign-in, or the first after a reset: whatever they type becomes the PIN
+  // First sign-in, or the first after a reset: whatever they type becomes the PIN.
+  // That would let a stranger claim any crew name that has no PIN yet, so it
+  // takes the team code too.
   if (person.pin_hash === null) {
+    if (teamCode && !codeMatches) {
+      return NextResponse.json(
+        { error: body.teamCode ? 'That team code is not right.' : 'First time signing in — enter the team code to set your PIN.', needsTeamCode: true },
+        { status: 403 }
+      );
+    }
     if (!(await claimPin(person.name, body.pin))) return bad('That PIN is already set.', 409);
     return withSession(person.name, secret, { pinSet: true });
   }

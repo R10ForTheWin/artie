@@ -10,5 +10,12 @@ export const TEAMMATE_ALIASES: Partial<Record<Teammate, string[]>> = {
   Brent: ['Blackman'],
 };
 
+// Crew known by their last name. Matching needs the full name, so another
+// Adams or Glick in a results list isn't taken for ours.
+export const FULL_NAMES: Partial<Record<Teammate, string>> = {
+  Adams: 'Jake Adams',
+  Glick: 'Jake Glick',
+};
+
 // First names too common to match on alone — only match via aliases above
 export const MATCH_ALIAS_ONLY = new Set<Teammate>(['DJ', 'Zach', 'Andy', 'Matt', 'Anthony', 'Brent']);
