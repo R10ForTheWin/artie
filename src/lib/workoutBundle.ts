@@ -117,6 +117,11 @@ export async function fillWorkout(id: number, m: Merged): Promise<void> {
 
 export async function saveScreens(workoutId: number, screens: { kind: ScreenKind; buffer: Buffer }[]): Promise<void> {
   for (const s of screens) {
+    // One of each tab: a newer Overview/Stats/Laps/Charts replaces the old one,
+    // so adding the same screenshots twice doesn't stack up copies
+    if (['overview', 'stats', 'laps', 'charts'].includes(s.kind)) {
+      await pool.query('DELETE FROM workout_screens WHERE workout_id = $1 AND kind = $2', [workoutId, s.kind]);
+    }
     const small = await prepareImage(s.buffer, 1100, 78);
     await pool.query('INSERT INTO workout_screens (workout_id, kind, mime, data) VALUES ($1, $2, $3, $4)', [
       workoutId, s.kind, 'image/jpeg', small,
