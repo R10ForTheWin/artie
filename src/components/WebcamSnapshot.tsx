@@ -22,16 +22,18 @@ export default function WebcamSnapshot({ src, liveUrl, liveLabel }: { src: strin
       </span>
       {liveUrl && (
         <span className="absolute right-2 bottom-2 rounded-md bg-navy text-white text-[11px] font-black uppercase tracking-wider px-2.5 py-1.5 group-hover:bg-terracotta transition-colors">
-          {liveLabel ?? 'Watch live'} ↗
+          {liveLabel ?? 'Watch live'} ▶
         </span>
       )}
     </>
   );
   const box = 'group relative block rounded-xl overflow-hidden border-2 border-navy border-opacity-10 bg-navy/5';
 
-  // The whole photo is the tap target for the live stream, not just the badge
+  // The whole photo is the tap target for the live stream, not just the badge.
+  // Same window, not a new tab: Back returns to ARTIE, and the home-screen app
+  // shows it over ARTIE with a Done button.
   return liveUrl ? (
-    <a href={liveUrl} target="_blank" rel="noopener noreferrer" className={box} style={{ height: 180 }} aria-label="Watch the live stream">
+    <a href={liveUrl} className={box} style={{ height: 180 }} aria-label="Watch the live stream">
       {photo}
     </a>
   ) : (

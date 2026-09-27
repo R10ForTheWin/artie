@@ -81,7 +81,6 @@ export default async function DashboardPage() {
     return { season, data, paddleMiles, swimMiles };
   });
 
-  const currentSeason = seasons[0];
 
   const racesResult = await pool.query('SELECT race_date FROM races');
   const raceDates = new Set(racesResult.rows.map((r: { race_date: string }) => r.race_date));
@@ -105,10 +104,6 @@ export default async function DashboardPage() {
           </Link>
         </div>
 
-        <p className="text-navy opacity-40 text-sm mb-6">
-          {workouts.length} workouts · {currentSeason.paddleMiles.toFixed(1)} paddle miles this season
-          {currentSeason.swimMiles > 0 && <> · {currentSeason.swimMiles.toFixed(1)} swim miles</>}
-        </p>
 
         {/* Each season's chart heads its own months, newest first. Anything
             older than the oldest season stays with that last section. */}
