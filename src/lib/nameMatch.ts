@@ -19,17 +19,19 @@ export function wordMatch(text: string, word: string): boolean {
  * The original crew keeps its hand-tuned aliases. Anyone else on the sign-in
  * roster matches on first and last name together — a last name alone is too
  * likely to belong to a stranger. A last name saved for an original teammate
- * becomes one more alias, which is how "Anthony" finally gets highlighted.
+ * adds the same first-plus-last match, which is how "Anthony" gets highlighted.
  */
 export function buildMatchers(people: { name: string; last_name: string | null }[]): Matcher[] {
   const lastByName = new Map(people.map((p) => [p.name, p.last_name?.trim() || null]));
   const crew: Matcher[] = TEAMMATES.map((t: Teammate) => {
-    const aliases = [...(TEAMMATE_ALIASES[t] ?? [])];
     const last = lastByName.get(t);
-    if (last && !aliases.some((a) => a.toLowerCase() === last.toLowerCase())) aliases.push(last);
     return {
       name: t,
-      groups: [...(MATCH_ALIAS_ONLY.has(t) ? [] : [[t]]), ...aliases.map((a) => [a])],
+      groups: [
+        ...(MATCH_ALIAS_ONLY.has(t) ? [] : [[t]]),
+        ...(TEAMMATE_ALIASES[t] ?? []).map((a) => [a]),
+        ...(last ? [[t, last]] : []),
+      ],
     };
   });
   const joiners: Matcher[] = people
