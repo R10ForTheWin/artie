@@ -64,8 +64,6 @@ export default async function RecordsPage() {
     return { n, top: bests.sort((a, b) => a.total_s - b.total_s).slice(0, 3) };
   });
 
-  const people = [...new Set(rows.map((r) => r.name))].sort();
-
   return (
     <main className="min-h-screen bg-white flex flex-col">
       <StripeBar />
@@ -76,9 +74,9 @@ export default async function RecordsPage() {
         </Link>
 
         <h1 className="text-navy font-black uppercase tracking-widest text-3xl mt-6 mb-1">Records</h1>
-        <p className="text-navy opacity-50 text-sm">
-          Fastest back-to-back miles in any paddle. Only workouts with mile splits count —{' '}
-          {rows.length} so far{people.length ? ` (${people.join(', ')})` : ''}. Add Laps screenshots to a workout to get yours in.
+        <p className="text-navy opacity-50 text-sm leading-relaxed">
+          Be sure to upload .gpx files or screenshots of your splits so your records can be tracked. The web link alone
+          has no split info.
         </p>
 
         {boards.map(({ n, top }) => (
@@ -99,11 +97,13 @@ export default async function RecordsPage() {
                     <div className="flex items-center gap-4 min-w-0">
                       <span className="text-2xl">{medals[i]}</span>
                       <div className="min-w-0">
-                        <p className="text-navy font-black uppercase tracking-wider text-sm">{row.name}</p>
+                        <p className="text-navy font-black uppercase tracking-wider text-sm">
+                          {row.name}
+                          {row.location && <span className="font-bold normal-case tracking-normal opacity-60"> · {row.location}</span>}
+                        </p>
                         <p className="text-navy opacity-40 text-xs mt-0.5 truncate">
                           {formatDate(row.workout_date)}
                           {n > 1 ? ` · miles ${row.start}–${row.start + n - 1}` : ` · mile ${row.start}`}
-                          {row.location ? ` · ${row.location}` : ''}
                         </p>
                       </div>
                     </div>
