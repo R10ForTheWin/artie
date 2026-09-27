@@ -96,7 +96,7 @@ export default function LoginForm() {
         type="text"
         value={name}
         onChange={(e) => { setName(e.target.value); setError(''); }}
-        placeholder={joining ? 'First name — how the crew knows you' : 'Your name'}
+        placeholder={joining ? 'First name' : 'Your name'}
         autoComplete={joining ? 'given-name' : 'username'}
         autoCapitalize="words"
         className={field}
