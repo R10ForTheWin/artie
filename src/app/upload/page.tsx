@@ -6,45 +6,30 @@ import { reggieConfig } from '@/lib/reggie';
 
 export const dynamic = 'force-dynamic';
 
-const SOURCES: { what: string; where: string; gets: string; badge?: 'easiest' | 'most data' }[] = [
+/**
+ * The Garmin phone app can't export files, so all three of these come from
+ * connect.garmin.com — which works fine in a phone's browser.
+ */
+const OTHER_WAYS: { what: string; is: string; when: string; where: string }[] = [
   {
-    what: "Garmin's share picture",
-    where: 'Garmin app → the activity → Share → Copy, then paste it here',
-    gets: 'Distance, time and the sport, read straight off the card',
-    badge: 'easiest',
+    what: '.gpx file',
+    is: "The GPS track Garmin recorded — every point of your route.",
+    when: 'Adds the real route map, the direction of each mile, and water temp.',
+    where: 'connect.garmin.com → open the activity → gear icon (top right) → Export to GPX',
   },
   {
-    what: 'Garmin link',
-    where: 'connect.garmin.com → the activity → copy the address bar',
-    gets: 'Distance, time, average speed and a map thumbnail',
-  },
-  {
-    what: '.gpx file — for paddles and ocean swims',
-    where: 'connect.garmin.com → the activity → Export to GPX',
-    gets: 'Everything — heart rate, mile splits, route map, bearings and water temp',
-    badge: 'most data',
-  },
-  {
-    what: '.fit file — for pool swims',
-    where: 'connect.garmin.com → the activity → gear icon → Export Original',
-    gets: 'Heart rate, laps and calories. Use this in the pool — a .gpx has no distance without GPS',
+    what: '.fit file',
+    is: 'The original file straight off your watch.',
+    when: 'Best for pool swims, which have no GPS for a .gpx to use.',
+    where: 'connect.garmin.com → open the activity → gear icon → Export Original. It downloads as a .zip; tap it to unzip, then add the .fit inside.',
   },
   {
     what: 'CSV export',
-    where: 'connect.garmin.com → Activities → Export CSV',
-    gets: 'A whole season at once — distance, time, calories and location',
-  },
-  {
-    what: 'Screenshot of your workout',
-    where: 'A photo of your watch or the Garmin app',
-    gets: 'Whatever is on screen — usually distance, time and pace',
+    is: 'A spreadsheet of many workouts at once, summary numbers only.',
+    when: 'For catching up on a whole season in one go. Anything already logged is skipped.',
+    where: 'connect.garmin.com → Activities → All Activities → Export CSV (top right)',
   },
 ];
-
-const BADGE_STYLE: Record<'easiest' | 'most data', string> = {
-  easiest: 'bg-gold/20 text-gold',
-  'most data': 'bg-sky/20 text-sky',
-};
 
 export default function UploadPage() {
   const reggie = reggieConfig();
@@ -60,11 +45,7 @@ export default function UploadPage() {
           </Link>
         </div>
 
-        <h1 className="text-navy font-black uppercase tracking-widest text-3xl mb-2">Add a Workout</h1>
-        <p className="text-navy opacity-50 text-sm mb-6">
-          Drop in whatever you have and ARTIE works out what it is. Anything already logged is
-          skipped, so you can&apos;t double up.
-        </p>
+        <h1 className="text-navy font-black uppercase tracking-widest text-3xl mb-6">Add a Workout</h1>
 
         <UniversalDrop />
 
@@ -74,30 +55,26 @@ export default function UploadPage() {
           </div>
         )}
 
-        <div className="mt-10">
-          <p className="text-navy opacity-40 text-xs font-black uppercase tracking-wider mb-3">
-            What it takes, and where to find it
-          </p>
-          <dl className="space-y-4">
-            {SOURCES.map((s) => (
-              <div key={s.what}>
-                <dt className="flex items-center gap-2 flex-wrap">
-                  <span className="text-navy font-bold text-sm">{s.what}</span>
-                  {s.badge && (
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${BADGE_STYLE[s.badge]}`}>
-                      {s.badge}
-                    </span>
-                  )}
-                </dt>
-                <dd className="text-navy opacity-60 text-sm leading-relaxed mt-0.5">{s.gets}</dd>
-                <dd className="text-navy opacity-40 text-xs leading-relaxed mt-0.5">{s.where}</dd>
+        <details className="mt-10 group border-t border-navy/10 pt-4">
+          <summary className="flex items-center gap-2 cursor-pointer list-none [&::-webkit-details-marker]:hidden text-navy opacity-60 hover:opacity-100 text-xs font-black uppercase tracking-wider">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="transition-transform group-open:rotate-90">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+            Other ways to add
+          </summary>
+          <dl className="mt-4 space-y-5">
+            {OTHER_WAYS.map((w) => (
+              <div key={w.what}>
+                <dt className="text-navy font-bold text-sm">{w.what}</dt>
+                <dd className="text-navy opacity-70 text-sm leading-relaxed mt-0.5">{w.is} {w.when}</dd>
+                <dd className="text-navy opacity-45 text-xs leading-relaxed mt-1">{w.where}</dd>
               </div>
             ))}
           </dl>
-          <p className="text-navy opacity-40 text-xs mt-4 leading-relaxed">
-            connect.garmin.com works in your phone&apos;s browser too.
+          <p className="text-navy opacity-40 text-xs mt-5 leading-relaxed">
+            The Garmin app can&apos;t export files, so these come from connect.garmin.com. It works in your phone&apos;s browser.
           </p>
-        </div>
+        </details>
       </div>
 
       <StripeBar side="bottom" />

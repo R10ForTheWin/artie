@@ -6,7 +6,7 @@ import {
   normaliseName,
 } from '@/lib/auth';
 import {
-  adminName, getPerson, listPeople, createPerson,
+  adminName, getPerson, listPeople, createPerson, usesHrMonitor,
 } from '@/lib/people';
 
 export const dynamic = 'force-dynamic';
@@ -52,6 +52,7 @@ export async function GET(req: NextRequest) {
     enabled: authEnabled(),
     me,
     isAdmin: me !== null && me === adminName(),
+    usesHrMonitor: me ? await usesHrMonitor(me) : false,
     people: people.map((p) => ({ name: p.name })),
   });
 }
@@ -68,6 +69,14 @@ export async function POST(req: NextRequest) {
     const res = NextResponse.json({ ok: true });
     res.cookies.set(SESSION_COOKIE, '', { path: '/', maxAge: 0 });
     return res;
+  }
+
+  // Your own settings — for now just whether you wear a heart rate strap
+  if (action === 'settings') {
+    const me = await currentUser(req);
+    if (!me) return bad('Sign in first.', 401);
+    await pool.query('UPDATE people SET uses_hr_monitor = $1 WHERE name = $2', [body.usesHrMonitor === true, me]);
+    return NextResponse.json({ ok: true });
   }
 
   // The team code is the only gate. Once someone has it they are crew, and a

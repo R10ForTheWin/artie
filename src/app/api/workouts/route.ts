@@ -3,7 +3,8 @@ import { pool, initSchema, isCrossSourceDuplicate } from '@/lib/db';
 import { parseWorkoutFile } from '@/lib/parsers';
 import { injectMapLocation } from '@/lib/parsers/gpxParser';
 import { parseLapsImage } from '@/lib/parsers/imageParser';
-import { TEAMMATES } from '@/lib/teammates';
+import { isKnownPaddler, usesHrMonitor } from '@/lib/people';
+import { extractGarminActivityId, fetchGarminActivityFromPage } from '@/lib/garminLink';
 import { sessionName } from '@/lib/auth';
 import { isActivity, classifyActivity, type Activity } from '@/lib/activity';
 
@@ -11,73 +12,6 @@ export async function GET() {
   await initSchema();
   const result = await pool.query('SELECT * FROM workouts ORDER BY workout_date DESC');
   return NextResponse.json(result.rows);
-}
-
-function extractGarminActivityId(url: string): string | null {
-  const match = url.match(/connect\.garmin\.com\/(?:modern\/|app\/)?activity\/(\d+)/i);
-  return match ? match[1] : null;
-}
-
-function parseDurationToSeconds(str: string): number | null {
-  const parts = str.split(':').map(Number);
-  if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
-  if (parts.length === 2) return parts[0] * 60 + parts[1];
-  return null;
-}
-
-async function fetchGarminActivityFromPage(activityId: string, workoutDate: string): Promise<import('@/lib/parsers').ParsedWorkout & { map_image_url: string | null; title: string | null }> {
-  const pageUrl = `https://connect.garmin.com/modern/activity/${activityId}`;
-  const res = await fetch(pageUrl, {
-    headers: {
-      'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
-      'Accept': 'text/html',
-    },
-    redirect: 'follow',
-  });
-
-  if (!res.ok) throw new Error('Could not load Garmin activity page');
-
-  const html = await res.text();
-
-  const titleMatch = html.match(/<meta property="og:title" content="([^"]+)"/);
-  const descMatch = html.match(/<meta property="og:description" content="([^"]+)"/);
-  const imageMatch = html.match(/<meta property="og:image" content="([^"]+)"/);
-
-  if (!descMatch) throw new Error('Could not find workout data on Garmin activity page');
-
-  const desc = descMatch[1];
-  // Format: "Distance 4.79 mi | Time 1:03:08 | Speed 4.6 mph"
-  const distanceMatch = desc.match(/Distance ([\d.]+) mi/);
-  const timeMatch = desc.match(/Time ([\d:]+)/);
-  const speedMatch = desc.match(/Speed ([\d.]+) mph/);
-
-  const distance_m = distanceMatch ? parseFloat(distanceMatch[1]) * 1609.344 : null;
-  const duration_s = timeMatch ? parseDurationToSeconds(timeMatch[1]) : null;
-  const avg_speed_ms = speedMatch ? parseFloat(speedMatch[1]) * 0.44704 : null;
-
-  if (!distance_m && !duration_s) {
-    throw new Error('Could not parse workout data from Garmin activity page');
-  }
-
-  return {
-    workout_date: workoutDate,
-    duration_s,
-    distance_m,
-    avg_speed_ms,
-    max_speed_ms: null,
-    avg_hr: null,
-    max_hr: null,
-    calories: null,
-    map_image_url: imageMatch ? imageMatch[1] : null,
-    title: titleMatch ? titleMatch[1] : null,
-  };
-}
-
-/** Anyone on the sign-in roster, falling back to the original hard-coded list. */
-async function isKnownPaddler(name: string): Promise<boolean> {
-  if ((TEAMMATES as readonly string[]).includes(name)) return true;
-  const { rows } = await pool.query('SELECT 1 FROM people WHERE LOWER(name) = LOWER($1)', [name]);
-  return rows.length > 0;
 }
 
 export async function POST(req: NextRequest) {
@@ -215,6 +149,8 @@ export async function POST(req: NextRequest) {
       `DELETE FROM workouts WHERE name = $1 AND workout_date = $2 AND source = 'paddleguru'`,
       [name, parsed.workout_date.split('T')[0]]
     );
+    // Wrist heart rate is too far off to keep; only a chest strap's counts
+    const keepHr = await usesHrMonitor(name);
     const result = await pool.query(
       `INSERT INTO workouts (name, file_name, file_type, workout_date, duration_s, distance_m, avg_speed_ms, max_speed_ms, avg_hr, max_hr, calories, location, mile_splits, avg_temp_c, map_svg, mile_bearings, activity)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
@@ -228,8 +164,8 @@ export async function POST(req: NextRequest) {
         parsed.distance_m,
         parsed.avg_speed_ms,
         parsed.max_speed_ms,
-        parsed.avg_hr,
-        parsed.max_hr,
+        keepHr ? parsed.avg_hr : null,
+        keepHr ? parsed.max_hr : null,
         parsed.calories,
         location,
         mile_splits ? JSON.stringify(mile_splits) : null,

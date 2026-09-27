@@ -1,4 +1,5 @@
 import { pool } from './db';
+import { TEAMMATES } from './teammates';
 
 export interface Person {
   name: string;
@@ -26,4 +27,17 @@ export async function createPerson(name: string, lastName: string): Promise<bool
     [name, lastName]
   );
   return (res.rowCount ?? 0) > 0;
+}
+
+/** Anyone on the sign-in roster, falling back to the original hard-coded list. */
+export async function isKnownPaddler(name: string): Promise<boolean> {
+  if ((TEAMMATES as readonly string[]).includes(name)) return true;
+  const { rows } = await pool.query('SELECT 1 FROM people WHERE LOWER(name) = LOWER($1)', [name]);
+  return rows.length > 0;
+}
+
+/** Only a chest strap gives heart rate worth keeping; wrist readings are dropped. */
+export async function usesHrMonitor(name: string): Promise<boolean> {
+  const { rows } = await pool.query('SELECT uses_hr_monitor FROM people WHERE LOWER(name) = LOWER($1)', [name]);
+  return rows[0]?.uses_hr_monitor === true;
 }

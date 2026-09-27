@@ -5,6 +5,15 @@ export const pool = new Pool({
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
 });
 
+// A preview deploy points DB_SCHEMA at its own schema so it can share the
+// database server without ever touching the real tables. Production leaves it unset.
+const schema = process.env.DB_SCHEMA?.replace(/[^a-z0-9_]/gi, '');
+if (schema) {
+  pool.on('connect', (client) => {
+    client.query(`CREATE SCHEMA IF NOT EXISTS ${schema}; SET search_path TO ${schema}`).catch(() => {});
+  });
+}
+
 export async function isCrossSourceDuplicate(name: string, date: string, distance_m: number | null): Promise<boolean> {
   if (!distance_m) return false;
   const r = await pool.query(
@@ -101,6 +110,34 @@ export async function initSchema() {
     );
     -- Lets race results pick out people who added themselves
     ALTER TABLE people ADD COLUMN IF NOT EXISTS last_name TEXT;
+    -- Wrist heart rate is too far off to use, so readings only count for someone
+    -- who wears a chest strap. Filled once per person (Zach starts ticked) and
+    -- then left to the checkbox on the account page.
+    ALTER TABLE people ADD COLUMN IF NOT EXISTS uses_hr_monitor BOOLEAN;
+    UPDATE people SET uses_hr_monitor = (name = 'Zach') WHERE uses_hr_monitor IS NULL;
+
+    -- Read off Garmin app screenshots (Overview, Stats, Laps, Charts tabs)
+    ALTER TABLE workouts ADD COLUMN IF NOT EXISTS start_time TEXT;
+    ALTER TABLE workouts ADD COLUMN IF NOT EXISTS moving_time_s INTEGER;
+    ALTER TABLE workouts ADD COLUMN IF NOT EXISTS best_pace_s INTEGER;
+    ALTER TABLE workouts ADD COLUMN IF NOT EXISTS total_strokes INTEGER;
+    ALTER TABLE workouts ADD COLUMN IF NOT EXISTS avg_stroke_rate REAL;
+    ALTER TABLE workouts ADD COLUMN IF NOT EXISTS max_stroke_rate REAL;
+    ALTER TABLE workouts ADD COLUMN IF NOT EXISTS distance_per_stroke_ft REAL;
+    ALTER TABLE workouts ADD COLUMN IF NOT EXISTS training_effect_aerobic REAL;
+    ALTER TABLE workouts ADD COLUMN IF NOT EXISTS training_effect_anaerobic REAL;
+    ALTER TABLE workouts ADD COLUMN IF NOT EXISTS weather_temp_f REAL;
+
+    -- The screenshots themselves, shrunk, so the map and pace graph can be shown
+    CREATE TABLE IF NOT EXISTS workout_screens (
+      id          SERIAL PRIMARY KEY,
+      workout_id  INTEGER NOT NULL REFERENCES workouts(id) ON DELETE CASCADE,
+      kind        TEXT NOT NULL,
+      mime        TEXT NOT NULL,
+      data        BYTEA NOT NULL,
+      created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+    CREATE INDEX IF NOT EXISTS workout_screens_workout ON workout_screens (workout_id);
 
     CREATE TABLE IF NOT EXISTS strava_tokens (
       id            SERIAL PRIMARY KEY,
