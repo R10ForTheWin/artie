@@ -29,6 +29,29 @@ function isTeammate(name: string, matchers: Matcher[]): boolean {
   return matchPerson(name, matchers) !== null;
 }
 
+/**
+ * Stored as "1:20:50 (Jack Bark, 2025) — unofficial". The time is the headline,
+ * so it gets split out and set large; anything that doesn't parse shows as-is.
+ */
+function CourseRecord({ value, className = '' }: { value: string; className?: string }) {
+  const m = value.match(/^(\d[\d:.]*)\s*(?:\(([^)]*)\))?\s*(?:[—–-]\s*(.+))?$/);
+  const [time, holder, note] = m ? [m[1], m[2], m[3]] : [value, undefined, undefined];
+  return (
+    <div className={`flex items-center justify-between gap-3 rounded-lg bg-gold/15 border-l-4 border-gold px-3 py-2 ${className}`}>
+      <div className="min-w-0">
+        <p className="text-gold text-[10px] font-black uppercase tracking-widest">Course Record</p>
+        {(holder || note) && (
+          <p className="text-navy text-xs opacity-70 truncate">
+            {holder}
+            {note && <span className="opacity-60">{holder ? ' · ' : ''}{note}</span>}
+          </p>
+        )}
+      </div>
+      <p className="text-navy font-black text-xl tabular-nums shrink-0">{time}</p>
+    </div>
+  );
+}
+
 const HIGHLIGHT_COLORS = [
   'bg-gold/45',
   'bg-sky/45',
@@ -145,6 +168,7 @@ export default function RaceCountdowns({ races, matchers, workoutLinks = {} }: {
                       Carried over from last season — the organisers haven&apos;t posted {new Date(race.race_date).getUTCFullYear()} details yet.
                     </p>
                   )}
+                  {race.course_record && <CourseRecord value={race.course_record} className="mt-3" />}
                 </div>
                 {race.paddleguru_url ? (
                   <a
@@ -165,10 +189,6 @@ export default function RaceCountdowns({ races, matchers, workoutLinks = {} }: {
                     Last year&apos;s race page →
                   </a>
                 ) : null}
-
-                {race.course_record && (
-                  <p className="text-navy text-xs opacity-40 mt-2 pt-2 border-t border-navy/10">CR: {race.course_record}</p>
-                )}
               </div>
             );
           })}
@@ -198,6 +218,8 @@ export default function RaceCountdowns({ races, matchers, workoutLinks = {} }: {
                     <p className="text-navy text-xs opacity-40">{formatDate(race.race_date)}</p>
                   </div>
                 </summary>
+
+                {race.course_record && <CourseRecord value={race.course_record} className="mb-3" />}
 
                 {race.results && race.results.length > 0 && (() => {
                   const dateKey = race.race_date.slice(0, 10);
@@ -268,9 +290,6 @@ export default function RaceCountdowns({ races, matchers, workoutLinks = {} }: {
                     </div>
                   );
                 })()}
-                {race.course_record && (
-                  <p className="text-navy text-xs opacity-40 mt-2 pt-2 border-t border-navy/10">CR: {race.course_record}</p>
-                )}
                 {race.paddleguru_url && (!race.results || race.results.length === 0) && (
                   <SyncResultsButton raceId={race.id} />
                 )}
