@@ -42,6 +42,17 @@ export const BREAKS: Break[] = [
     buoyLabel: 'SM Bay',
     spotLabel: 'Manhattan Beach Pier',
   },
+  {
+    id: 'hermosa-pier-south',
+    name: 'Hermosa',
+    // Windy cam "Hermosa Beach" — rooftop just south of the pier, looking toward PV
+    webcam: 'https://webcams.windy.com/webcams/stream/1536866179',
+    lat: 33.8612,
+    lon: -118.4000,
+    buoy: '46222',
+    buoyLabel: 'SM Bay',
+    spotLabel: 'Hermosa Pier South',
+  },
 ];
 
 export const defaultBreak = BREAKS[0];
