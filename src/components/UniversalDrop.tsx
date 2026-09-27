@@ -367,8 +367,8 @@ export default function UniversalDrop() {
           over ? 'border-gold bg-gold/10' : 'border-navy/30 hover:border-navy/60 bg-navy/[0.02]'
         }`}
       >
-        <p className="text-navy font-black uppercase tracking-widest text-sm">{hasBundle ? '+ Add more screenshots' : 'Choose screenshots'}</p>
-        {!hasBundle && <p className="text-navy opacity-50 text-sm mt-1">Pick them all at once · or drop a file</p>}
+        <p className="text-navy font-black uppercase tracking-widest text-sm">{hasBundle ? '+ Add more screenshots' : 'Upload screenshots'}</p>
+        {!hasBundle && <p className="text-navy opacity-50 text-sm mt-1">or .GPX, .FIT or .CSV files</p>}
         <input
           ref={inputRef}
           type="file"
