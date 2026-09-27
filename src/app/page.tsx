@@ -37,6 +37,12 @@ export default function HomePage() {
           >
             Photos
           </Link>
+          <Link
+            href="/news"
+            className="bg-cream text-navy font-bold uppercase tracking-widest text-center py-2 px-6 rounded-lg text-xs hover:opacity-80 transition-opacity"
+          >
+            News
+          </Link>
         </div>
 
         <div className="w-full max-w-xs mt-2">
