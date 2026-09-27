@@ -380,6 +380,10 @@ export default function UniversalDrop() {
             Paste the activity&apos;s web link above, then screenshot its Overview, Stats, Laps and Charts tabs in the
             Garmin app and choose them all at once.
           </p>
+          <p className="text-navy text-xs leading-relaxed border-l-2 border-gold pl-2 mt-2">
+            <b>For Records:</b> mile splits come only from the <b>Laps</b> screenshot. The web link alone
+            doesn&apos;t include them.
+          </p>
         </div>
       )}
 
