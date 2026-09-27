@@ -29,6 +29,11 @@ const KIND_LABEL: Record<Kind, string> = {
 // /app/, with or without the scheme, and sometimes wrapped in other text.
 const GARMIN_URL = /(?:https?:\/\/)?(?:www\.)?connect\.garmin\.com\/(?:modern\/|app\/)?activity\/\d+/i;
 
+function findLink(text: string): string | null {
+  const g = text.match(GARMIN_URL);
+  return g ? (g[0].startsWith('http') ? g[0] : `https://${g[0]}`) : null;
+}
+
 function kindOf(file: File): Kind | null {
   const n = file.name.toLowerCase();
   if (n.endsWith('.fit')) return 'fit';
@@ -89,13 +94,12 @@ export default function UniversalDrop() {
   }
 
   function addText(text: string) {
-    const m = text.match(GARMIN_URL);
-    if (!m) {
+    const url = findLink(text);
+    if (!url) {
       const snippet = text.trim().slice(0, 60);
       setError(`That does not look like a Garmin activity link${snippet ? ` — got "${snippet}${text.trim().length > 60 ? '…' : ''}"` : ''}.`);
       return;
     }
-    const url = m[0].startsWith('http') ? m[0] : `https://${m[0]}`;
     add([{ id: url, kind: 'link', label: url.replace(/^https?:\/\//, ''), url, status: 'ready' }]);
   }
 
@@ -216,7 +220,12 @@ export default function UniversalDrop() {
         onPaste={(e) => {
           // Garmin's iOS share sheet copies a picture, not a link
           const files = Array.from(e.clipboardData.files);
-          if (files.length) { e.preventDefault(); addFiles(files); setLinkText(''); }
+          if (files.length) { e.preventDefault(); addFiles(files); setLinkText(''); return; }
+          // Garmin's Share → Copy puts the link on a second line under "Check out
+          // my … activity". A one-line input keeps only the first line, so the
+          // link is lost unless it's read from the clipboard here.
+          const text = e.clipboardData.getData('text');
+          if (text.trim()) { e.preventDefault(); addText(text); setLinkText(''); }
         }}
         onChange={(e) => {
           const v = e.target.value;
