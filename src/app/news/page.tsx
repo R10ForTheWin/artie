@@ -9,7 +9,7 @@ export default function NewsPage() {
         <Link href="/" className="text-navy opacity-50 hover:opacity-100 text-sm font-bold uppercase tracking-wider">
           ← Home
         </Link>
-        <h1 className="text-navy font-black uppercase tracking-widest text-3xl mt-6 mb-6">News</h1>
+        <h1 className="text-navy font-black uppercase tracking-widest text-3xl mt-6 mb-6">Paddle News</h1>
         <p className="text-navy opacity-50 text-sm">Articles to come.</p>
       </div>
       <StripeBar side="bottom" />
