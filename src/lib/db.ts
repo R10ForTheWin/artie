@@ -14,11 +14,13 @@ if (schema) {
   });
 }
 
+// Compare by day: some sources store a bare date, others (Garmin links, .fit
+// files) a full timestamp, and "2026-09-27" must match "2026-09-27T16:47Z".
 export async function isCrossSourceDuplicate(name: string, date: string, distance_m: number | null): Promise<boolean> {
   if (!distance_m) return false;
   const r = await pool.query(
     `SELECT id FROM workouts
-     WHERE name = $1 AND workout_date = $2 AND distance_m IS NOT NULL
+     WHERE name = $1 AND LEFT(workout_date, 10) = LEFT($2, 10) AND distance_m IS NOT NULL
        AND (source IS NULL OR source != 'paddleguru')
        AND ABS(distance_m - $3) / GREATEST(distance_m, $3) < 0.05`,
     [name, date, distance_m]
