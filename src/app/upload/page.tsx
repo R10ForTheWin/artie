@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import StripeBar from '@/components/StripeBar';
 import UniversalDrop from '@/components/UniversalDrop';
+import ManualEntry from '@/components/ManualEntry';
 import ReggieImport from '@/components/ReggieImport';
 import { reggieConfig } from '@/lib/reggie';
 import StepPath from '@/components/StepPath';
@@ -51,6 +52,10 @@ export default function UploadPage() {
         <h1 className="text-navy font-black uppercase tracking-widest text-3xl mb-6">Add a Workout</h1>
 
         <UniversalDrop />
+
+        <div className="mt-6">
+          <ManualEntry />
+        </div>
 
         {reggie && (
           <div className="mt-6">
