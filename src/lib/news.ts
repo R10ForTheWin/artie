@@ -31,6 +31,5 @@ export const ARTICLES: Article[] = [
       caption: 'Prone boards under the Manhattan Beach Pier, the Catalina Classic’s finish line.',
       position: 'center 70%',
     },
-    note: 'The race this crew trains for all year: Catalina Island to the Manhattan Beach Pier.',
   },
 ];
