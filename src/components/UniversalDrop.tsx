@@ -343,6 +343,10 @@ export default function UniversalDrop() {
         </div>
       )}
 
+      {!link && !hasBundle && (
+        <p className="text-center text-navy font-black text-3xl leading-none -my-1" aria-hidden="true">+</p>
+      )}
+
       <div
         onDragOver={(e) => { e.preventDefault(); setOver(true); }}
         onDragLeave={() => setOver(false)}
@@ -360,6 +364,7 @@ export default function UniversalDrop() {
           over ? 'border-gold bg-gold/10' : 'border-navy/30 hover:border-navy/60 bg-navy/[0.02]'
         }`}
       >
+        {!hasBundle && <p className="text-navy opacity-50 text-xs font-bold mb-0.5">(optional)</p>}
         <p className="text-navy font-black uppercase tracking-widest text-sm">{hasBundle ? '+ Add more screenshots' : 'Upload screenshots'}</p>
         {!hasBundle && <p className="text-navy opacity-50 text-sm mt-1">or .GPX, .FIT or .CSV files</p>}
         <input
