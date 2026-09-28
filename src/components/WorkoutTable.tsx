@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { formatDate, formatDistanceShort, formatPace } from '@/lib/formatters';
 import { ACTIVITY_COLORS, ACTIVITY_LABELS, type Activity } from '@/lib/activity';
@@ -96,25 +96,11 @@ export default function WorkoutTable({ workouts, raceDates = new Set(), showHint
 
       <div className="border-2 border-navy border-opacity-20 rounded-lg overflow-x-auto" data-swipe-ignore>
         <table className="w-full">
-          <thead>
-            <tr className="border-b-2 border-navy border-opacity-20 bg-cream-light">
-              <th className={th}>Athlete</th>
-              <th className={th}>Date</th>
-              <th className={th}>Dist</th>
-              <th className={th}>Type</th>
-              <th className={`${th} sm:hidden`}></th>
-              <th className={`${th} hidden sm:table-cell`}>Pace</th>
-              <th className={`${th} hidden sm:table-cell`}>Fastest Mi</th>
-              <th className={`${th} hidden sm:table-cell`}>Location</th>
-              <th className={`${th} hidden sm:table-cell`}>Source</th>
-              <th className={`${th} hidden sm:table-cell`}></th>
-            </tr>
-          </thead>
           <tbody>
             {groups.map(({ key, rows }) => {
               const isOpen = !!expanded[key];
               return (
-                <>
+                <Fragment key={key}>
                   {/* Month header row */}
                   <tr
                     key={`header-${key}`}
@@ -135,12 +121,25 @@ export default function WorkoutTable({ workouts, raceDates = new Set(), showHint
                             {monthLabel(key)}
                           </span>
                         </div>
-                        <span className="text-navy opacity-40 text-xs font-semibold whitespace-nowrap">
-                          {rows.length} workout{rows.length !== 1 ? 's' : ''}
-                        </span>
                       </div>
                     </td>
                   </tr>
+
+                  {/* Column headings sit under each open month, not above them all */}
+                  {isOpen && (
+                    <tr key={`cols-${key}`} className="border-b-2 border-navy border-opacity-20 bg-cream-light">
+                      <th className={th}>Athlete</th>
+                      <th className={th}>Date</th>
+                      <th className={th}>Dist</th>
+                      <th className={th}>Type</th>
+                      <th className={`${th} sm:hidden`}></th>
+                      <th className={`${th} hidden sm:table-cell`}>Pace</th>
+                      <th className={`${th} hidden sm:table-cell`}>Fastest Mi</th>
+                      <th className={`${th} hidden sm:table-cell`}>Location</th>
+                      <th className={`${th} hidden sm:table-cell`}>Source</th>
+                      <th className={`${th} hidden sm:table-cell`}></th>
+                    </tr>
+                  )}
 
                   {/* Workout rows */}
                   {isOpen && rows.map((w, i) => {
@@ -196,7 +195,7 @@ export default function WorkoutTable({ workouts, raceDates = new Set(), showHint
                       </tr>
                     );
                   })}
-                </>
+                </Fragment>
               );
             })}
           </tbody>
