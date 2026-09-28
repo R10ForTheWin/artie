@@ -5,10 +5,18 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ACTIVITIES, ACTIVITY_LABELS, type Activity } from '@/lib/activity';
 
-type Unit = 'mi' | 'yd' | 'm' | 'km';
-
-// What people actually use: paddles in miles, swims in yards
-const DEFAULT_UNIT: Record<Activity, Unit> = { paddle: 'mi', ocean_swim: 'yd', pool_swim: 'yd' };
+// Only distance matters here. Paddles in miles (0.5 steps, start at 10),
+// swims in yards (100 steps, start at 3,000). A select shows as a scroll wheel
+// on a phone, so picking a distance is a flick rather than typing.
+const SCALE: Record<Activity, { unit: 'mi' | 'yd'; start: number; step: number; max: number }> = {
+  paddle: { unit: 'mi', start: 10, step: 0.5, max: 40 },
+  ocean_swim: { unit: 'yd', start: 3000, step: 100, max: 10000 },
+  pool_swim: { unit: 'yd', start: 3000, step: 100, max: 10000 },
+};
+const choices = (a: Activity) => {
+  const { step, max } = SCALE[a];
+  return Array.from({ length: Math.round(max / step) }, (_, i) => Number(((i + 1) * step).toFixed(1)));
+};
 
 const todayPacific = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Los_Angeles' }).format(new Date());
 
@@ -18,18 +26,16 @@ export default function ManualEntry() {
   const [open, setOpen] = useState(false);
   const [activity, setActivity] = useState<Activity>('paddle');
   const [date, setDate] = useState(todayPacific);
-  const [distance, setDistance] = useState('');
-  const [unit, setUnit] = useState<Unit>('mi');
-  const [duration, setDuration] = useState('');
-  const [location, setLocation] = useState('');
+  const [distance, setDistance] = useState<number>(SCALE.paddle.start);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [saved, setSaved] = useState<{ id: number; text: string } | null>(null);
 
   function pick(a: Activity) {
     setActivity(a);
-    setUnit(DEFAULT_UNIT[a]);
+    setDistance(SCALE[a].start);
   }
+  const unit = SCALE[activity].unit;
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
@@ -39,13 +45,12 @@ export default function ManualEntry() {
       const res = await fetch('/api/workouts/manual', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ activity, date, distance, unit, duration, location }),
+        body: JSON.stringify({ activity, date, distance, unit }),
       });
       const j = await res.json();
       if (!res.ok) { setError(j.error ?? 'Could not save that workout.'); return; }
       const when = new Date(`${date}T12:00:00`).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-      setSaved({ id: j.id, text: `Added ${ACTIVITY_LABELS[activity].toLowerCase()} · ${when} · ${distance} ${unit}` });
-      setDistance(''); setDuration(''); setLocation('');
+      setSaved({ id: j.id, text: `Added ${ACTIVITY_LABELS[activity].toLowerCase()} · ${when} · ${distance.toLocaleString()} ${unit}` });
       router.refresh();
     } catch {
       setError('Could not reach ARTIE.');
@@ -108,45 +113,25 @@ export default function ManualEntry() {
           <input id="m-date" type="date" value={date} max={todayPacific()} onChange={(e) => setDate(e.target.value)} className={field} required />
         </div>
         <div>
-          <label htmlFor="m-time" className={label}>Time <span className="normal-case tracking-normal font-bold">(optional)</span></label>
-          <input id="m-time" type="text" inputMode="numeric" placeholder="1:05:30" value={duration} onChange={(e) => setDuration(e.target.value)} className={field} />
-        </div>
-      </div>
-
-      <div>
-        <label htmlFor="m-dist" className={label}>Distance</label>
-        <div className="flex gap-2">
-          <input
+          <label htmlFor="m-dist" className={label}>Distance</label>
+          <select
             id="m-dist"
-            type="number"
-            inputMode="decimal"
-            step="any"
-            min="0"
-            placeholder={unit === 'mi' ? '10.4' : '2500'}
             value={distance}
-            onChange={(e) => setDistance(e.target.value)}
-            className={field}
-            required
-          />
-          <select value={unit} onChange={(e) => setUnit(e.target.value as Unit)} aria-label="Unit" className="bg-white border-2 border-navy/20 text-navy rounded-lg px-2 text-sm font-bold focus:outline-none focus:border-gold">
-            <option value="mi">mi</option>
-            <option value="yd">yd</option>
-            <option value="m">m</option>
-            <option value="km">km</option>
+            onChange={(e) => setDistance(Number(e.target.value))}
+            className={`${field} font-bold tabular-nums`}
+          >
+            {choices(activity).map((v) => (
+              <option key={v} value={v}>{v.toLocaleString()} {unit}</option>
+            ))}
           </select>
         </div>
-      </div>
-
-      <div>
-        <label htmlFor="m-loc" className={label}>Where <span className="normal-case tracking-normal font-bold">(optional)</span></label>
-        <input id="m-loc" type="text" placeholder={activity === 'pool_swim' ? 'El Segundo' : 'Topaz'} value={location} onChange={(e) => setLocation(e.target.value)} className={field} />
       </div>
 
       {error && <p className="text-terracotta font-bold text-sm">{error}</p>}
 
       <button
         type="submit"
-        disabled={busy || !distance || !date}
+        disabled={busy || !date}
         className="w-full bg-navy text-white font-black uppercase tracking-widest py-3 rounded-lg hover:bg-terracotta transition-colors disabled:opacity-40"
       >
         {busy ? 'Adding…' : `Add ${ACTIVITY_LABELS[activity].toLowerCase()}`}
