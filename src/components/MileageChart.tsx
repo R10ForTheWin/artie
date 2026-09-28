@@ -38,7 +38,7 @@ export default function MileageChart({ data, title, subtitle, showSwims = false,
       <button
         type="button"
         onClick={() => setOpen(o => !o)}
-        className={`w-full flex items-center justify-between gap-3 px-6 py-4 text-left transition-colors ${open ? 'hover:bg-navy/5' : 'bg-navy/5 hover:bg-navy/10'}`}
+        className={`w-full flex items-center justify-between gap-3 px-6 py-4 text-left transition-colors ${open ? 'hover:bg-cream-light/60' : 'bg-white hover:bg-cream-light/60'}`}
       >
         <div className="flex items-center gap-2 min-w-0">
           <svg
