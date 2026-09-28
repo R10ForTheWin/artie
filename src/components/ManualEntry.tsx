@@ -73,18 +73,18 @@ export default function ManualEntry() {
         <button
           type="button"
           onClick={() => { setOpen(true); setSaved(null); }}
-          className="w-full border-2 border-navy/20 text-navy font-black uppercase tracking-widest text-xs py-3 rounded-lg hover:border-navy/60 transition-colors"
+          className="w-full bg-sky/20 border-2 border-sky/50 text-navy font-black uppercase tracking-widest text-xs py-3 rounded-lg hover:bg-sky/30 transition-colors"
         >
-          + Enter a workout by hand
+          + Manually enter a workout
         </button>
       </div>
     );
   }
 
   return (
-    <form onSubmit={save} className="border-2 border-navy/20 rounded-xl p-4 space-y-4">
+    <form onSubmit={save} className="bg-sky/15 border-2 border-sky/50 rounded-xl p-4 space-y-4">
       <div className="flex items-center justify-between">
-        <p className="text-navy font-black uppercase tracking-widest text-sm">Enter by hand</p>
+        <p className="text-navy font-black uppercase tracking-widest text-sm">Manually enter a workout</p>
         <button type="button" onClick={() => setOpen(false)} className="text-navy opacity-40 hover:opacity-80 text-xs font-bold uppercase tracking-wider">
           Close
         </button>
