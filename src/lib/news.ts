@@ -1,7 +1,7 @@
 /**
  * Paddle News. Each entry links out to the original; the headline and summary
  * are what the publisher offers for sharing, not the article itself. Photos are
- * the crew's own, hosted here.
+ * hosted here, credited to whoever took them.
  * Newest first.
  */
 export interface Article {
@@ -25,11 +25,10 @@ export const ARTICLES: Article[] = [
     byline: 'Jack Dolan',
     summary:
       "The 32-mile Catalina Classic is one of the most grueling endurance contests on the planet — an ultra-marathon of the sea — and an annual rite of passage in Southern California surf culture. This year's race was pure hell.",
-    // The crew's own photo: the LA Times image server wouldn't load on other sites
     image: {
-      src: '/photos/team-01.jpg',
-      caption: 'Prone boards under the Manhattan Beach Pier, the Catalina Classic’s finish line.',
-      position: 'center 70%',
+      src: '/news/latimes-catalina-2023.jpg',
+      caption: 'Liz Hunter collapses after winning the women’s division of the 2023 Catalina Classic.',
+      credit: 'Ringo Chiu / For The Times',
     },
   },
 ];
