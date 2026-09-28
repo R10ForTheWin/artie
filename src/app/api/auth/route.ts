@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { pool, initSchema } from '@/lib/db';
 import { TEAMMATES } from '@/lib/teammates';
 import {
-  SESSION_COOKIE, SESSION_MAX_AGE, authEnabled, signSession, verifySession,
+  SESSION_COOKIE, GUEST_COOKIE, SESSION_MAX_AGE, authEnabled, signSession, verifySession,
   normaliseName,
 } from '@/lib/auth';
 import {
@@ -37,6 +37,8 @@ function withSession(name: string, secret: string, body: Record<string, unknown>
       path: '/',
       maxAge: SESSION_MAX_AGE,
     });
+    // Signed up or in: no longer a guest
+    res.cookies.set(GUEST_COOKIE, '', { path: '/', maxAge: 0 });
     return res;
   });
 }

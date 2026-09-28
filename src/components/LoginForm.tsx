@@ -16,7 +16,8 @@ export default function LoginForm() {
   const params = useSearchParams();
   const next = params.get('next') || '/';
 
-  const [mode, setMode] = useState<Mode>('signin');
+  // A guest sent here from a page that needs an account lands on sign-up
+  const [mode, setMode] = useState<Mode>(params.get('join') === '1' ? 'join' : 'signin');
   const [name, setName] = useState('');
   const [lastName, setLastName] = useState('');
   const [teamCode, setTeamCode] = useState('');
@@ -29,6 +30,14 @@ export default function LoginForm() {
       if (remembered) setName(remembered);
     } catch { /* private mode */ }
   }, []);
+
+  function skip() {
+    // Look around without an account; the middleware lets this cookie read, not write
+    document.cookie = 'artie_guest=1; path=/; max-age=31536000; samesite=lax';
+    const blocked = ['/upload', '/account', '/strava', '/races/new'].some((p) => next === p || next.startsWith(`${p}/`));
+    router.replace(blocked ? '/' : next);
+    router.refresh();
+  }
 
   function switchTo(m: Mode) {
     setMode(m);
@@ -86,6 +95,9 @@ export default function LoginForm() {
         {tab('join', 'New? Join')}
       </div>
 
+      {joining && params.get('join') === '1' && (
+        <p className="text-navy font-bold text-sm">Sign up to add workouts and make changes.</p>
+      )}
       {joining && (
         <p className="text-navy opacity-60 text-sm leading-relaxed">
           Get the team code from the crew. Your last name is how ARTIE finds you in race results.
@@ -133,6 +145,14 @@ export default function LoginForm() {
         className="w-full bg-navy text-white font-black uppercase tracking-widest py-3 rounded-lg hover:bg-terracotta transition-colors disabled:opacity-40"
       >
         {busy ? 'One sec…' : joining ? 'Join ARTIE' : 'Sign in'}
+      </button>
+
+      <button
+        type="button"
+        onClick={skip}
+        className="w-full text-navy opacity-50 hover:opacity-100 text-xs font-bold uppercase tracking-wider py-2"
+      >
+        Skip for now — just look around
       </button>
     </form>
   );

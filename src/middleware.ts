@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { SESSION_COOKIE, verifySession } from '@/lib/auth';
+import { SESSION_COOKIE, GUEST_COOKIE, verifySession } from '@/lib/auth';
 
 const REDIRECT_TO = process.env.REDIRECT_TO?.trim();
 const AUTH_SECRET = process.env.AUTH_SECRET?.trim();
@@ -9,6 +9,9 @@ const AUTH_SECRET = process.env.AUTH_SECRET?.trim();
 // The home-screen icon and manifest are fetched without the sign-in cookie, so
 // they must stay public or iOS saves a blank white tile.
 const OPEN = ['/login', '/api/auth', '/logos', '/photos/', '/artie-logo.png', '/default-race.jpg', '/apple-touch-icon.png', '/manifest.json'];
+
+/** Pages that only make sense with an account. */
+const GUEST_BLOCKED = ['/upload', '/account', '/strava', '/races/new'];
 
 export async function middleware(request: NextRequest) {
   if (REDIRECT_TO) {
@@ -33,6 +36,20 @@ export async function middleware(request: NextRequest) {
 
   const name = await verifySession(request.cookies.get(SESSION_COOKIE)?.value, AUTH_SECRET);
   if (name) return NextResponse.next();
+
+  // A guest can look at everything but change nothing: pages that exist to
+  // add or edit send them to sign up, and any write to the API is refused.
+  if (request.cookies.get(GUEST_COOKIE)?.value === '1') {
+    if (pathname.startsWith('/api/')) {
+      if (request.method === 'GET') return NextResponse.next();
+      return NextResponse.json({ error: 'Sign up to do that.' }, { status: 401 });
+    }
+    if (!GUEST_BLOCKED.some((p) => pathname === p || pathname.startsWith(`${p}/`))) return NextResponse.next();
+    const signup = request.nextUrl.clone();
+    signup.pathname = '/login';
+    signup.search = `?next=${encodeURIComponent(pathname)}&join=1`;
+    return NextResponse.redirect(signup);
+  }
 
   if (pathname.startsWith('/api/')) {
     return NextResponse.json({ error: 'Sign in first.' }, { status: 401 });

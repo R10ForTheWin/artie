@@ -10,6 +10,8 @@
  */
 
 export const SESSION_COOKIE = 'artie_session';
+/** Set by "Skip for now": look around without an account, but change nothing. */
+export const GUEST_COOKIE = 'artie_guest';
 /** Browsers cap cookie lifetimes anyway (Chrome at 400 days); refreshed on each visit. */
 export const SESSION_MAX_AGE = 400 * 24 * 60 * 60;
 

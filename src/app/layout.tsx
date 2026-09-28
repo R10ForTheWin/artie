@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import "./globals.css";
 import SwipeBack from "@/components/SwipeBack";
+import GuestBar from "@/components/GuestBar";
 
 const geist = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 
@@ -19,6 +20,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body className={`${geist.variable} antialiased min-h-screen bg-navy text-cream`}>
+        <GuestBar />
         <SwipeBack>{children}</SwipeBack>
       </body>
     </html>
