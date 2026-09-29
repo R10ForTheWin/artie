@@ -29,7 +29,7 @@ export default function ManualEntry() {
   const [distance, setDistance] = useState<number>(SCALE.paddle.start);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const [saved, setSaved] = useState<{ id: number; text: string } | null>(null);
+  const [saved, setSaved] = useState<{ id: number; what: string; detail: string } | null>(null);
 
   function pick(a: Activity) {
     setActivity(a);
@@ -49,8 +49,10 @@ export default function ManualEntry() {
       });
       const j = await res.json();
       if (!res.ok) { setError(j.error ?? 'Could not save that workout.'); return; }
-      const when = new Date(`${date}T12:00:00`).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-      setSaved({ id: j.id, text: `Added ${ACTIVITY_LABELS[activity].toLowerCase()} · ${when} · ${distance.toLocaleString()} ${unit}` });
+      const when = new Date(`${date}T12:00:00`).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+      // Close the form and say so plainly — an open form after saving looked like nothing happened
+      setSaved({ id: j.id, what: ACTIVITY_LABELS[activity], detail: `${when} · ${distance.toLocaleString()} ${unit}` });
+      setOpen(false);
       router.refresh();
     } catch {
       setError('Could not reach ARTIE.');
@@ -66,16 +68,30 @@ export default function ManualEntry() {
     return (
       <div className="space-y-2">
         {saved && (
-          <p className="text-green-800 font-bold text-sm">
-            ✓ {saved.text} · <Link href={`/dashboard/workout/${saved.id}`} className="underline">View</Link>
-          </p>
+          <div role="status" className="rounded-xl border-2 border-green-700/40 bg-green-700/5 px-4 py-4 space-y-3">
+            <div className="flex items-start gap-3">
+              <span aria-hidden="true" className="shrink-0 w-8 h-8 rounded-full bg-green-700 text-white grid place-items-center font-black">✓</span>
+              <div>
+                <p className="text-green-900 font-black text-sm uppercase tracking-wider">{saved.what} added</p>
+                <p className="text-navy opacity-70 text-sm tabular-nums">{saved.detail}</p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Link href={`/dashboard/workout/${saved.id}`} className="flex-1 text-center bg-navy text-white font-black uppercase tracking-wider text-[11px] py-2.5 rounded-lg hover:bg-terracotta transition-colors">
+                View workout
+              </Link>
+              <Link href="/dashboard" className="flex-1 text-center border-2 border-navy/20 text-navy font-black uppercase tracking-wider text-[11px] py-2 rounded-lg hover:border-navy/60 transition-colors">
+                Mileage Tracker
+              </Link>
+            </div>
+          </div>
         )}
         <button
           type="button"
           onClick={() => { setOpen(true); setSaved(null); }}
           className="w-full bg-sky/20 border-2 border-sky/50 text-navy font-black uppercase tracking-widest text-xs py-3 rounded-lg hover:bg-sky/30 transition-colors"
         >
-          + Manually enter a workout
+          {saved ? '+ Enter another' : '+ Manually enter a workout'}
         </button>
       </div>
     );
