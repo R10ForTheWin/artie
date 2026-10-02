@@ -56,7 +56,7 @@ export default function OceanTempCard({ buoy, buoyLabel = 'MB' }: OceanTempCardP
     <div className="border-2 border-navy/20 rounded-xl p-4 bg-white">
       <div className="flex items-center justify-between gap-2">
         <div>
-          <p className="text-navy font-bold text-sm whitespace-nowrap">Ocean Temp</p>
+          <p className="text-navy font-bold text-sm whitespace-nowrap">Water Temp</p>
           <p className="text-navy opacity-40 text-xs mt-0.5">{buoyLabel} · NOAA Buoy {buoy ?? '46222'}</p>
         </div>
 
