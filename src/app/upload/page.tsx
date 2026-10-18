@@ -1,4 +1,6 @@
 import Link from 'next/link';
+import { cookies } from 'next/headers';
+import { sessionName } from '@/lib/auth';
 import StripeBar from '@/components/StripeBar';
 import UniversalDrop from '@/components/UniversalDrop';
 import ManualEntry from '@/components/ManualEntry';
@@ -35,8 +37,10 @@ const OTHER_WAYS: { what: string; is: string; when: string; steps: string[]; not
   },
 ];
 
-export default function UploadPage() {
+export default async function UploadPage() {
   const reggie = reggieConfig();
+  // Known before render, so the page does not flash the name picker first.
+  const me = await sessionName({ cookies: await cookies() });
 
   return (
     <main className="min-h-screen bg-white flex flex-col">
@@ -51,7 +55,7 @@ export default function UploadPage() {
 
         <h1 className="text-navy font-black uppercase tracking-widest text-3xl mb-6">Add a Workout</h1>
 
-        <UniversalDrop />
+        <UniversalDrop me={me} />
 
         <div className="mt-6">
           <ManualEntry />

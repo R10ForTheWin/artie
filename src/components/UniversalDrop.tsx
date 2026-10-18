@@ -98,10 +98,10 @@ const clock = (s: number | null | undefined) => {
 
 const ORDER: (ScreenKind | 'link')[] = ['link', 'overview', 'stats', 'laps', 'charts', 'share'];
 
-export default function UniversalDrop() {
+export default function UniversalDrop({ me = null }: { me?: string | null }) {
   const router = useRouter();
-  const [name, setName] = useState('');
-  const [signedInAs, setSignedInAs] = useState<string | null>(null);
+  const [name, setName] = useState(me ?? '');
+  const [signedInAs, setSignedInAs] = useState<string | null>(me);
   const [roster, setRoster] = useState<string[]>([...TEAMMATES]);
   const [wearsStrap, setWearsStrap] = useState(false);
   const [activity, setActivity] = useState<Activity | 'auto'>('auto');
