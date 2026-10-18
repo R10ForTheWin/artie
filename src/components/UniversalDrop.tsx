@@ -110,8 +110,6 @@ export default function UniversalDrop({ me = null }: { me?: string | null }) {
   const [screens, setScreens] = useState<ScreenPiece[]>([]);
   const [files, setFiles] = useState<FileItem[]>([]);
   const [linkText, setLinkText] = useState('');
-  // Phones get just the Paste link button; the text box shows if that fails.
-  const [showLinkBox, setShowLinkBox] = useState(false);
   const [over, setOver] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -175,8 +173,7 @@ export default function UniversalDrop({ me = null }: { me?: string | null }) {
       }
       addLink(text);
     } catch {
-      setShowLinkBox(true);
-      setError('Could not read the clipboard. Paste the link into the box instead.');
+      setError('Could not read the clipboard. Copy the link in Garmin again, then tap Paste link and choose Paste.');
     }
   }
 
@@ -358,7 +355,7 @@ export default function UniversalDrop({ me = null }: { me?: string | null }) {
           type="text"
           inputMode="url"
           value={linkText}
-          placeholder={showLinkBox ? "Paste your Garmin link" : "or type it here"}
+          placeholder="or paste it here"
           onPaste={(e) => {
             const pasted = Array.from(e.clipboardData.files);
             if (pasted.length) { e.preventDefault(); addFiles(pasted); setLinkText(''); return; }
@@ -375,8 +372,8 @@ export default function UniversalDrop({ me = null }: { me?: string | null }) {
             setError('');
             if (GARMIN_URL.test(v)) { addLink(v); setLinkText(''); }
           }}
-          // 16px text on phones: iOS Safari zooms the page into any smaller input.
-          className={`${showLinkBox ? 'block' : 'hidden sm:block'} flex-1 min-w-0 bg-white border-2 border-navy/20 text-navy rounded-lg px-4 py-2.5 text-base sm:text-sm focus:outline-none focus:border-gold`}
+          // Computers only: on a phone, focusing it brings up the keyboard.
+          className="hidden sm:block flex-1 min-w-0 bg-white border-2 border-navy/20 text-navy rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-gold"
         />
         </div>
         <StepPath label="Garmin app:" steps={['Activity', 'Share', 'Web Link', 'Copy']} />
