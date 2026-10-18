@@ -28,11 +28,16 @@ const STRAVA_SPORT_LABELS: Record<string, string> = {
   Paddling: 'Paddle',
 };
 
+// Garmin and Strava have no prone activity, so the team logs as stand up.
+const STAND_UP = /stand ?up/i;
+
 function sourceLabel(file_name: string, file_type: string): { label: string; title: string } {
   if (file_name.startsWith('strava-')) {
     const sport = STRAVA_SPORT_LABELS[file_type] ?? 'Strava';
-    return { label: sport, title: `Strava · ${file_type}` };
+    return { label: sport, title: `Strava · ${STAND_UP.test(file_type) ? 'Prone' : file_type}` };
   }
+  if (STAND_UP.test(file_type)) return { label: 'Prone', title: 'Garmin · Prone' };
+  if (file_type === 'garmin-screens') return { label: 'Garmin', title: 'Uploaded from Garmin link or screenshots' };
   if (file_type === 'image') return { label: 'Photo', title: 'Uploaded from screenshot' };
   if (file_type === 'gpx') return { label: 'GPX', title: 'Uploaded as GPX file' };
   if (file_type === 'fit') return { label: 'FIT', title: 'Uploaded as FIT file' };

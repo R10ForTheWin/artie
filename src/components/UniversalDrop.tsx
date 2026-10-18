@@ -76,6 +76,11 @@ const findLink = (text: string) => {
   return g ? (g[0].startsWith('http') ? g[0] : `https://${g[0]}`) : null;
 };
 
+// Garmin's share sheet can put the "Check out my…" message and the link on the
+// clipboard as separate items, so plain text alone may not hold the link.
+const clipboardText = (d: DataTransfer) =>
+  [d.getData('text/uri-list'), d.getData('text/plain'), d.getData('URL')].filter(Boolean).join('\n');
+
 const isImage = (f: File) => /\.(heic|heif|jpe?g|png|webp)$/i.test(f.name) || f.type.startsWith('image/');
 function fileKind(f: File): FileKind | null {
   const n = f.name.toLowerCase();
@@ -286,7 +291,7 @@ export default function UniversalDrop() {
         const el = e.target as HTMLElement;
         if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') return;
         const pasted = Array.from(e.clipboardData.files);
-        const text = e.clipboardData.getData('text');
+        const text = clipboardText(e.clipboardData);
         if (pasted.length) { e.preventDefault(); addFiles(pasted); }
         else if (text.trim()) { e.preventDefault(); addLink(text); }
       }}
@@ -328,8 +333,9 @@ export default function UniversalDrop() {
             // Garmin's Share → Copy puts the link on a second line under "Check out
             // my … activity". A one-line input keeps only the first line, so the
             // link is lost unless it's read from the clipboard here.
-            const text = e.clipboardData.getData('text');
-            if (text.trim()) { e.preventDefault(); addLink(text); setLinkText(''); }
+            // If no link turns up, let the paste land normally rather than erroring.
+            const text = clipboardText(e.clipboardData);
+            if (findLink(text)) { e.preventDefault(); addLink(text); setLinkText(''); }
           }}
           onChange={(e) => {
             const v = e.target.value;

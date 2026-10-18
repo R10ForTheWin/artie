@@ -132,7 +132,7 @@ export async function saveScreens(workoutId: number, screens: { kind: ScreenKind
 /** "Redondo Beach Paddleboarding" → "Redondo Beach" */
 function locationFrom(title: string | null): string | null {
   if (!title) return null;
-  const place = title.replace(/\s*(stand up )?(paddleboarding|paddling|sup|open water swimming|swimming|pool swim|swim)\s*$/i, '').trim();
+  const place = title.replace(/\s*(stand up |prone )?(paddleboarding|paddling|sup|open water swimming|swimming|pool swim|swim)\s*$/i, '').trim();
   return place && place.toLowerCase() !== title.toLowerCase() ? place : null;
 }
 
