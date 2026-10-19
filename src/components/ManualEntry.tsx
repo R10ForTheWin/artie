@@ -61,7 +61,9 @@ export default function ManualEntry() {
     }
   }
 
-  const field = 'w-full bg-white border-2 border-navy/20 text-navy rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-gold';
+  // Fixed height and min-w-0 so iOS date inputs match the select and stay in their
+  // column; 16px text on phones stops Safari zooming in on focus.
+  const field = 'block w-full min-w-0 h-11 bg-white border-2 border-navy/20 text-navy rounded-lg px-3 text-base sm:text-sm focus:outline-none focus:border-gold';
   const label = 'block text-navy text-[11px] font-black uppercase tracking-wider opacity-50 mb-1';
 
   if (!open) {
@@ -124,11 +126,11 @@ export default function ManualEntry() {
       </div>
 
       <div className="grid grid-cols-2 gap-3">
-        <div>
+        <div className="min-w-0">
           <label htmlFor="m-date" className={label}>Date</label>
-          <input id="m-date" type="date" value={date} max={todayPacific()} onChange={(e) => setDate(e.target.value)} className={field} required />
+          <input id="m-date" type="date" value={date} max={todayPacific()} onChange={(e) => setDate(e.target.value)} className={`${field} appearance-none text-left`} required />
         </div>
-        <div>
+        <div className="min-w-0">
           <label htmlFor="m-dist" className={label}>Distance</label>
           <select
             id="m-dist"
