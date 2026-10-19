@@ -317,13 +317,7 @@ export default function UniversalDrop({ me = null }: { me?: string | null }) {
         else if (text.trim()) { e.preventDefault(); addLink(text); }
       }}
     >
-      {signedInAs ? (
-        <p className="text-navy opacity-50 text-sm">
-          Logging for <strong className="opacity-100 text-navy">{signedInAs}</strong>
-          <span className="mx-1.5">·</span>
-          <Link href="/account" className="underline hover:opacity-100">Account</Link>
-        </p>
-      ) : (
+      {!signedInAs && (
         <select
           value={name}
           onChange={(e) => setName(e.target.value)}
