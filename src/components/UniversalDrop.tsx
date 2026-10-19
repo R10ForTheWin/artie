@@ -344,8 +344,9 @@ export default function UniversalDrop({ me = null }: { me?: string | null }) {
           className="w-full rounded-xl border-2 border-navy bg-navy/[0.03] hover:bg-gold/10 hover:border-gold px-5 py-5 text-center transition-colors"
         >
           <span className="block text-navy font-black uppercase tracking-widest text-sm">Tap to paste your Garmin link</span>
-          <span className="flex justify-center mt-2">
-            <StepPath label="First copy it in Garmin:" steps={['Activity', 'Share', 'Web Link', 'Copy']} />
+          <span className="block text-navy opacity-60 text-[11px] font-semibold mt-2 mb-1">First copy it in Garmin:</span>
+          <span className="flex justify-center">
+            <StepPath steps={['Activity', 'Share', 'Web Link', 'Copy']} />
           </span>
         </button>
         <input
