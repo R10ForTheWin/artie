@@ -336,14 +336,17 @@ export default function UniversalDrop({ me = null }: { me?: string | null }) {
       )}
 
       {!link && (
-        <div className="space-y-1.5">
-        <div className="flex gap-2">
+        <div className="space-y-2">
+        {/* The steps sit inside the button so it reads as "copy in Garmin, then tap here". */}
         <button
           type="button"
           onClick={pasteLink}
-          className="flex-1 sm:flex-none bg-navy text-white font-black uppercase tracking-wider text-xs px-4 py-3 rounded-lg hover:bg-terracotta transition-colors whitespace-nowrap"
+          className="w-full rounded-xl border-2 border-navy bg-navy/[0.03] hover:bg-gold/10 hover:border-gold px-5 py-5 text-center transition-colors"
         >
-          Paste link
+          <span className="block text-navy font-black uppercase tracking-widest text-sm">Tap to paste your Garmin link</span>
+          <span className="flex justify-center mt-2">
+            <StepPath label="First copy it in Garmin:" steps={['Activity', 'Share', 'Web Link', 'Copy']} />
+          </span>
         </button>
         <input
           type="text"
@@ -367,10 +370,8 @@ export default function UniversalDrop({ me = null }: { me?: string | null }) {
             if (GARMIN_URL.test(v)) { addLink(v); setLinkText(''); }
           }}
           // Computers only: on a phone, focusing it brings up the keyboard.
-          className="hidden sm:block flex-1 min-w-0 bg-white border-2 border-navy/20 text-navy rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-gold"
+          className="hidden sm:block w-full bg-white border-2 border-navy/20 text-navy rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-gold"
         />
-        </div>
-        <StepPath label="Garmin app:" steps={['Activity', 'Share', 'Web Link', 'Copy']} />
         </div>
       )}
 
