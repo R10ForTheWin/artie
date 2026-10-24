@@ -58,7 +58,7 @@ export default function BreakCarousel() {
               type="button"
               onClick={() => goTo(i)}
               aria-current={i === active}
-              className={`flex-1 px-2 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-wider transition-colors ${
+              className={`flex-1 px-1 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-wide whitespace-nowrap transition-colors ${
                 i === active ? 'bg-navy text-white' : 'bg-navy/10 text-navy hover:bg-navy/20'
               }`}
             >

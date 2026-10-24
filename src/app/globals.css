@@ -8,6 +8,12 @@
   --color-cream-light: #F5EDD6;
   --color-sky:         #5B8DB8;
   --font-sans: var(--font-geist-sans);
+  --animate-fade-in: fade-in 600ms ease-out;
+
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
 }
 
 body {

@@ -28,7 +28,7 @@ export interface Break {
 export const BREAKS: Break[] = [
   {
     id: 'topaz',
-    name: 'Topaz',
+    name: 'Topaz Cam',
     // Windy cam "Redondo Beach › West: Topaz Jetty"
     webcam: 'https://webcams.windy.com/webcams/stream/1481996596',
     lat: 33.8385,
@@ -39,7 +39,7 @@ export const BREAKS: Break[] = [
   },
   {
     id: 'manhattan-pier',
-    name: 'MB Pier',
+    name: 'MB Pier Cam',
     webcam: 'https://www.youtube.com/embed/tBEIYdw1HeM?autoplay=1&mute=1&playsinline=1&rel=0',
     lat: 33.8847,
     lon: -118.4109,
@@ -49,7 +49,7 @@ export const BREAKS: Break[] = [
   },
   {
     id: 'hermosa-pier-south',
-    name: 'Hermosa',
+    name: 'Hermosa Cam',
     // Windy cam "Hermosa Beach", on a rooftop just south of the pier looking
     // toward PV. It only posts still photos (Windy's players show "not
     // available" or a day-long timelapse), so show the newest one. The live

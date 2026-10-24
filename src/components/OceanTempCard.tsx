@@ -23,6 +23,39 @@ function formatLabel(dateStr: string) {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
+/** How the water feels to a paddler, by surface temperature in °F */
+function tempFeel(f: number): { emoji: string; label: string } {
+  if (f > 70) return { emoji: '☀️', label: 'Warm' };
+  if (f >= 65) return { emoji: '😎', label: 'Cool' };
+  if (f >= 60) return { emoji: '🥶', label: 'Cold' };
+  return { emoji: '🧊', label: 'Freezing' };
+}
+
+// Badge colour slides from deep blue (freezing) through the theme's sky and
+// gold to orange (warm), so the number reads at a glance before the emoji does.
+const TEMP_STOPS: [number, [number, number, number]][] = [
+  [56, [0x1f, 0x4e, 0x8c]],
+  [62, [0x5b, 0x8d, 0xb8]],
+  [67, [0xc9, 0x92, 0x2a]],
+  [72, [0xe0, 0x6a, 0x1f]],
+];
+
+function tempColor(f: number): string {
+  const [first] = TEMP_STOPS;
+  const last = TEMP_STOPS[TEMP_STOPS.length - 1];
+  let rgb = f <= first[0] ? first[1] : last[1];
+  for (let i = 1; i < TEMP_STOPS.length; i++) {
+    const [t0, c0] = TEMP_STOPS[i - 1];
+    const [t1, c1] = TEMP_STOPS[i];
+    if (f > t0 && f <= t1) {
+      const k = (f - t0) / (t1 - t0);
+      rgb = [0, 1, 2].map((j) => Math.round(c0[j] + (c1[j] - c0[j]) * k)) as [number, number, number];
+      break;
+    }
+  }
+  return `rgb(${rgb.join(', ')})`;
+}
+
 const RANGES = [7, 30, 90, 180, 365] as const;
 type Range = typeof RANGES[number];
 const RANGE_LABELS: Record<Range, string> = { 7: '7D', 30: '1M', 90: '3M', 180: '6M', 365: '1Y' };
@@ -65,8 +98,11 @@ export default function OceanTempCard({ buoy, buoyLabel = 'MB' }: OceanTempCardP
         ) : data?.current_f ? (
           <button
             onClick={() => setExpanded((e) => !e)}
-            className="flex items-center gap-2 bg-sky text-white font-black text-2xl px-4 py-2 rounded-xl hover:opacity-80 transition-opacity"
+            className="flex items-center gap-2 text-white font-black text-2xl px-4 py-2 rounded-xl hover:opacity-80 transition-opacity"
+            style={{ backgroundColor: tempColor(data.current_f) }}
+            title={tempFeel(data.current_f).label}
           >
+            <span aria-label={tempFeel(data.current_f).label} role="img">{tempFeel(data.current_f).emoji}</span>
             {data.current_f}°F
             {expanded ? (
               <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 opacity-80" viewBox="0 0 20 20" fill="currentColor">

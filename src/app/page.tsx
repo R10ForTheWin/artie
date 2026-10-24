@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import StripeBar from '@/components/StripeBar';
 import BreakCarousel from '@/components/BreakCarousel';
+import PhotoSlideshow from '@/components/PhotoSlideshow';
 
 export default function HomePage() {
   return (
@@ -31,6 +32,17 @@ export default function HomePage() {
           >
             Records
           </Link>
+        </div>
+
+        <div className="w-full max-w-xs mt-2">
+          <BreakCarousel />
+        </div>
+
+        <div className="w-full max-w-xs mt-4">
+          <PhotoSlideshow />
+        </div>
+
+        <div className="flex flex-col gap-2 w-full max-w-xs mt-2">
           <Link
             href="/photos"
             className="bg-terracotta text-white font-bold uppercase tracking-widest text-center py-2 px-6 rounded-lg text-xs hover:opacity-80 transition-opacity"
@@ -43,10 +55,6 @@ export default function HomePage() {
           >
             Paddle News
           </Link>
-        </div>
-
-        <div className="w-full max-w-xs mt-2">
-          <BreakCarousel />
         </div>
       </div>
 

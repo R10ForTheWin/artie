@@ -1,6 +1,10 @@
 'use client';
 import { useEffect, useState } from 'react';
 
+// YouTube needs autoplay and encrypted-media granted to start a muted live
+// stream inline, and refuses to play (error 153) without a referrer.
+const ALLOW = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
+
 export default function WebcamEmbed({ src }: { src: string }) {
   const [fullscreen, setFullscreen] = useState(false);
   const [dismissed, setDismissed] = useState(false);
@@ -27,7 +31,7 @@ export default function WebcamEmbed({ src }: { src: string }) {
     <>
       {fullscreen && !dismissed && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 50, background: '#000' }}>
-          <iframe src={src} style={{ width: '100%', height: '100%' }} frameBorder={0} allowFullScreen />
+          <iframe src={src} style={{ width: '100%', height: '100%' }} frameBorder={0} allow={ALLOW} referrerPolicy="strict-origin-when-cross-origin" allowFullScreen />
           <button
             type="button"
             onClick={() => setDismissed(true)}
@@ -44,7 +48,7 @@ export default function WebcamEmbed({ src }: { src: string }) {
         </div>
       )}
       <div className="rounded-xl overflow-hidden border-2 border-navy border-opacity-10">
-        <iframe src={src} className="w-full" style={{ height: 180 }} frameBorder={0} allowFullScreen />
+        <iframe src={src} className="w-full" style={{ height: 180 }} frameBorder={0} allow={ALLOW} referrerPolicy="strict-origin-when-cross-origin" allowFullScreen />
       </div>
     </>
   );

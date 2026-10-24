@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import Link from 'next/link';
 import StripeBar from '@/components/StripeBar';
+import { ALBUM_URL } from '@/lib/album';
 
 export const dynamic = 'force-dynamic';
 
@@ -38,7 +39,7 @@ export default function PhotosPage() {
           <p className="text-navy font-bold mb-1">Shared iCloud Album</p>
           <p className="text-navy opacity-50 text-sm mb-5">View and add photos from races, training, and team events. Add yours from the Photos app on your iPhone.</p>
           <a
-            href="https://www.icloud.com/sharedalbum/#B275VaUrzGG4pHH"
+            href={ALBUM_URL}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-block bg-terracotta text-white font-black uppercase tracking-wider text-sm px-5 py-3 rounded-lg hover:opacity-80 transition-opacity"
