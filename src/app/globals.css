@@ -8,11 +8,17 @@
   --color-cream-light: #F5EDD6;
   --color-sky:         #5B8DB8;
   --font-sans: var(--font-geist-sans);
-  --animate-fade-in: fade-in 600ms ease-out;
+  /* Slideshow photo: fade in, then a slow push in for as long as it is on screen */
+  --animate-slide-in: fade-in 1200ms ease-out, push-in 10s linear forwards;
 
   @keyframes fade-in {
     from { opacity: 0; }
     to   { opacity: 1; }
+  }
+
+  @keyframes push-in {
+    from { transform: scale(1); }
+    to   { transform: scale(1.12); }
   }
 }
 

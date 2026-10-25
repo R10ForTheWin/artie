@@ -3,7 +3,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { AlbumPhoto } from '@/lib/album';
 
-const ADVANCE_MS = 5000;
+// Keep in step with the push-in in globals.css, which runs a little longer
+// so the photo is still moving when the next one fades in over it
+const ADVANCE_MS = 9000;
 // Image URLs from iCloud expire after ~20 minutes; the API caches for 5,
 // so refreshing this often keeps every URL comfortably inside its window.
 const REFRESH_MS = 5 * 60 * 1000;
@@ -97,7 +99,7 @@ export default function PhotoSlideshow() {
             key={current.id}
             src={current.src}
             alt={current.by ? `Team Topaz photo by ${current.by}` : 'Team Topaz photo'}
-            className="absolute inset-0 w-full h-full object-cover animate-fade-in"
+            className="absolute inset-0 w-full h-full object-cover origin-center animate-slide-in motion-reduce:animate-none"
             onError={() => step(1)}
             draggable={false}
           />
