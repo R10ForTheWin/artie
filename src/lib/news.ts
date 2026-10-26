@@ -25,6 +25,11 @@ export const ARTICLES: Article[] = [
     byline: 'Lauren Pozen',
     summary:
       "Renowned marine biologist Chris Lowe said the unusually warm winter has pushed young white sharks to Southern California's coastline.",
+    image: {
+      src: '/news/cbsla-white-sharks-2026.jpg',
+      caption: 'A young white shark seen from above off the Southern California coast.',
+      credit: 'CBS News',
+    },
   },
   {
     url: 'https://www.latimes.com/california/story/2023-09-02/catalina-manhattan-beach-classic-paddleboard-race-surfing-32-miles-torture',
