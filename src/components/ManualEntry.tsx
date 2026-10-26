@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ACTIVITIES, ACTIVITY_LABELS, type Activity } from '@/lib/activity';
+import { ADD_CARD, ADD_CARD_IDLE, ADD_CARD_PAD, ADD_CARD_SUB, ADD_CARD_TITLE } from './addCard';
 
 // Only distance matters here. Paddles in miles (0.5 steps, start at 10),
 // swims in yards (100 steps, start at 3,000). A select shows as a scroll wheel
@@ -91,16 +92,17 @@ export default function ManualEntry() {
         <button
           type="button"
           onClick={() => { setOpen(true); setSaved(null); }}
-          className="w-full bg-sky/20 border-2 border-sky/50 text-navy font-black uppercase tracking-widest text-xs py-3 rounded-lg hover:bg-sky/30 transition-colors"
+          className={`${ADD_CARD} ${ADD_CARD_IDLE} ${ADD_CARD_PAD}`}
         >
-          {saved ? '+ Enter another' : '+ Manually enter a workout'}
+          <span className={ADD_CARD_TITLE}>{saved ? 'Enter another' : 'Manually enter a workout'}</span>
+          <span className={ADD_CARD_SUB}>No watch data · just the date and distance</span>
         </button>
       </div>
     );
   }
 
   return (
-    <form onSubmit={save} className="bg-sky/15 border-2 border-sky/50 rounded-xl p-4 space-y-4">
+    <form onSubmit={save} className="bg-white border-2 border-gold rounded-xl p-4 space-y-4">
       <div className="flex items-center justify-between">
         <p className="text-navy font-black uppercase tracking-widest text-sm">Manually enter a workout</p>
         <button type="button" onClick={() => setOpen(false)} className="text-navy opacity-40 hover:opacity-80 text-xs font-bold uppercase tracking-wider">

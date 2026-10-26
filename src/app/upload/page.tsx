@@ -53,19 +53,17 @@ export default async function UploadPage() {
           </Link>
         </div>
 
-        <h1 className="text-navy font-black uppercase tracking-widest text-3xl mb-6">Add a Workout</h1>
+        <h1 className="text-navy font-black uppercase tracking-widest text-xl mb-5">Add a Workout</h1>
 
         <UniversalDrop me={me} />
 
-        <div className="mt-6">
-          <ManualEntry />
+        <div className="flex items-center gap-3 my-5" aria-hidden="true">
+          <div className="flex-1 h-px bg-navy/15" />
+          <span className="text-navy opacity-40 text-xs font-black uppercase tracking-widest">or</span>
+          <div className="flex-1 h-px bg-navy/15" />
         </div>
 
-        {reggie && (
-          <div className="mt-6">
-            <ReggieImport athlete={reggie.athlete} />
-          </div>
-        )}
+        <ManualEntry />
 
         <details className="mt-10 group border-t border-navy/10 pt-4">
           <summary className="flex items-center gap-2 cursor-pointer list-none [&::-webkit-details-marker]:hidden text-navy opacity-60 hover:opacity-100 text-xs font-black uppercase tracking-wider">
@@ -95,6 +93,12 @@ export default async function UploadPage() {
           <p className="text-navy opacity-40 text-xs mt-5 leading-relaxed">
             The Garmin app can&apos;t export files, so these all come from the Garmin Connect website.
           </p>
+
+          {reggie && (
+            <div className="mt-6">
+              <ReggieImport athlete={reggie.athlete} />
+            </div>
+          )}
         </details>
       </div>
 

@@ -97,7 +97,7 @@ export default async function DashboardPage() {
           </Link>
           <div className="flex-1" />
           <Link href="/upload" className="bg-navy text-white font-black uppercase tracking-wider text-xs px-3 sm:px-4 py-2.5 rounded-lg hover:bg-terracotta transition-colors whitespace-nowrap">
-            + <span className="hidden sm:inline">Add a </span>Workout
+            Add Workout
           </Link>
           <Link href="/strava" className="bg-terracotta text-white font-black uppercase tracking-wider text-xs px-3 sm:px-4 py-2.5 rounded-lg hover:bg-gold transition-colors whitespace-nowrap">
             <span className="hidden sm:inline">Sync </span>Strava

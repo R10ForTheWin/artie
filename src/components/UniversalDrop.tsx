@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import StepPath from './StepPath';
+import { ADD_CARD, ADD_CARD_ACTIVE, ADD_CARD_IDLE, ADD_CARD_PAD, ADD_CARD_SUB, ADD_CARD_TITLE } from './addCard';
 import { TEAMMATES } from '@/lib/teammates';
 import { ACTIVITIES, ACTIVITY_LABELS, classifyActivity, type Activity } from '@/lib/activity';
 
@@ -341,10 +342,10 @@ export default function UniversalDrop({ me = null }: { me?: string | null }) {
         <button
           type="button"
           onClick={pasteLink}
-          className="w-full rounded-xl border-2 border-navy bg-navy/[0.03] hover:bg-gold/10 hover:border-gold px-5 py-5 text-center transition-colors"
+          className={`${ADD_CARD} ${ADD_CARD_IDLE} ${ADD_CARD_PAD}`}
         >
-          <span className="block text-navy font-black uppercase tracking-widest text-sm">Tap to paste your Garmin link</span>
-          <span className="block text-navy opacity-60 text-[11px] font-semibold mt-2 mb-1">First copy it in Garmin:</span>
+          <span className={ADD_CARD_TITLE}>1 · Paste your Garmin link</span>
+          <span className={`${ADD_CARD_SUB} mb-1`}>First copy it in Garmin:</span>
           <span className="flex justify-center">
             <StepPath steps={['Activity', 'Share', 'Web Link', 'Copy']} />
           </span>
@@ -376,10 +377,6 @@ export default function UniversalDrop({ me = null }: { me?: string | null }) {
         </div>
       )}
 
-      {!link && !hasBundle && (
-        <p className="text-center text-navy font-black text-3xl leading-none -my-1" aria-hidden="true">+</p>
-      )}
-
       <div
         onDragOver={(e) => { e.preventDefault(); setOver(true); }}
         onDragLeave={() => setOver(false)}
@@ -393,13 +390,10 @@ export default function UniversalDrop({ me = null }: { me?: string | null }) {
         role="button"
         tabIndex={0}
         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); inputRef.current?.click(); } }}
-        className={`rounded-xl border-2 border-dashed text-center cursor-pointer transition-colors ${hasBundle ? 'px-4 py-3' : 'px-5 py-7'} ${
-          over ? 'border-gold bg-gold/10' : 'border-navy/30 hover:border-navy/60 bg-navy/[0.02]'
-        }`}
+        className={`${ADD_CARD} cursor-pointer ${hasBundle ? 'px-4 py-3' : ADD_CARD_PAD} ${over ? ADD_CARD_ACTIVE : ADD_CARD_IDLE}`}
       >
-        {!hasBundle && <p className="text-navy opacity-50 text-xs font-bold mb-0.5">(optional)</p>}
-        <p className="text-navy font-black uppercase tracking-widest text-sm">{hasBundle ? '+ Add more screenshots' : 'Upload screenshots'}</p>
-        {!hasBundle && <p className="text-navy opacity-50 text-sm mt-1">or .GPX, .FIT or .CSV files</p>}
+        <span className={ADD_CARD_TITLE}>{hasBundle ? '+ Add more screenshots' : `${link ? '' : '2 · '}Add screenshots`}</span>
+        {!hasBundle && <span className={ADD_CARD_SUB}>Optional · or .GPX, .FIT or .CSV files</span>}
         <input
           ref={inputRef}
           type="file"
@@ -412,15 +406,12 @@ export default function UniversalDrop({ me = null }: { me?: string | null }) {
 
 
       {!hasBundle && files.length === 0 && (
-        <div className="space-y-1">
-          <p className="text-navy font-bold text-sm">Combine your Garmin link + screenshots for more data.</p>
-          <p className="text-navy opacity-60 text-sm leading-relaxed">
-            Paste the activity&apos;s web link above, then screenshot its Overview, Stats, Laps and Charts tabs in the
-            Garmin app and choose them all at once.
+        <div className="space-y-1.5">
+          <p className="text-navy opacity-60 text-xs leading-relaxed">
+            Screenshot Overview, Stats, Laps and Charts in the Garmin app and choose them all at once.
           </p>
-          <p className="text-navy text-xs leading-relaxed border-l-2 border-gold pl-2 mt-2">
-            <b>For Records:</b> mile splits come only from the <b>Laps</b> screenshot. The web link alone
-            doesn&apos;t include them.
+          <p className="text-navy text-xs leading-relaxed border-l-2 border-gold pl-2">
+            <b>For Records:</b> mile splits come only from the <b>Laps</b> screenshot.
           </p>
         </div>
       )}

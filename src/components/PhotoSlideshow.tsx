@@ -127,11 +127,6 @@ export default function PhotoSlideshow() {
           </>
         )}
       </div>
-      {current?.by && (
-        <p className="text-navy/40 text-[10px] font-bold uppercase tracking-wider text-right mt-1">
-          {current.by}
-        </p>
-      )}
     </div>
   );
 }
