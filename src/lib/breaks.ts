@@ -52,11 +52,13 @@ export const BREAKS: Break[] = [
     name: 'Hermosa Cam',
     // Windy cam "Hermosa Beach", on a rooftop just south of the pier looking
     // toward PV. It only posts still photos (Windy's players show "not
-    // available" or a day-long timelapse), so show the newest one. The live
-    // video is HDOnTap's, which blocks embedding, so it opens in a new tab.
+    // available" or a day-long timelapse), so show the newest one. No live
+    // Hermosa video can be embedded (HDOnTap only allows its own and Swell
+    // Magnet's sites), so link to Swell Magnet's Hennessey's cam, north of the
+    // pier: it plays straight away, where HDOnTap's page asks for approval.
     snapshot: {
       src: 'https://imgproxy.windy.com/_/full/plain/current/1536866179/original.jpg',
-      liveUrl: 'https://hdontap.com/stream/732858/hermosa-beach-pier-south-live-webcam/',
+      liveUrl: 'https://swellmagnet.com/surf-cams/the-hennessys-hermosa-beach-surf-cam/',
     },
     lat: 33.8612,
     lon: -118.4000,
