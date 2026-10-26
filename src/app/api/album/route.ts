@@ -6,6 +6,7 @@ export const dynamic = 'force-dynamic';
 // iCloud's endpoints are POSTs, which Next's fetch cache skips, so cache here.
 // Short, because the signed image URLs expire after ~20 minutes.
 const TTL_MS = 5 * 60 * 1000;
+const STALE_MS = 12 * 60 * 1000;
 let cached: { at: number; photos: AlbumPhoto[] } | null = null;
 
 export async function GET() {
@@ -18,6 +19,8 @@ export async function GET() {
     return NextResponse.json({ photos });
   } catch (err) {
     console.error('[album]', err);
+    // Older photos beat none, while their signed URLs still have life in them
+    if (cached && Date.now() - cached.at < STALE_MS) return NextResponse.json({ photos: cached.photos });
     return NextResponse.json({ photos: [], error: 'Album unavailable' }, { status: 502 });
   }
 }

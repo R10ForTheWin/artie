@@ -9,6 +9,7 @@ const ADVANCE_MS = 9000;
 // Image URLs from iCloud expire after ~20 minutes; the API caches for 5,
 // so refreshing this often keeps every URL comfortably inside its window.
 const REFRESH_MS = 5 * 60 * 1000;
+const RETRY_MS = 15 * 1000;
 const SWIPE_PX = 40;
 
 function shuffle<T>(items: T[]): T[] {
@@ -34,11 +35,16 @@ export default function PhotoSlideshow() {
   // Load the album, then refresh the signed URLs while keeping the shuffle order
   useEffect(() => {
     let cancelled = false;
+    let timer: ReturnType<typeof setTimeout>;
     const load = async () => {
+      // A failed first load would otherwise hide the slideshow for a full
+      // refresh interval, so try again soon until something comes back.
+      let next = RETRY_MS;
       try {
         const res = await fetch('/api/album');
         const { photos }: { photos: AlbumPhoto[] } = await res.json();
         if (cancelled || photos.length === 0) return;
+        next = REFRESH_MS;
         setById(Object.fromEntries(photos.map((p) => [p.id, p])));
         setOrder((prev) => {
           const ids = new Set(photos.map((p) => p.id));
@@ -47,12 +53,13 @@ export default function PhotoSlideshow() {
           return [...kept, ...added];
         });
       } catch {
-        // Leave whatever is showing; the next refresh may succeed
+        // Leave whatever is showing; the next try may succeed
+      } finally {
+        if (!cancelled) timer = setTimeout(load, next);
       }
     };
     load();
-    const timer = setInterval(load, REFRESH_MS);
-    return () => { cancelled = true; clearInterval(timer); };
+    return () => { cancelled = true; clearTimeout(timer); };
   }, []);
 
   const count = order.length;
