@@ -17,7 +17,7 @@ export default function BreakCarousel() {
   const trackRef = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(0);
 
-  // Work out which panel is centred, so the tabs and dots stay in sync with a swipe
+  // Work out which panel is centred, so the tabs stay in sync with a swipe
   useEffect(() => {
     const track = trackRef.current;
     if (!track) return;
@@ -87,22 +87,6 @@ export default function BreakCarousel() {
           </div>
         ))}
       </div>
-
-      {multiple && (
-        <div className="flex justify-center gap-1.5 mt-2">
-          {BREAKS.map((b, i) => (
-            <button
-              key={b.id}
-              type="button"
-              onClick={() => goTo(i)}
-              aria-label={`Show ${b.name}`}
-              className={`h-1.5 rounded-full transition-all ${
-                i === active ? 'w-5 bg-navy' : 'w-1.5 bg-navy/25 hover:bg-navy/50'
-              }`}
-            />
-          ))}
-        </div>
-      )}
     </div>
   );
 }

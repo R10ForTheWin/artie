@@ -18,6 +18,15 @@ export interface Article {
 
 export const ARTICLES: Article[] = [
   {
+    url: 'https://www.cbsnews.com/losangeles/news/white-sharks-southern-california-marine-biologist/',
+    source: 'CBS News Los Angeles',
+    date: '2026-03-27',
+    headline: 'White sharks clinging to Southern California coast after warm winter, marine biologist says',
+    byline: 'Lauren Pozen',
+    summary:
+      "Renowned marine biologist Chris Lowe said the unusually warm winter has pushed young white sharks to Southern California's coastline.",
+  },
+  {
     url: 'https://www.latimes.com/california/story/2023-09-02/catalina-manhattan-beach-classic-paddleboard-race-surfing-32-miles-torture',
     source: 'Los Angeles Times',
     date: '2023-09-02',
