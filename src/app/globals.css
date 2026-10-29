@@ -18,7 +18,7 @@
 
   @keyframes push-in {
     from { transform: scale(1); }
-    to   { transform: scale(1.12); }
+    to   { transform: scale(1.2); }
   }
 }
 
