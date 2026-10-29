@@ -51,7 +51,8 @@ export default function BreakCarousel() {
   return (
     <div className="w-full">
       {multiple && (
-        <div className="flex gap-1.5 mb-2">
+        // Four "… Cam" names don't fit one row on a phone, so wrap to two rows of two
+        <div className={`${BREAKS.length > 3 ? 'grid grid-cols-2' : 'flex'} gap-1.5 mb-2`}>
           {BREAKS.map((b, i) => (
             <button
               key={b.id}

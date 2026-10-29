@@ -66,6 +66,17 @@ export const BREAKS: Break[] = [
     buoyLabel: 'SM Bay',
     spotLabel: 'Hermosa Pier South',
   },
+  {
+    id: 'redondo-harbor',
+    name: 'Harbor Cam',
+    // City of Redondo Beach's own YouTube live cam over King Harbor
+    webcam: 'https://www.youtube.com/embed/Ni7v-aIa3bw?autoplay=1&mute=1&playsinline=1&rel=0',
+    lat: 33.8470,
+    lon: -118.3990,
+    buoy: '46222',
+    buoyLabel: 'SM Bay',
+    spotLabel: 'King Harbor',
+  },
 ];
 
 export const defaultBreak = BREAKS[0];
