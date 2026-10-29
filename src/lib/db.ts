@@ -129,6 +129,8 @@ export async function initSchema() {
     ALTER TABLE workouts ADD COLUMN IF NOT EXISTS training_effect_aerobic REAL;
     ALTER TABLE workouts ADD COLUMN IF NOT EXISTS training_effect_anaerobic REAL;
     ALTER TABLE workouts ADD COLUMN IF NOT EXISTS weather_temp_f REAL;
+    -- Logged and listed, but left out of the season mileage chart
+    ALTER TABLE workouts ADD COLUMN IF NOT EXISTS hide_from_chart BOOLEAN NOT NULL DEFAULT false;
 
     -- The screenshots themselves, shrunk, so the map and pace graph can be shown
     CREATE TABLE IF NOT EXISTS workout_screens (

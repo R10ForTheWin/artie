@@ -24,6 +24,7 @@ interface Workout {
   file_type: string;
   is_race: boolean | null;
   activity: Activity;
+  hide_from_chart: boolean;
 }
 
 export default async function DashboardPage() {
@@ -53,7 +54,7 @@ export default async function DashboardPage() {
     const lastDateMap = Object.fromEntries(roster.map((t) => [t, '']));
 
     for (const w of workouts) {
-      if (!(w.name in mileageMap) || !w.distance_m) continue;
+      if (!(w.name in mileageMap) || !w.distance_m || w.hide_from_chart) continue;
       if (w.workout_date < season.start || w.workout_date > season.end) continue;
       const bucket =
         w.activity === 'ocean_swim' ? oceanSwimMap : w.activity === 'pool_swim' ? poolSwimMap : mileageMap;
