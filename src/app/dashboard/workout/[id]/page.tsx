@@ -117,7 +117,8 @@ export default async function WorkoutDetailPage({ params, searchParams }: { para
       <StripeBar />
 
       <div className="flex-1 px-6 pt-10 pb-10 max-w-2xl mx-auto w-full">
-        <div className="flex items-center justify-between">
+        {/* Wraps so the open edit panel drops to its own full-width row */}
+        <div className="flex flex-wrap items-center justify-between">
           <Link href="/dashboard" className="text-navy opacity-50 hover:opacity-100 text-sm font-bold uppercase tracking-wider">
             ← Back
           </Link>
