@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { pool, initSchema } from '@/lib/db';
-import { formatDate, formatDistance, formatDuration, formatSpeed, formatPace } from '@/lib/formatters';
+import { formatDate, formatActivityDistance, formatDuration, formatSpeed, formatPace } from '@/lib/formatters';
 import StripeBar from '@/components/StripeBar';
 import WorkoutEditForm from '@/components/WorkoutEditForm';
 import RouteMap from '@/components/RouteMap';
@@ -87,7 +87,7 @@ export default async function WorkoutDetailPage({ params, searchParams }: { para
   }
 
   const stats = [
-    { label: 'Distance', value: formatDistance(w.distance_m) },
+    { label: 'Distance', value: formatActivityDistance(w.distance_m, w.activity) },
     { label: 'Duration', value: formatDuration(w.duration_s) },
     { label: 'Avg Speed', value: formatSpeed(w.avg_speed_ms) },
     { label: 'Pace', value: formatPace(w.avg_speed_ms ? 1609.344 / w.avg_speed_ms : null) },
@@ -136,7 +136,7 @@ export default async function WorkoutDetailPage({ params, searchParams }: { para
           <div className="mt-6">
             {w.map_image_url
               ? <div className="rounded-xl overflow-hidden border-2 border-navy border-opacity-20"><img src={w.map_image_url} alt="Route map" className="w-full object-cover" /></div>
-              : <RouteMap svg={w.map_svg!} date={formatDate(w.workout_date)} location={w.location} distance={formatDistance(w.distance_m)} highlightMile={highlightMile} mileSplits={w.mile_splits} />
+              : <RouteMap svg={w.map_svg!} date={formatDate(w.workout_date)} location={w.location} distance={formatActivityDistance(w.distance_m, w.activity)} highlightMile={highlightMile} mileSplits={w.mile_splits} />
             }
           </div>
         )}

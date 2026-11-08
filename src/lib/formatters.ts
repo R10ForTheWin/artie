@@ -15,6 +15,18 @@ export function formatDistanceShort(meters: number | null): string {
   return (meters * 0.000621371).toFixed(2);
 }
 
+/** Swims read in yards, the unit swimmers count in. */
+export function formatYards(meters: number | null): string {
+  if (!meters) return '—';
+  return `${Math.round(meters / 0.9144).toLocaleString('en-US')} yd`;
+}
+
+/** Miles for a paddle, yards for a swim. `short` drops the "mi" for the table. */
+export function formatActivityDistance(meters: number | null, activity: string | null | undefined, short = false): string {
+  if (activity && activity !== 'paddle') return formatYards(meters);
+  return short ? formatDistanceShort(meters) : formatDistance(meters);
+}
+
 export function formatDistanceMiles(meters: number | null): number {
   if (!meters) return 0;
   return parseFloat((meters * 0.000621371).toFixed(2));

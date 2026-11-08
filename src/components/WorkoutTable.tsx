@@ -2,7 +2,7 @@
 
 import { Fragment, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { formatDate, formatDistanceShort, formatPace } from '@/lib/formatters';
+import { formatDate, formatActivityDistance, formatPace } from '@/lib/formatters';
 import { ACTIVITY_COLORS, ACTIVITY_LABELS, type Activity } from '@/lib/activity';
 
 interface Workout {
@@ -166,7 +166,7 @@ export default function WorkoutTable({ workouts, raceDates = new Set(), showHint
                           <span className="sm:hidden">{formatDate(w.workout_date).replace(/,\s*\d{4}$/, '')}</span>
                           <span className="hidden sm:inline">{formatDate(w.workout_date)}</span>
                         </td>
-                        <td className={`${td} text-gold font-bold whitespace-nowrap`}>{formatDistanceShort(w.distance_m)}</td>
+                        <td className={`${td} text-gold font-bold whitespace-nowrap`}>{formatActivityDistance(w.distance_m, w.activity, true)}</td>
                         <td className={`${td} whitespace-nowrap`}>
                           <span className="flex items-center gap-1.5">
                             <span

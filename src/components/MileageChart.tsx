@@ -98,7 +98,13 @@ export default function MileageChart({ data, title, subtitle, showSwims = false,
             />
             <Tooltip
               contentStyle={{ background: '#fff', border: '2px solid #1B2A4A', color: '#1B2A4A', borderRadius: 8 }}
-              formatter={(value: number | undefined, seriesName) => [`${(value ?? 0).toFixed(2)} mi`, seriesName]}
+              formatter={(value: number | undefined, seriesName) => [
+                // Bars share one miles axis so they stack; swims still read in yards on hover
+                seriesName === ACTIVITY_LABELS.paddle
+                  ? `${(value ?? 0).toFixed(2)} mi`
+                  : `${Math.round(((value ?? 0) * 1760)).toLocaleString('en-US')} yd`,
+                seriesName,
+              ]}
             />
             {series.map(({ key, activity }) => (
               <Bar
