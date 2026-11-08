@@ -8,7 +8,8 @@ const AUTH_SECRET = process.env.AUTH_SECRET?.trim();
 /** Reachable without signing in. */
 // The home-screen icon and manifest are fetched without the sign-in cookie, so
 // they must stay public or iOS saves a blank white tile.
-const OPEN = ['/login', '/api/auth', '/logos', '/photos/', '/artie-logo.png', '/default-race.jpg', '/apple-touch-icon.png', '/manifest.json'];
+// Strava calls the webhook itself, with no cookie.
+const OPEN = ['/login', '/api/auth', '/api/strava/webhook', '/logos', '/photos/', '/artie-logo.png', '/default-race.jpg', '/apple-touch-icon.png', '/manifest.json'];
 
 /** Pages that only make sense with an account. */
 const GUEST_BLOCKED = ['/upload', '/account', '/strava', '/races/new'];
