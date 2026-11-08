@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { pool, initSchema, isCrossSourceDuplicate } from '@/lib/db';
+import { pool, initSchema, isCrossSourceDuplicate, findStravaCopy, replaceStravaCopy } from '@/lib/db';
 import { parseWorkoutFile } from '@/lib/parsers';
 import { injectMapLocation } from '@/lib/parsers/gpxParser';
 import { parseLapsImage } from '@/lib/parsers/imageParser';
@@ -62,7 +62,8 @@ export async function POST(req: NextRequest) {
         }
 
         await initSchema();
-        if (await isCrossSourceDuplicate(name, parsed.workout_date.split('T')[0], parsed.distance_m ?? null)) {
+        const stravaCopy = await findStravaCopy(name, parsed.workout_date.split('T')[0], parsed.distance_m ?? null);
+        if (await isCrossSourceDuplicate(name, parsed.workout_date.split('T')[0], parsed.distance_m ?? null, stravaCopy?.id)) {
           return NextResponse.json({ error: 'A workout for this person on this date with a similar distance already exists.' }, { status: 409 });
         }
         // Replace any auto-created paddleguru workout for this person/date
@@ -92,6 +93,7 @@ export async function POST(req: NextRequest) {
             activity,
           ]
         );
+        await replaceStravaCopy(result.rows[0].id, stravaCopy);
         return NextResponse.json(result.rows[0], { status: 201 });
       } catch (err) {
         const msg = err instanceof Error ? err.message : 'Failed to fetch Garmin activity';
@@ -141,7 +143,8 @@ export async function POST(req: NextRequest) {
     }
 
     await initSchema();
-    if (await isCrossSourceDuplicate(name, parsed.workout_date.split('T')[0], parsed.distance_m ?? null)) {
+    const stravaCopy = await findStravaCopy(name, parsed.workout_date.split('T')[0], parsed.distance_m ?? null);
+    if (await isCrossSourceDuplicate(name, parsed.workout_date.split('T')[0], parsed.distance_m ?? null, stravaCopy?.id)) {
       return NextResponse.json({ error: 'A workout for this person on this date with a similar distance already exists.' }, { status: 409 });
     }
     // Replace any auto-created paddleguru workout for this person/date
@@ -176,6 +179,7 @@ export async function POST(req: NextRequest) {
       ]
     );
 
+    await replaceStravaCopy(result.rows[0].id, stravaCopy);
     return NextResponse.json({ ...result.rows[0], activity }, { status: 201 });
   } catch (err) {
     console.error('Upload error:', err);

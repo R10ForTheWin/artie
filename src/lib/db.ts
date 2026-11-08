@@ -16,16 +16,47 @@ if (schema) {
 
 // Compare by day: some sources store a bare date, others (Garmin links, .fit
 // files) a full timestamp, and "2026-09-27" must match "2026-09-27T16:47Z".
-export async function isCrossSourceDuplicate(name: string, date: string, distance_m: number | null): Promise<boolean> {
+export async function isCrossSourceDuplicate(name: string, date: string, distance_m: number | null, exceptId?: number): Promise<boolean> {
   if (!distance_m) return false;
   const r = await pool.query(
     `SELECT id FROM workouts
      WHERE name = $1 AND LEFT(workout_date, 10) = LEFT($2, 10) AND distance_m IS NOT NULL
        AND (source IS NULL OR source != 'paddleguru')
-       AND ABS(distance_m - $3) / GREATEST(distance_m, $3) < 0.05`,
-    [name, date, distance_m]
+       AND ABS(distance_m - $3) / GREATEST(distance_m, $3) < 0.05
+       AND id != $4`,
+    [name, date, distance_m, exceptId ?? -1]
   );
   return r.rows.length > 0;
+}
+
+/**
+ * When someone uploads a file for a session Strava already imported, the file
+ * wins: it carries the map, location and water temperature Strava's copy lacks.
+ * Finds that Strava copy; the caller saves the upload, then calls replaceStravaCopy.
+ */
+export type StravaCopy = { id: number; is_race: boolean | null; hide_from_chart: boolean | null };
+
+export async function findStravaCopy(name: string, date: string, distance_m: number | null): Promise<StravaCopy | null> {
+  if (!distance_m) return null;
+  const r = await pool.query(
+    `SELECT id, is_race, hide_from_chart FROM workouts
+     WHERE name = $1 AND LEFT(workout_date, 10) = LEFT($2, 10) AND file_name LIKE 'strava-%'
+       AND distance_m IS NOT NULL
+       AND ABS(distance_m - $3) / GREATEST(distance_m, $3) < 0.05
+     ORDER BY id LIMIT 1`,
+    [name, date, distance_m]
+  );
+  return r.rows[0] ?? null;
+}
+
+/** Once the upload is saved: drop the Strava copy and keep its race / chart flags. */
+export async function replaceStravaCopy(newId: number, copy: StravaCopy | null) {
+  if (!copy) return;
+  await pool.query(
+    'UPDATE workouts SET is_race = $2, hide_from_chart = COALESCE($3, hide_from_chart) WHERE id = $1',
+    [newId, copy.is_race, copy.hide_from_chart]
+  );
+  await pool.query('DELETE FROM workouts WHERE id = $1', [copy.id]);
 }
 
 export async function initSchema() {

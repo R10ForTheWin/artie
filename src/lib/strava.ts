@@ -158,6 +158,23 @@ export async function importStravaActivity(athleteId: number, activityId: number
   );
   if (existing.rows.length > 0) return 'duplicate';
   if (await isCrossSourceDuplicate(token.name, workout_date, act.distance ?? null)) return 'duplicate';
+  // Teammates may still add the same session another way (screenshot, file,
+  // pool log). Those can read the distance loosely or not at all, so a same-day
+  // entry of the same kind (paddle vs swim) within 20%, or with no distance,
+  // counts as this session. Strava calls every swim "Swim", so any swim matches.
+  const sameKind = activity === 'paddle'
+    ? `(activity = 'paddle' OR activity IS NULL)`
+    : `activity IN ('ocean_swim', 'pool_swim')`;
+  const sameDay = await pool.query(
+    `SELECT id FROM workouts
+     WHERE name = $1 AND LEFT(workout_date, 10) = $2 AND ${sameKind}
+       AND (source IS NULL OR source != 'paddleguru')
+       AND (distance_m IS NULL OR $3::real IS NULL
+            OR ABS(distance_m - $3) / GREATEST(distance_m, $3) < 0.2)
+     LIMIT 1`,
+    [token.name, workout_date, act.distance ?? null]
+  );
+  if (sameDay.rows.length > 0) return 'duplicate';
 
   // Fetch streams for mile splits
   let mile_splits: number[] | null = null;
