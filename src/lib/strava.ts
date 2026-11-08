@@ -226,6 +226,29 @@ export async function importStravaActivity(athleteId: number, activityId: number
   return 'imported';
 }
 
+/**
+ * Right after someone connects, pull their last two weeks so they see it work.
+ * Each goes through importStravaActivity, so anything already uploaded is skipped.
+ */
+export async function importRecentFromStrava(name: string, days = 14): Promise<number> {
+  const row = await pool.query('SELECT * FROM strava_tokens WHERE name = $1', [name]);
+  if (row.rows.length === 0) return 0;
+  const token = await refreshIfNeeded(row.rows[0] as StravaToken);
+  const after = Math.floor(Date.now() / 1000) - days * 86400;
+  const res = await fetch(`https://www.strava.com/api/v3/athlete/activities?per_page=100&after=${after}`, {
+    headers: { Authorization: `Bearer ${token.access_token}` },
+  });
+  if (!res.ok) return 0;
+  const acts = await res.json();
+  if (!Array.isArray(acts)) return 0;
+  let imported = 0;
+  for (const a of acts) {
+    if (!IMPORTED_SPORTS.has(a.sport_type)) continue;
+    if ((await importStravaActivity(token.athlete_id, a.id)) === 'imported') imported++;
+  }
+  return imported;
+}
+
 export type StravaAppStatus = 'ok' | 'inactive' | 'no-connection' | 'unknown';
 
 let statusCache: { value: StravaAppStatus; at: number } | null = null;

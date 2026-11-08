@@ -1,15 +1,24 @@
 import Link from 'next/link';
 import { pool, initSchema } from '@/lib/db';
 import { TEAMMATES } from '@/lib/teammates';
-import { checkStravaAppStatus } from '@/lib/strava';
+import { cookies } from 'next/headers';
+import { sessionName } from '@/lib/auth';
 import StripeBar from '@/components/StripeBar';
 
 export const dynamic = 'force-dynamic';
 
+const RESULT_TEXT: Record<string, string> = {
+  connected: 'Strava connected. Your recent paddles and swims are coming in now.',
+  denied: 'Strava was not connected. Tap Connect again when you are ready.',
+  scope: 'ARTIE needs to see your activities. Tap Connect again and leave the activities box checked.',
+  taken: 'That Strava account is already connected to a different teammate.',
+  failed: 'Something went wrong connecting Strava. Try again.',
+};
+
 export default async function StravaPage({
   searchParams,
 }: {
-  searchParams: Promise<{ connected?: string; error?: string }>;
+  searchParams: Promise<{ result?: string }>;
 }) {
   const params = await searchParams;
   await initSchema();
@@ -29,7 +38,8 @@ export default async function StravaPage({
   );
   const imports = importsResult.rows;
 
-  const appStatus = await checkStravaAppStatus();
+  const me = await sessionName({ cookies: await cookies() });
+  const meConnected = me ? connected.has(me) : false;
 
   return (
     <main className="min-h-screen bg-white flex flex-col">
@@ -44,62 +54,62 @@ export default async function StravaPage({
 
         <h1 className="text-navy font-black uppercase tracking-widest text-3xl mb-2">Strava Sync</h1>
         <p className="text-navy opacity-50 text-sm mb-8">
-          Connect your Strava account and paddle workouts will auto-import whenever you sync your Garmin.
+          Connect once and every paddle or swim you save to Strava shows up here on its own.
         </p>
 
-        {appStatus === 'inactive' && (
-          <div className="border-2 border-navy/15 bg-navy/5 rounded-xl px-5 py-4 mb-6">
-            <p className="text-navy opacity-70 text-sm leading-relaxed">
-              Strava now requires a paid Strava membership for automatic updates. If you&apos;re not a
-              paying Strava member, you can still update ARTIE{' '}
-              <Link href="/upload" className="text-navy font-bold underline hover:text-gold transition-colors">
-                here
-              </Link>
-              .
+        {params.result && RESULT_TEXT[params.result] && (
+          <div
+            className={`border-2 rounded-xl px-5 py-4 mb-6 ${params.result === 'connected' ? 'border-green-500 bg-green-50' : 'border-terracotta bg-red-50'}`}
+          >
+            <p className={`font-bold ${params.result === 'connected' ? 'text-green-700' : 'text-terracotta'}`}>
+              {RESULT_TEXT[params.result]}
             </p>
-            <a
-              href="https://www.strava.com/settings/api"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-block mt-3 text-navy opacity-40 text-xs font-bold uppercase tracking-wider hover:opacity-70 transition-opacity"
-            >
-              Strava app settings →
-            </a>
           </div>
         )}
 
-        {params.connected && (
-          <div className="border-2 border-green-500 bg-green-50 rounded-xl px-5 py-4 mb-6">
-            <p className="text-green-700 font-bold">{decodeURIComponent(params.connected)} connected successfully!</p>
-          </div>
-        )}
-        {params.error && (
-          <div className="border-2 border-terracotta bg-red-50 rounded-xl px-5 py-4 mb-6">
-            <p className="text-terracotta font-bold">Connection failed — try again.</p>
-          </div>
-        )}
-
-        <div className="space-y-3">
-          {roster.map((name) => (
-            <div key={name} className="flex items-center justify-between border-2 border-navy border-opacity-20 rounded-xl px-5 py-4 bg-white">
-              <span className="text-navy font-black uppercase tracking-widest">{name}</span>
-              {connected.has(name) ? (
-                <span className="text-green-600 font-bold text-sm uppercase tracking-wider">Connected</span>
-              ) : (
+        {me && (
+          <div className="border-2 border-navy/20 rounded-xl px-5 py-5 mb-8 bg-white">
+            {meConnected ? (
+              <>
+                <p className="text-navy font-black uppercase tracking-widest">You&apos;re connected</p>
+                <p className="text-navy opacity-60 text-sm mt-1">
+                  Save a paddle or swim in Strava and it lands in ARTIE within a minute or so.
+                </p>
+              </>
+            ) : (
+              <>
                 <a
-                  href={`/api/strava/auth?name=${encodeURIComponent(name)}`}
-                  className="bg-[#FC4C02] text-white font-black uppercase tracking-wider text-sm px-4 py-2 rounded-lg hover:opacity-90 transition-opacity"
+                  href="/api/strava/auth"
+                  className="block w-full text-center bg-[#FC4C02] text-white font-black uppercase tracking-wider text-base px-4 py-4 rounded-lg hover:opacity-90 transition-opacity"
                 >
-                  Connect
+                  Connect my Strava
                 </a>
+                <p className="text-navy opacity-50 text-xs mt-3 leading-relaxed">
+                  Strava opens and asks to allow ARTIE. Tap Authorize and you&apos;re done.
+                  Your last two weeks come in right away.
+                </p>
+              </>
+            )}
+          </div>
+        )}
+
+        <h2 className="text-navy font-black uppercase tracking-widest text-sm mb-3">Crew</h2>
+        <div className="space-y-2">
+          {roster.map((name) => (
+            <div key={name} className="flex items-center justify-between border border-navy/15 rounded-lg px-4 py-3 bg-white">
+              <span className="text-navy font-bold uppercase tracking-wider text-sm">{name}</span>
+              {connected.has(name) ? (
+                <span className="text-green-600 font-bold text-xs uppercase tracking-wider">Connected</span>
+              ) : (
+                <span className="text-navy opacity-30 text-xs uppercase tracking-wider">Not yet</span>
               )}
             </div>
           ))}
         </div>
 
         <p className="text-navy opacity-30 text-xs mt-8 leading-relaxed">
-          Beta — only Prone Paddleboarding, Canoeing, Kayaking, and Rowing activities will be imported.
-          Each teammate connects once; new workouts appear automatically after that.
+          Imports paddles (prone, SUP, canoe, kayak, rowing) and swims. You can still add workouts on the{' '}
+          <Link href="/upload" className="underline">upload page</Link>; ARTIE won&apos;t double them up.
         </p>
 
         {/* Recent Strava imports */}
