@@ -5,7 +5,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LabelList } 
 import { ACTIVITY_COLORS, ACTIVITY_LABELS } from '@/lib/activity';
 
 interface Props {
-  data: { name: string; miles: number; oceanSwimMiles: number; poolSwimMiles: number }[];
+  data: { name: string; miles: number; swimMiles: number }[];
   title: string;
   subtitle?: string;
   /** Swim tracking started with the 2027 season; earlier seasons show paddle only. */
@@ -16,8 +16,7 @@ interface Props {
 
 const PADDLE = { key: 'miles', activity: 'paddle' as const };
 const SWIMS = [
-  { key: 'oceanSwimMiles', activity: 'ocean_swim' as const },
-  { key: 'poolSwimMiles', activity: 'pool_swim' as const },
+  { key: 'swimMiles', activity: 'swim' as const },
 ];
 
 export default function MileageChart({ data, title, subtitle, showSwims = false, defaultOpen = true }: Props) {
@@ -25,13 +24,13 @@ export default function MileageChart({ data, title, subtitle, showSwims = false,
   const series = showSwims ? [PADDLE, ...SWIMS] : [PADDLE];
   // A leaderboard: one row per person, most miles on top. Rows stack downward,
   // so a bigger crew makes the chart taller instead of crushing names together.
-  const shownTotal = (d: Props['data'][number]) => d.miles + (showSwims ? d.oceanSwimMiles + d.poolSwimMiles : 0);
+  const shownTotal = (d: Props['data'][number]) => d.miles + (showSwims ? d.swimMiles : 0);
   const chartData = data
     .map((d, i) => ({ ...d, order: i, label: d.name.length > 10 ? d.name.slice(0, 10) : d.name }))
     .sort((a, b) => shownTotal(b) - shownTotal(a) || a.order - b.order);
   const rowHeight = showSwims ? 46 : 30;
   const chartHeight = chartData.length * rowHeight + 32;
-  const isEmpty = data.every(d => d.miles === 0 && d.oceanSwimMiles === 0 && d.poolSwimMiles === 0);
+  const isEmpty = data.every(d => d.miles === 0 && d.swimMiles === 0);
 
   return (
     <div className="border-2 border-navy border-opacity-20 rounded-lg bg-white overflow-hidden">

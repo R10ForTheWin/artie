@@ -17,8 +17,7 @@ export interface GarminCsvRow {
 
 /** Garmin activity types we track, mapped onto ARTIE activities. */
 const SPORT_MAP: { match: RegExp; activity: Activity }[] = [
-  { match: /pool swim|lap swim/i, activity: 'pool_swim' },
-  { match: /open water|ocean swim|swim/i, activity: 'ocean_swim' },
+  { match: /swim/i, activity: 'swim' },
   { match: /paddleboard|paddling|canoe|kayak|rowing/i, activity: 'paddle' },
 ];
 

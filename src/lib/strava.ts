@@ -8,8 +8,6 @@ const PADDLE_SPORTS = new Set([
   'StandUpPaddling', 'Canoeing', 'Kayaking', 'Rowing', 'Paddling',
 ]);
 
-// Strava reports open-water and pool sessions alike as plain "Swim"; the split
-// between ocean and pool is made on the workout edit page.
 const SWIM_SPORTS = new Set(['Swim']);
 
 const IMPORTED_SPORTS = new Set([...PADDLE_SPORTS, ...SWIM_SPORTS]);
@@ -161,10 +159,10 @@ export async function importStravaActivity(athleteId: number, activityId: number
   // Teammates may still add the same session another way (screenshot, file,
   // pool log). Those can read the distance loosely or not at all, so a same-day
   // entry of the same kind (paddle vs swim) within 20%, or with no distance,
-  // counts as this session. Strava calls every swim "Swim", so any swim matches.
+  // counts as this session.
   const sameKind = activity === 'paddle'
     ? `(activity = 'paddle' OR activity IS NULL)`
-    : `activity IN ('ocean_swim', 'pool_swim')`;
+    : `activity = 'swim'`;
   const sameDay = await pool.query(
     `SELECT id FROM workouts
      WHERE name = $1 AND LEFT(workout_date, 10) = $2 AND ${sameKind}

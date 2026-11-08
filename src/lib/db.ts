@@ -292,6 +292,8 @@ export async function initSchema() {
 
     -- 'paddle' | 'swim' — everything logged before ocean swims were tracked is a paddle
     ALTER TABLE workouts ADD COLUMN IF NOT EXISTS activity TEXT NOT NULL DEFAULT 'paddle';
+    -- Ocean and pool swims were merged into one 'swim' (2026-11-08)
+    UPDATE workouts SET activity = 'swim' WHERE activity IN ('ocean_swim', 'pool_swim');
 
     -- Tombstones, so a bulk import never resurrects a workout that was deleted
     -- on purpose. Keyed by person and date because that is how imports dedupe.

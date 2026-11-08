@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
           `INSERT INTO workouts
              (name, file_name, file_type, workout_date, duration_s, distance_m,
               location, source, activity)
-           VALUES ($1,$2,'Pool Swim',$3,NULL,$4,$5,$6,'pool_swim')`,
+           VALUES ($1,$2,'Pool Swim',$3,NULL,$4,$5,$6,'swim')`,
           [
             cfg.athlete,
             `reggie-practice-${p.id}`,

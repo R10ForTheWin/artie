@@ -11,8 +11,7 @@ import { ADD_CARD, ADD_CARD_IDLE, ADD_CARD_PAD, ADD_CARD_SUB, ADD_CARD_TITLE } f
 // on a phone, so picking a distance is a flick rather than typing.
 const SCALE: Record<Activity, { unit: 'mi' | 'yd'; start: number; step: number; max: number }> = {
   paddle: { unit: 'mi', start: 10, step: 0.5, max: 40 },
-  ocean_swim: { unit: 'yd', start: 3000, step: 100, max: 10000 },
-  pool_swim: { unit: 'yd', start: 3000, step: 100, max: 10000 },
+  swim: { unit: 'yd', start: 3000, step: 100, max: 10000 },
 };
 const choices = (a: Activity) => {
   const { step, max } = SCALE[a];

@@ -49,15 +49,13 @@ export default async function DashboardPage() {
     );
     const roster: string[] = [...seasonMembers(season), ...activeJoiners];
     const mileageMap = Object.fromEntries(roster.map((t) => [t, 0]));
-    const oceanSwimMap = Object.fromEntries(roster.map((t) => [t, 0]));
-    const poolSwimMap = Object.fromEntries(roster.map((t) => [t, 0]));
+    const swimMap = Object.fromEntries(roster.map((t) => [t, 0]));
     const lastDateMap = Object.fromEntries(roster.map((t) => [t, '']));
 
     for (const w of workouts) {
       if (!(w.name in mileageMap) || !w.distance_m || w.hide_from_chart) continue;
       if (w.workout_date < season.start || w.workout_date > season.end) continue;
-      const bucket =
-        w.activity === 'ocean_swim' ? oceanSwimMap : w.activity === 'pool_swim' ? poolSwimMap : mileageMap;
+      const bucket = w.activity === 'swim' ? swimMap : mileageMap;
       bucket[w.name] += formatDistanceMiles(w.distance_m);
       if (w.workout_date > lastDateMap[w.name]) lastDateMap[w.name] = w.workout_date;
     }
@@ -66,18 +64,16 @@ export default async function DashboardPage() {
       .map((name, i) => ({
         name,
         miles: parseFloat(mileageMap[name].toFixed(2)),
-        oceanSwimMiles: parseFloat(oceanSwimMap[name].toFixed(2)),
-        poolSwimMiles: parseFloat(poolSwimMap[name].toFixed(2)),
+        swimMiles: parseFloat(swimMap[name].toFixed(2)),
         lastDate: lastDateMap[name],
         order: i,
       }))
       .sort((a, b) => b.lastDate.localeCompare(a.lastDate) || a.order - b.order)
-      .map(({ name, miles, oceanSwimMiles, poolSwimMiles }) => ({ name, miles, oceanSwimMiles, poolSwimMiles }));
+      .map(({ name, miles, swimMiles }) => ({ name, miles, swimMiles }));
 
     // Paddle-only total, so the headline number stays comparable season to season
     const paddleMiles = Object.values(mileageMap).reduce((a, b) => a + b, 0);
-    const swimMiles =
-      Object.values(oceanSwimMap).reduce((a, b) => a + b, 0) + Object.values(poolSwimMap).reduce((a, b) => a + b, 0);
+    const swimMiles = Object.values(swimMap).reduce((a, b) => a + b, 0);
 
     return { season, data, paddleMiles, swimMiles };
   });
