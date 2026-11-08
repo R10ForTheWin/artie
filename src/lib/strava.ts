@@ -132,6 +132,54 @@ export async function backfillSplitsFromStrava(name: string): Promise<number> {
   return backfilled;
 }
 
+/** Mile splits (seconds per mile) from a Strava activity's GPS streams, or null. */
+async function mileSplitsFor(activityId: number, accessToken: string): Promise<number[] | null> {
+  const res = await fetch(
+    `https://www.strava.com/api/v3/activities/${activityId}/streams?keys=distance,time&key_by_type=true`,
+    { headers: { Authorization: `Bearer ${accessToken}` } }
+  );
+  if (!res.ok) return null;
+  const streams = await res.json();
+  const distances: number[] = streams?.distance?.data ?? [];
+  const times: number[] = streams?.time?.data ?? [];
+  if (distances.length <= 1 || times.length !== distances.length) return null;
+  const splits: number[] = [];
+  let mileCount = 1;
+  let lastMileTime = 0;
+  for (let i = 1; i < distances.length; i++) {
+    while (distances[i] >= mileCount * MILE_M) {
+      const d0 = distances[i - 1], d1 = distances[i];
+      const t0 = times[i - 1], t1 = times[i];
+      const crossingTime = t0 + ((mileCount * MILE_M - d0) / (d1 - d0)) * (t1 - t0);
+      splits.push(Math.round(crossingTime - lastMileTime));
+      lastMileTime = crossingTime;
+      mileCount++;
+    }
+  }
+  return splits.length > 0 ? splits : null;
+}
+
+/**
+ * Strava's copy was skipped because the paddle was already added another way.
+ * If that entry has no mile splits, give it Strava's so they aren't lost.
+ */
+async function giveSplitsToMatch(
+  name: string, date: string, activity: string, distance_m: number | null, activityId: number, accessToken: string
+) {
+  if (activity !== 'paddle') return;
+  const r = await pool.query(
+    `SELECT id FROM workouts
+     WHERE name = $1 AND LEFT(workout_date, 10) = $2 AND (activity = 'paddle' OR activity IS NULL)
+       AND mile_splits IS NULL AND (source IS NULL OR source != 'paddleguru')
+       AND (distance_m IS NULL OR $3::real IS NULL OR ABS(distance_m - $3) / GREATEST(distance_m, $3) < 0.2)
+     ORDER BY ABS(COALESCE(distance_m, 0) - COALESCE($3::real, 0)) LIMIT 1`,
+    [name, date, distance_m]
+  );
+  if (!r.rows[0]) return;
+  const splits = await mileSplitsFor(activityId, accessToken);
+  if (splits) await pool.query('UPDATE workouts SET mile_splits = $1 WHERE id = $2', [JSON.stringify(splits), r.rows[0].id]);
+}
+
 export async function importStravaActivity(athleteId: number, activityId: number): Promise<'imported' | 'skipped' | 'duplicate'> {
   let token = await getTokenByAthleteId(athleteId);
   if (!token) throw new Error(`No Strava token for athlete ${athleteId}`);
@@ -155,7 +203,10 @@ export async function importStravaActivity(athleteId: number, activityId: number
     [token.name, `strava-${activityId}`]
   );
   if (existing.rows.length > 0) return 'duplicate';
-  if (await isCrossSourceDuplicate(token.name, workout_date, act.distance ?? null)) return 'duplicate';
+  if (await isCrossSourceDuplicate(token.name, workout_date, act.distance ?? null)) {
+    await giveSplitsToMatch(token.name, workout_date, activity, act.distance ?? null, activityId, token.access_token);
+    return 'duplicate';
+  }
   // Teammates may still add the same session another way (screenshot, file,
   // pool log). Those can read the distance loosely or not at all, so a same-day
   // entry of the same kind (paddle vs swim) within 20%, or with no distance,
@@ -172,36 +223,12 @@ export async function importStravaActivity(athleteId: number, activityId: number
      LIMIT 1`,
     [token.name, workout_date, act.distance ?? null]
   );
-  if (sameDay.rows.length > 0) return 'duplicate';
-
-  // Fetch streams for mile splits
-  let mile_splits: number[] | null = null;
-  const streamsRes = await fetch(
-    `https://www.strava.com/api/v3/activities/${activityId}/streams?keys=distance,time&key_by_type=true`,
-    { headers: { Authorization: `Bearer ${token.access_token}` } }
-  );
-  if (streamsRes.ok) {
-    const streams = await streamsRes.json();
-    const distances: number[] = streams?.distance?.data ?? [];
-    const times: number[] = streams?.time?.data ?? [];
-    if (distances.length > 1 && times.length === distances.length) {
-      const splits: number[] = [];
-      let mileCount = 1;
-      let lastMileTime = 0;
-      for (let i = 1; i < distances.length; i++) {
-        while (distances[i] >= mileCount * MILE_M) {
-          const d0 = distances[i - 1], d1 = distances[i];
-          const t0 = times[i - 1], t1 = times[i];
-          const frac = (mileCount * MILE_M - d0) / (d1 - d0);
-          const crossingTime = t0 + frac * (t1 - t0);
-          splits.push(Math.round(crossingTime - lastMileTime));
-          lastMileTime = crossingTime;
-          mileCount++;
-        }
-      }
-      if (splits.length > 0) mile_splits = splits;
-    }
+  if (sameDay.rows.length > 0) {
+    await giveSplitsToMatch(token.name, workout_date, activity, act.distance ?? null, activityId, token.access_token);
+    return 'duplicate';
   }
+
+  const mile_splits = await mileSplitsFor(activityId, token.access_token);
 
   await pool.query(
     `INSERT INTO workouts (name, file_name, file_type, workout_date, duration_s, distance_m, avg_speed_ms, max_speed_ms, avg_hr, max_hr, calories, mile_splits, activity)
