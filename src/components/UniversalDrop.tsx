@@ -7,6 +7,25 @@ import StepPath from './StepPath';
 import { ADD_CARD, ADD_CARD_ACTIVE, ADD_CARD_IDLE, ADD_CARD_PAD, ADD_CARD_SUB, ADD_CARD_TITLE } from './addCard';
 import { TEAMMATES } from '@/lib/teammates';
 import { ACTIVITIES, ACTIVITY_LABELS, classifyActivity, type Activity } from '@/lib/activity';
+import { formatActivityDistance, formatDuration, formatPace } from '@/lib/formatters';
+
+/** What the server says it stored, shown back in the confirmation. */
+interface Added {
+  id: number;
+  updated: boolean;
+  name: string;
+  activity: Activity;
+  workout_date: string;
+  distance_m: number | null;
+  duration_s: number | null;
+  avg_speed_ms: number | null;
+  calories: number | null;
+  avg_hr: number | null;
+  location: string | null;
+  splits: number;
+  screens: number;
+  has_map: boolean;
+}
 
 /**
  * One box for everything. A Garmin link and any Garmin app screenshots become a
@@ -114,7 +133,9 @@ export default function UniversalDrop({ me = null }: { me?: string | null }) {
   const [over, setOver] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const [done, setDone] = useState<{ id: number; text: string } | null>(null);
+  const [done, setDone] = useState<Added | null>(null);
+  // Set from the confirmation's "add map or splits": the next paste joins that workout
+  const [addTo, setAddTo] = useState<Added | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -225,7 +246,8 @@ export default function UniversalDrop({ me = null }: { me?: string | null }) {
   const date = pick('workout_date');
   const hasBundle = Boolean(link) || screens.length > 0;
   const reading = (link?.status === 'reading') || screens.some((s) => s.status === 'reading');
-  const bundleReady = !reading && Boolean(distance || duration);
+  // Adding to a saved workout needs no distance: a Laps screenshot alone is fine
+  const bundleReady = !reading && (Boolean(addTo) || Boolean(distance || duration));
 
   const got: { label: string; on: boolean }[] = [
     { label: 'Distance', on: Boolean(distance) },
@@ -245,15 +267,15 @@ export default function UniversalDrop({ me = null }: { me?: string | null }) {
     const fd = new FormData();
     fd.append('name', name);
     if (activity !== 'auto') fd.append('activity', activity);
+    if (addTo) fd.append('addTo', String(addTo.id));
     if (link?.status === 'ok' && link.read) fd.append('link', JSON.stringify(link.read));
     fd.append('reads', JSON.stringify(usable.map((s) => ({ kind: s.kind, fields: s.fields }))));
     for (const s of usable) fd.append('screen', s.file);
     const res = await fetch('/api/workouts/bundle', { method: 'POST', body: fd });
     const j = await res.json();
     if (!res.ok) throw new Error(j.error ?? 'Could not save that workout');
-    const when = j.workout_date ? new Date(`${j.workout_date}T12:00:00`).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
-    const bits = [when, j.distance_m ? `${(j.distance_m / 1609.344).toFixed(2)} mi` : null, j.splits ? `${j.splits} splits` : null].filter(Boolean);
-    setDone({ id: j.id, text: `${j.updated ? 'Added to your' : 'Added'} ${bits.join(' · ')}${j.updated ? ' workout' : ''}` });
+    setDone(j as Added);
+    setAddTo(null);
     return null;
   }
 
@@ -306,9 +328,77 @@ export default function UniversalDrop({ me = null }: { me?: string | null }) {
       : s === 'ok' ? <span className="text-green-700 font-black" aria-label="read">✓</span>
       : <span className="text-terracotta font-black" aria-label="failed">!</span>;
 
+  // Once it's in, the confirmation is the whole card: nothing left to fill in.
+  if (done) {
+    const day = new Date(`${done.workout_date}T12:00:00`).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+    const isSwim = done.activity !== 'paddle';
+    const stats = [
+      { label: 'Distance', value: done.distance_m ? formatActivityDistance(done.distance_m, done.activity) : null },
+      { label: 'Time', value: done.duration_s ? formatDuration(done.duration_s) : null },
+      { label: 'Pace', value: !isSwim && done.avg_speed_ms ? formatPace(1609.344 / done.avg_speed_ms) : null },
+      { label: 'Mile splits', value: done.splits ? String(done.splits) : null },
+      { label: 'Calories', value: done.calories ? String(Math.round(done.calories)) : null },
+      { label: 'Avg HR', value: done.avg_hr ? `${done.avg_hr} bpm` : null },
+    ].filter((s): s is { label: string; value: string } => Boolean(s.value));
+    return (
+      <div data-added className="border-2 border-green-700/40 bg-green-700/5 rounded-xl px-4 py-4 space-y-4">
+        <div>
+          <p className="text-green-800 font-black uppercase tracking-wider text-sm">
+            ✓ {done.updated ? 'Added to an existing workout' : 'Workout added'}
+          </p>
+          <p className="text-navy font-bold mt-1">
+            {done.name} · {ACTIVITY_LABELS[done.activity]}
+          </p>
+          <p className="text-navy opacity-60 text-sm">
+            {day}{done.location ? ` · ${done.location}` : ''}
+          </p>
+        </div>
+        {stats.length > 0 && (
+          <dl className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            {stats.map((s) => (
+              <div key={s.label} className="bg-white border border-navy/10 rounded-lg px-3 py-2">
+                <dt className="text-navy opacity-50 text-[10px] font-bold uppercase tracking-wider">{s.label}</dt>
+                <dd className="text-navy font-black">{s.value}</dd>
+              </div>
+            ))}
+          </dl>
+        )}
+        {(!done.has_map || !done.splits) && (
+          <div className="border-t border-green-700/20 pt-3 space-y-2">
+            <p className="text-navy text-sm">
+              Want to add {[!done.has_map && 'the course map', !done.splits && 'your mile splits'].filter(Boolean).join(' or ')}?
+              {' '}Paste a screenshot of Garmin&apos;s {[!done.has_map && 'Overview', !done.splits && 'Laps'].filter(Boolean).join(' or ')} tab.
+            </p>
+            <button
+              type="button"
+              onClick={() => { const d = done; reset(); startNew(); setAddTo(d); }}
+              className="w-full bg-gold/20 border-2 border-gold text-navy font-black uppercase tracking-wider text-xs py-3 rounded-lg hover:bg-gold/40 transition-colors"
+            >
+              Add {[!done.has_map && 'map', !done.splits && 'splits'].filter(Boolean).join(' or ')}
+            </button>
+          </div>
+        )}
+        {done.screens > 0 && (
+          <p className="text-navy opacity-60 text-xs">
+            {done.screens} screenshot{done.screens !== 1 ? 's' : ''} attached
+          </p>
+        )}
+        <div className="flex gap-2">
+          <Link href={`/dashboard/workout/${done.id}`} className="flex-1 bg-navy text-white text-center font-black uppercase tracking-wider text-xs py-3 rounded-lg hover:bg-terracotta transition-colors">
+            View workout
+          </Link>
+          <button type="button" onClick={() => { reset(); startNew(); setAddTo(null); }} className="flex-1 border-2 border-navy/30 text-navy font-black uppercase tracking-wider text-xs py-3 rounded-lg hover:border-navy transition-colors">
+            Add another
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       className="space-y-4"
+      data-added={addTo ? '' : undefined}
       onPaste={(e) => {
         const el = e.target as HTMLElement;
         if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') return;
@@ -329,14 +419,19 @@ export default function UniversalDrop({ me = null }: { me?: string | null }) {
         </select>
       )}
 
-      {done && (
-        <div className="border-2 border-green-700/40 bg-green-700/5 rounded-xl px-4 py-3 flex items-center justify-between gap-3">
-          <p className="text-green-800 font-bold text-sm">✓ {done.text}</p>
-          <Link href={`/dashboard/workout/${done.id}`} className="text-navy text-xs font-black uppercase tracking-wider underline shrink-0">View</Link>
+      {addTo && (
+        <div className="border-2 border-gold bg-gold/10 rounded-xl px-4 py-3 flex items-center justify-between gap-3">
+          <p className="text-navy text-sm">
+            Adding to your <strong>{new Date(`${addTo.workout_date}T12:00:00`).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} {ACTIVITY_LABELS[addTo.activity].toLowerCase()}</strong>.
+            {' '}Paste the {[!addTo.has_map && 'Overview', !addTo.splits && 'Laps'].filter(Boolean).join(' or ')} screenshot.
+          </p>
+          <button type="button" onClick={() => { reset(); setAddTo(null); }} className="text-navy opacity-50 hover:opacity-100 text-xs font-bold uppercase tracking-wider shrink-0">
+            Cancel
+          </button>
         </div>
       )}
 
-      {!link && (
+      {!link && !addTo && (
         <div className="space-y-2">
         {/* The steps sit inside the button so it reads as "copy in Garmin, then tap here". */}
         <button
@@ -509,7 +604,7 @@ export default function UniversalDrop({ me = null }: { me?: string | null }) {
             disabled={!canSave}
             className="w-full bg-navy text-white font-black uppercase tracking-widest py-3 rounded-lg hover:bg-terracotta transition-colors disabled:opacity-40"
           >
-            {busy ? 'Adding…' : reading ? 'Reading…' : hasBundle ? 'Add workout' : `Add ${pendingFiles} file${pendingFiles !== 1 ? 's' : ''}`}
+            {busy ? 'Adding…' : reading ? 'Reading…' : hasBundle ? (addTo ? 'Add to workout' : 'Add workout') : `Add ${pendingFiles} file${pendingFiles !== 1 ? 's' : ''}`}
           </button>
           {hasBundle && !reading && !bundleReady && (
             <p className="text-navy opacity-50 text-xs text-center">Needs a distance or time — add the link or an Overview screenshot.</p>

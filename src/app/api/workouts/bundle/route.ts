@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { initSchema } from '@/lib/db';
+import { pool, initSchema } from '@/lib/db';
 import { sessionName } from '@/lib/auth';
 import { isKnownPaddler } from '@/lib/people';
 import { isActivity } from '@/lib/activity';
@@ -35,21 +35,30 @@ export async function POST(req: NextRequest) {
       .map((r, i) => ({ read: r, file: files[i] }))
       .filter((s) => s.file && (SCREEN_KINDS as readonly string[]).includes(s.read.kind));
 
+    // "Add map or splits" from the confirmation: attach to that exact workout.
+    const addToRaw = Number(form.get('addTo'));
+    let addTo: { id: number; date: string; activity: string } | null = null;
+    if (Number.isInteger(addToRaw) && addToRaw > 0) {
+      const { rows } = await pool.query('SELECT id, LEFT(workout_date, 10) AS date, activity FROM workouts WHERE id = $1 AND name = $2', [addToRaw, name]);
+      if (!rows[0]) return NextResponse.json({ error: 'That workout is not yours to add to.' }, { status: 403 });
+      addTo = rows[0];
+    }
+
     const merged0 = mergeReads(link, screens.map((s) => s.read));
     const explicit = form.get('activity');
-    const activity = isActivity(explicit) ? explicit : activityFor(merged0);
+    const activity = addTo && isActivity(addTo.activity) ? addTo.activity : isActivity(explicit) ? explicit : activityFor(merged0);
     const merged = await applyPolicy(name, activity, merged0);
 
-    if (!merged.distance_m && !merged.duration_s) {
+    if (!addTo && !merged.distance_m && !merged.duration_s) {
       return NextResponse.json(
         { error: 'No distance or time in these. Add the Garmin link or an Overview screenshot.' },
         { status: 422 }
       );
     }
 
-    const date = merged.workout_date ?? todayPacific();
+    const date = addTo?.date ?? merged.workout_date ?? todayPacific();
     const fileName = link ? `garmin-${link.activityId}` : `garmin-screens-${date}-${Date.now()}`;
-    const existing = await findExisting(name, link ? fileName : null, date, merged.distance_m);
+    const existing = addTo?.id ?? (await findExisting(name, link ? fileName : null, date, merged.distance_m));
 
     let id: number;
     if (existing) {
@@ -60,9 +69,20 @@ export async function POST(req: NextRequest) {
     }
     await saveScreens(id, await Promise.all(screens.map(async (s) => ({ kind: s.read.kind, buffer: Buffer.from(await s.file.arrayBuffer()) }))));
 
+    // Read the row back so the confirmation shows what's actually stored,
+    // including anything an existing workout already had.
+    const { rows: [saved] } = await pool.query(
+      `SELECT activity, workout_date, distance_m, duration_s, avg_speed_ms, calories,
+              avg_hr, location,
+              (map_svg IS NOT NULL OR map_image_url IS NOT NULL
+               OR EXISTS (SELECT 1 FROM workout_screens s WHERE s.workout_id = workouts.id AND s.kind = 'overview')) AS has_map,
+              CASE WHEN jsonb_typeof(mile_splits) = 'array' THEN jsonb_array_length(mile_splits) ELSE 0 END AS splits
+         FROM workouts WHERE id = $1`,
+      [id]
+    );
     return NextResponse.json({
-      id, updated: Boolean(existing), activity, workout_date: date,
-      distance_m: merged.distance_m, splits: merged.mile_splits?.length ?? 0,
+      id, updated: Boolean(existing), name, screens: screens.length,
+      ...saved, workout_date: String(saved.workout_date).slice(0, 10),
     }, { status: existing ? 200 : 201 });
   } catch (err) {
     console.error('Bundle error:', err);

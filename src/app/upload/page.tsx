@@ -55,8 +55,11 @@ export default async function UploadPage() {
 
         <h1 className="text-navy font-black uppercase tracking-widest text-xl mb-5">Add a Workout</h1>
 
+        {/* group/add: the other ways to add step aside once a workout is in */}
+        <div className="group/add">
         <UniversalDrop me={me} />
 
+        <div className="group-has-[[data-added]]/add:hidden">
         <div className="flex items-center gap-3 my-5" aria-hidden="true">
           <div className="flex-1 h-px bg-navy/15" />
           <span className="text-navy opacity-40 text-xs font-black uppercase tracking-widest">or</span>
@@ -100,6 +103,8 @@ export default async function UploadPage() {
             </div>
           )}
         </details>
+        </div>
+        </div>
       </div>
 
       <StripeBar side="bottom" />
