@@ -8,6 +8,7 @@ import { ADD_CARD, ADD_CARD_ACTIVE, ADD_CARD_IDLE, ADD_CARD_PAD, ADD_CARD_SUB, A
 import { TEAMMATES } from '@/lib/teammates';
 import { ACTIVITIES, ACTIVITY_LABELS, classifyActivity, type Activity } from '@/lib/activity';
 import { formatActivityDistance, formatDuration, formatPace } from '@/lib/formatters';
+import { clipboardImages } from '@/lib/clipboard';
 
 /** What the server says it stored, shown back in the confirmation. */
 interface Added {
@@ -196,6 +197,17 @@ export default function UniversalDrop({ me = null }: { me?: string | null }) {
       addLink(text);
     } catch {
       setError('Could not read the clipboard. Copy the link in Garmin again, then tap Paste link and choose Paste.');
+    }
+  }
+
+  async function pasteScreens() {
+    setError('');
+    try {
+      const imgs = await clipboardImages();
+      if (imgs.length) addFiles(imgs);
+      else setError('No screenshot on the clipboard. Copy one first, then tap Paste.');
+    } catch (e) {
+      setError(e instanceof Error && e.message.includes('browser') ? e.message : 'Could not read the clipboard. Copy the screenshot again, then tap Paste.');
     }
   }
 
@@ -489,6 +501,18 @@ export default function UniversalDrop({ me = null }: { me?: string | null }) {
       >
         <span className={ADD_CARD_TITLE}>{hasBundle ? '+ Add more screenshots' : `${link ? '' : '2 · '}Add screenshots`}</span>
         {!hasBundle && <span className={ADD_CARD_SUB}>Optional · or .GPX, .FIT or .CSV files</span>}
+        <span className="flex justify-center gap-2 mt-2">
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); pasteScreens(); }}
+            className="bg-white border-2 border-navy/30 text-navy font-black uppercase tracking-wider text-[11px] px-3 py-1.5 rounded-lg hover:border-gold"
+          >
+            Paste
+          </button>
+          <span className="bg-white border-2 border-navy/30 text-navy font-black uppercase tracking-wider text-[11px] px-3 py-1.5 rounded-lg">
+            Choose
+          </span>
+        </span>
         <input
           ref={inputRef}
           type="file"
