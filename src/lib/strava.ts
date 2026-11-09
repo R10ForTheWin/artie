@@ -202,6 +202,24 @@ async function giveSplitsToMatch(
   if (splits) await pool.query('UPDATE workouts SET mile_splits = $1 WHERE id = $2', [JSON.stringify(splits), r.rows[0].id]);
 }
 
+/** Total distance of this athlete's same-kind Strava sessions on act's local day. */
+async function stravaDayTotal(act: any, activity: string, accessToken: string): Promise<number> {
+  const day = String(act.start_date_local).slice(0, 10);
+  const t = Math.floor(Date.parse(act.start_date) / 1000);
+  const res = await fetch(
+    `https://www.strava.com/api/v3/athlete/activities?per_page=50&after=${t - 86400}&before=${t + 86400}`,
+    { headers: { Authorization: `Bearer ${accessToken}` } }
+  );
+  if (!res.ok) return act.distance;
+  const list = await res.json();
+  if (!Array.isArray(list)) return act.distance;
+  const same = list.filter((a: any) =>
+    String(a.start_date_local).slice(0, 10) === day && isImported(a)
+    && classifyActivity(isGpsWorkout(a) ? 'Paddling' : a.sport_type) === activity);
+  if (!same.some((a: any) => a.id === act.id)) same.push(act);
+  return same.reduce((sum: number, a: any) => sum + (a.distance ?? 0), 0);
+}
+
 export async function importStravaActivity(athleteId: number, activityId: number): Promise<'imported' | 'skipped' | 'duplicate'> {
   let token = await getTokenByAthleteId(athleteId);
   if (!token) throw new Error(`No Strava token for athlete ${athleteId}`);
@@ -248,6 +266,24 @@ export async function importStravaActivity(athleteId: number, activityId: number
   if (sameDay.rows.length > 0) {
     await giveSplitsToMatch(token.name, workout_date, activity, act.distance ?? null, activityId, token.access_token);
     return 'duplicate';
+  }
+
+  // A hand-logged day can cover two Strava sessions (Zach's 11.5 mi on Oct 5 =
+  // 6.18 + 5.54). If one same-day entry matches that day's Strava total, this
+  // session is already counted in it.
+  if (act.distance) {
+    const others = await pool.query(
+      `SELECT distance_m FROM workouts
+       WHERE name = $1 AND LEFT(workout_date, 10) = $2 AND ${sameKind}
+         AND file_name NOT LIKE 'strava-%' AND distance_m IS NOT NULL`,
+      [token.name, workout_date]
+    );
+    if (others.rows.length > 0) {
+      const dayTotal = await stravaDayTotal(act, activity, token.access_token);
+      if (others.rows.some((r) => Math.abs(r.distance_m - dayTotal) / Math.max(r.distance_m, dayTotal) < 0.2)) {
+        return 'duplicate';
+      }
+    }
   }
 
   const mile_splits = await mileSplitsFor(activityId, token.access_token);

@@ -76,12 +76,9 @@ export async function GET(req: NextRequest) {
   // Linking Strava puts you on the chart: anything of yours held off it shows now
   await pool.query('UPDATE workouts SET hide_from_chart = false WHERE name = $1 AND hide_from_chart = true', [name]);
 
-  // Pull everything since this season began (Zach, the first to link, gets two
-  // weeks), then fill splits on older uploads. Duplicates are skipped.
-  const since = name === 'Zach'
-    ? new Date(Date.now() - 14 * 86400_000).toISOString().slice(0, 10)
-    : SEASONS[0].start;
-  void importRecentFromStrava(name, since)
+  // Pull every paddle and swim since this season began, then fill splits on
+  // older uploads. Duplicates are skipped.
+  void importRecentFromStrava(name, SEASONS[0].start)
     .catch((err) => console.error('[strava] recent import error:', err))
     .then(() => backfillSplitsFromStrava(name))
     .catch((err) => console.error('[strava] backfill error:', err));
