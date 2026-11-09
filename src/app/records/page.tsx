@@ -11,6 +11,8 @@ interface SplitWorkout {
   workout_date: string;
   location: string | null;
   mile_splits: number[];
+  distance_m: number | null;
+  race_name: string | null;
 }
 
 interface Best {
@@ -20,6 +22,14 @@ interface Best {
   location: string | null;
   start: number; // 1-based first mile of the stretch
   total_s: number;
+  of_miles: number; // whole workout, rounded, for "miles 3 & 4 of 12"
+  race_name: string | null;
+}
+
+/** "mile 3 of 12", "miles 3 & 4 of 12", "miles 3–5 of 12" */
+function whichMiles(start: number, n: number, of: number): string {
+  const span = n === 1 ? `mile ${start}` : n === 2 ? `miles ${start} & ${start + 1}` : `miles ${start}–${start + n - 1}`;
+  return `${span} of ${of}`;
 }
 
 const STRETCHES = [1, 2, 3];
@@ -48,9 +58,15 @@ export default async function RecordsPage() {
 
   // Paddles only: a swim's or a kayak import's miles aren't comparable
   const { rows } = await pool.query<SplitWorkout>(`
-    SELECT id, name, workout_date, location, mile_splits
-    FROM workouts
-    WHERE activity = 'paddle' AND mile_splits IS NOT NULL AND jsonb_array_length(mile_splits) > 0
+    SELECT w.id, w.name, w.workout_date, w.location, w.mile_splits, w.distance_m,
+      -- Same rule as the workout table: is_race wins, else a race that day and 3+ miles
+      CASE WHEN w.is_race = false THEN NULL
+           WHEN w.is_race = true OR w.distance_m >= 4828 THEN r.name END AS race_name
+    FROM workouts w
+    LEFT JOIN LATERAL (
+      SELECT name FROM races WHERE race_date = LEFT(w.workout_date, 10) ORDER BY id LIMIT 1
+    ) r ON true
+    WHERE w.activity = 'paddle' AND w.mile_splits IS NOT NULL AND jsonb_array_length(w.mile_splits) > 0
   `);
 
   // Each board lists a workout once, so one great day can't take every medal
@@ -59,7 +75,11 @@ export default async function RecordsPage() {
     for (const w of rows) {
       const splits = w.mile_splits.map(Number).filter((s) => s > 0);
       const b = bestStretch(splits, n);
-      if (b) bests.push({ id: w.id, name: w.name, workout_date: w.workout_date, location: w.location, start: b.start, total_s: b.total });
+      const of_miles = w.distance_m ? Math.max(Math.round(w.distance_m / 1609.344), splits.length) : splits.length;
+      if (b) bests.push({
+        id: w.id, name: w.name, workout_date: w.workout_date, location: w.location,
+        start: b.start, total_s: b.total, of_miles, race_name: w.race_name,
+      });
     }
     return { n, top: bests.sort((a, b) => a.total_s - b.total_s).slice(0, 3) };
   });
@@ -102,9 +122,13 @@ export default async function RecordsPage() {
                           {row.location && <span className="font-bold normal-case tracking-normal opacity-60"> · {row.location}</span>}
                         </p>
                         <p className="text-navy opacity-40 text-xs mt-0.5 truncate">
-                          {formatDate(row.workout_date)}
-                          {n > 1 ? ` · miles ${row.start}–${row.start + n - 1}` : ` · mile ${row.start}`}
+                          {formatDate(row.workout_date)} · {whichMiles(row.start, n, row.of_miles)}
                         </p>
+                        {row.race_name && (
+                          <p className="text-gold font-black uppercase tracking-wider text-[11px] mt-1 truncate">
+                            Race · {row.race_name}
+                          </p>
+                        )}
                       </div>
                     </div>
                     <div className="text-right shrink-0">
