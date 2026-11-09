@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { pool, initSchema } from '@/lib/db';
 import { backfillSplitsFromStrava, importRecentFromStrava } from '@/lib/strava';
 import { getPerson } from '@/lib/people';
+import { SEASONS } from '@/lib/seasons';
 import { sessionName, verifySession } from '@/lib/auth';
 
 const BASE_URL = 'https://artie-r10.up.railway.app';
@@ -72,8 +73,15 @@ export async function GET(req: NextRequest) {
     [name, data.athlete.id, data.access_token, data.refresh_token, data.expires_at]
   );
 
-  // Pull the last two weeks so they see it work, then fill splits on older uploads
-  void importRecentFromStrava(name)
+  // Linking Strava puts you on the chart: anything of yours held off it shows now
+  await pool.query('UPDATE workouts SET hide_from_chart = false WHERE name = $1 AND hide_from_chart = true', [name]);
+
+  // Pull everything since this season began (Zach, the first to link, gets two
+  // weeks), then fill splits on older uploads. Duplicates are skipped.
+  const since = name === 'Zach'
+    ? new Date(Date.now() - 14 * 86400_000).toISOString().slice(0, 10)
+    : SEASONS[0].start;
+  void importRecentFromStrava(name, since)
     .catch((err) => console.error('[strava] recent import error:', err))
     .then(() => backfillSplitsFromStrava(name))
     .catch((err) => console.error('[strava] backfill error:', err));

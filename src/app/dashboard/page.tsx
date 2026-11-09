@@ -43,11 +43,18 @@ export default async function DashboardPage() {
     .map((p) => p.name)
     .filter((n) => !(TEAMMATES as readonly string[]).includes(n));
 
+  const linkedResult = await pool.query('SELECT name FROM strava_tokens');
+  const linked = new Set<string>(linkedResult.rows.map((r: { name: string }) => r.name));
+
   const seasons = SEASONS.map((season) => {
     const activeJoiners = joiners.filter((n) =>
       workouts.some((w) => w.name === n && w.workout_date >= season.start && w.workout_date <= season.end)
     );
-    const roster: string[] = [...seasonMembers(season), ...activeJoiners];
+    // A teammate who links Strava joins the current season's chart
+    const members = season.members
+      ? TEAMMATES.filter((t) => season.members!.includes(t) || (season === SEASONS[0] && linked.has(t)))
+      : seasonMembers(season);
+    const roster: string[] = [...members, ...activeJoiners];
     const mileageMap = Object.fromEntries(roster.map((t) => [t, 0]));
     const swimMap = Object.fromEntries(roster.map((t) => [t, 0]));
     const lastDateMap = Object.fromEntries(roster.map((t) => [t, '']));

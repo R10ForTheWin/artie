@@ -86,7 +86,7 @@ export default async function StravaPage({
                 </a>
                 <p className="text-navy opacity-50 text-xs mt-3 leading-relaxed">
                   Strava opens and asks to allow ARTIE. Tap Authorize and you&apos;re done.
-                  Your last two weeks come in right away.
+                  Everything since the season started comes in right away.
                 </p>
               </>
             )}
