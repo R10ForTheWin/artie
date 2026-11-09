@@ -42,6 +42,36 @@ function clock(total: number): string {
 }
 const medals = ['🥇', '🥈', '🥉'];
 
+interface VolumeRow {
+  name: string;
+  period: string; // first day of the week or month, YYYY-MM-DD
+  meters: number;
+  paddles: number;
+}
+
+/**
+ * Top three by miles (to the tenth shown), keeping everyone tied for a medal:
+ * three who all paddled only Catalina share bronze rather than two vanishing.
+ */
+function podium(rows: VolumeRow[]): (VolumeRow & { medal: number })[] {
+  const tenths = (m: number) => Math.round((m / 1609.344) * 10);
+  const sorted = [...rows].sort((a, b) => b.meters - a.meters);
+  const out: (VolumeRow & { medal: number })[] = [];
+  sorted.forEach((r, i) => {
+    const medal = i > 0 && tenths(r.meters) === tenths(sorted[i - 1].meters) ? out[i - 1].medal : i;
+    if (medal < 3) out.push({ ...r, medal });
+  });
+  return out;
+}
+
+/** "Week of Aug 4, 2026" or "August 2026" */
+function periodLabel(key: 'week' | 'month', period: string): string {
+  const d = new Date(`${period}T12:00:00`);
+  return key === 'week'
+    ? `Week of ${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+    : d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+}
+
 /** The fastest run of `n` back-to-back miles in one workout. */
 function bestStretch(splits: number[], n: number): { start: number; total: number } | null {
   if (splits.length < n) return null;
@@ -83,6 +113,29 @@ export default async function RecordsPage() {
     }
     return { n, top: bests.sort((a, b) => a.total_s - b.total_s).slice(0, 3) };
   });
+
+  // Most miles in a calendar week (Mon–Sun) and month: each teammate's best
+  // period once, so one big week can't take every medal
+  const volumeBoards = await Promise.all(
+    (['week', 'month'] as const).map(async (key) => {
+      const { rows: vol } = await pool.query<VolumeRow>(
+        `SELECT DISTINCT ON (name) name, period::text AS period, meters, paddles
+         FROM (
+           SELECT name, date_trunc('${key}', LEFT(workout_date, 10)::date)::date AS period,
+                  SUM(distance_m)::float AS meters, COUNT(*)::int AS paddles
+           FROM workouts
+           WHERE (activity = 'paddle' OR activity IS NULL) AND distance_m > 0
+           GROUP BY 1, 2
+         ) t
+         ORDER BY name, meters DESC`
+      );
+      return {
+        key,
+        title: key === 'week' ? 'Most miles in 1 week' : 'Most miles in 1 month',
+        top: podium(vol),
+      };
+    })
+  );
 
   return (
     <main className="min-h-screen bg-white flex flex-col">
@@ -136,6 +189,37 @@ export default async function RecordsPage() {
                       {n > 1 && <p className="text-navy opacity-50 text-xs mt-0.5 tabular-nums">{formatPace(row.total_s / n)}</p>}
                     </div>
                   </Link>
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
+
+        {volumeBoards.map(({ key, title, top }) => (
+          <div key={key} className="mt-8">
+            <h2 className="text-navy font-black uppercase tracking-widest text-sm mb-4 opacity-60">{title}</h2>
+            {top.length === 0 ? (
+              <p className="text-navy opacity-40 text-sm">No paddles logged yet.</p>
+            ) : (
+              <div className="space-y-3">
+                {top.map((row) => (
+                  <div
+                    key={row.name}
+                    className="flex items-center justify-between gap-3 border-2 border-navy border-opacity-20 rounded-xl px-5 py-4 bg-white"
+                  >
+                    <div className="flex items-center gap-4 min-w-0">
+                      <span className="text-2xl">{medals[row.medal]}</span>
+                      <div className="min-w-0">
+                        <p className="text-navy font-black uppercase tracking-wider text-sm">{row.name}</p>
+                        <p className="text-navy opacity-40 text-xs mt-0.5 truncate">
+                          {periodLabel(key, row.period)} · {row.paddles} paddle{row.paddles === 1 ? '' : 's'}
+                        </p>
+                      </div>
+                    </div>
+                    <p className="text-gold font-black text-xl tabular-nums shrink-0">
+                      {(row.meters / 1609.344).toFixed(1)} mi
+                    </p>
+                  </div>
                 ))}
               </div>
             )}
