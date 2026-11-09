@@ -56,6 +56,14 @@ function tempColor(f: number): string {
   return `rgb(${rgb.join(', ')})`;
 }
 
+/** Air temperature bands, in theme colours (separate scale from the water's). */
+function airBand(f: number): { label: string; color: string } {
+  if (f >= 70) return { label: 'Warm', color: '#C4532A' }; // terracotta
+  if (f >= 60) return { label: 'Moderate', color: '#C9922A' }; // gold
+  if (f >= 50) return { label: 'Cool', color: '#5B8DB8' }; // sky
+  return { label: 'Cold', color: '#1B2A4A' }; // navy
+}
+
 const RANGES = [7, 30, 90, 180, 365] as const;
 type Range = typeof RANGES[number];
 const RANGE_LABELS: Record<Range, string> = { 7: '7D', 30: '1M', 90: '3M', 180: '6M', 365: '1Y' };
@@ -136,12 +144,21 @@ export default function OceanTempCard({ buoy, lat, lon }: OceanTempCardProps = {
           </div>
         )}
 
-        <div className="flex flex-col items-center justify-center rounded-xl bg-navy/10 py-2">
-          <span className="text-navy text-[11px] font-black uppercase tracking-wide">Air temp</span>
-          <span className="text-navy font-black text-2xl leading-tight">
-            {airF != null ? `${airF}°F` : <span className="opacity-40 text-sm font-normal">{airLoading ? 'Loading...' : 'Unavailable'}</span>}
-          </span>
-        </div>
+        {airF != null ? (
+          <div
+            className="flex flex-col items-center justify-center rounded-xl py-2 text-white"
+            style={{ backgroundColor: airBand(airF).color }}
+            title={airBand(airF).label}
+          >
+            <span className="text-[11px] font-black uppercase tracking-wide opacity-90">Air temp</span>
+            <span className="font-black text-2xl leading-tight">{airF}°F</span>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center rounded-xl bg-navy/10 py-2">
+            <span className="text-navy text-[11px] font-black uppercase tracking-wide">Air temp</span>
+            <span className="text-navy opacity-40 text-sm">{airLoading ? 'Loading...' : 'Unavailable'}</span>
+          </div>
+        )}
       </div>
 
       {expanded && chartData.length > 0 && (
