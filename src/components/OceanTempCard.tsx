@@ -24,15 +24,15 @@ function formatLabel(dateStr: string) {
 }
 
 /** How the water feels to a paddler, by surface temperature in °F */
-function tempFeel(f: number): { emoji: string; label: string } {
-  if (f > 70) return { emoji: '☀️', label: 'Warm' };
-  if (f >= 65) return { emoji: '😎', label: 'Cool' };
-  if (f >= 60) return { emoji: '🥶', label: 'Cold' };
-  return { emoji: '🧊', label: 'Freezing' };
+function tempFeel(f: number): { label: string } {
+  if (f > 70) return { label: 'Warm' };
+  if (f >= 65) return { label: 'Cool' };
+  if (f >= 60) return { label: 'Cold' };
+  return { label: 'Freezing' };
 }
 
 // Badge colour slides from deep blue (freezing) through the theme's sky and
-// gold to orange (warm), so the number reads at a glance before the emoji does.
+// gold to orange (warm), so the number reads at a glance before the label does.
 const TEMP_STOPS: [number, [number, number, number]][] = [
   [56, [0x1f, 0x4e, 0x8c]],
   [62, [0x5b, 0x8d, 0xb8]],
@@ -124,7 +124,6 @@ export default function OceanTempCard({ buoy, lat, lon }: OceanTempCardProps = {
           >
             <span className="text-[11px] font-black uppercase tracking-wide opacity-90">Water temp</span>
             <span className="flex items-center gap-1.5 font-black text-2xl leading-tight">
-            <span aria-label={tempFeel(data.current_f).label} role="img">{tempFeel(data.current_f).emoji}</span>
             {data.current_f}°F
             {expanded ? (
               <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 opacity-80" viewBox="0 0 20 20" fill="currentColor">
