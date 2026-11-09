@@ -32,6 +32,14 @@ function ordinal(n: number): string {
   return `${n}${['th', 'st', 'nd', 'rd'][n % 10] ?? 'th'}`;
 }
 
+/** Teammates who raced, best place first (results come grouped by division). */
+function teamFinishes(race: Race, matchers: Matcher[]): { f: Finisher; person: string }[] {
+  return (race.results ?? [])
+    .map((f) => ({ f, person: matchPerson(f.name, matchers) }))
+    .filter((x): x is { f: Finisher; person: string } => x.person !== null)
+    .sort((a, b) => a.f.place - b.f.place);
+}
+
 function isTeammate(name: string, matchers: Matcher[]): boolean {
   return matchPerson(name, matchers) !== null;
 }
@@ -245,24 +253,29 @@ export default function RaceCountdowns({ races, matchers, workoutLinks = {}, vie
                     <p className="text-navy font-bold text-base">{race.name}</p>
                     {race.location && <p className="text-navy text-xs opacity-50">{race.location}</p>}
                     <p className="text-navy text-xs opacity-40">{formatDate(race.race_date)}</p>
-                    {(() => {
-                      const finishes = (race.results ?? [])
-                        .map((f) => ({ f, person: matchPerson(f.name, matchers) }))
-                        .filter((x): x is { f: Finisher; person: string } => x.person !== null);
-                      if (finishes.length === 0) return null;
-                      return (
-                        <ul className="flex flex-wrap gap-1.5 mt-1.5">
-                          {finishes.map(({ f, person }) => (
-                            <li key={`${person}-${f.division ?? ''}-${f.place}`} className="px-2 py-0.5 rounded-full bg-gold/20 text-navy text-xs">
-                              <span className="font-bold">{person}</span> {ordinal(f.place)}
-                              {f.division && <span className="opacity-50"> · {f.division}</span>}
-                            </li>
-                          ))}
-                        </ul>
-                      );
-                    })()}
+                    {teamFinishes(race, matchers).length > 0 && (
+                      <p className="mt-1 text-gold text-[11px] font-black uppercase tracking-widest">
+                        Team Results ({teamFinishes(race, matchers).length})
+                        <span className="ml-1 inline-block transition-transform group-open:rotate-180">▾</span>
+                      </p>
+                    )}
                   </div>
                 </summary>
+
+                {teamFinishes(race, matchers).length > 0 && (
+                  <ol className="mb-4 divide-y divide-navy/10 rounded-lg bg-gold/10">
+                    {teamFinishes(race, matchers).map(({ f, person }) => (
+                      <li key={`${person}-${f.division ?? ''}-${f.place}`} className="flex items-baseline gap-3 px-3 py-1.5 text-sm">
+                        <span className="w-10 shrink-0 font-black text-navy tabular-nums">{ordinal(f.place)}</span>
+                        <span className="min-w-0 flex-1">
+                          <span className="font-bold text-navy">{person}</span>
+                          {f.division && <span className="block text-navy text-xs opacity-50 truncate">{f.division}</span>}
+                        </span>
+                        <span className="shrink-0 text-navy opacity-60 tabular-nums">{f.time}</span>
+                      </li>
+                    ))}
+                  </ol>
+                )}
 
                 {race.course_record && <CourseRecord value={race.course_record} className="mb-3" />}
 
