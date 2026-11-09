@@ -78,174 +78,190 @@ interface OceanTempCardProps {
 export default function OceanTempCard({ buoy, lat, lon }: OceanTempCardProps = {}) {
   const tempUrl = buoy ? `/api/ocean-temp?buoy=${buoy}` : '/api/ocean-temp';
   const airUrl = lat != null && lon != null ? `/api/air-temp?lat=${lat}&lon=${lon}` : '/api/air-temp';
-  const [airF, setAirF] = useState<number | null>(null);
-  const [airLoading, setAirLoading] = useState(true);
+  const water = useTempData(tempUrl);
+  const air = useTempData(airUrl);
+  const [open, setOpen] = useState<'water' | 'air' | null>(null);
+  const toggle = (which: 'water' | 'air') => setOpen((o) => (o === which ? null : which));
 
-  useEffect(() => {
-    const controller = new AbortController();
-    fetch(airUrl, { signal: controller.signal })
-      .then((r) => r.json())
-      .then((d) => { setAirF(typeof d.current_f === 'number' ? d.current_f : null); setAirLoading(false); })
-      .catch((e) => { if (e.name !== 'AbortError') setAirLoading(false); });
-    return () => controller.abort();
-  }, [airUrl]);
-  const [data, setData] = useState<OceanTempData | null>(null);
-  const [expanded, setExpanded] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [range, setRange] = useState<Range>(30);
-
-  useEffect(() => {
-    const controller = new AbortController();
-    fetch(tempUrl, { signal: controller.signal })
-      .then((r) => r.json())
-      .then((d) => { setData(d); setLoading(false); })
-      .catch((e) => { if (e.name !== 'AbortError') setLoading(false); });
-    return () => controller.abort();
-  }, [tempUrl]);
-
-  const allData = data?.history?.map((d) => ({ ...d, label: formatLabel(d.date) })) ?? [];
-  const chartData = allData.slice(-range);
-  const tickInterval = Math.max(1, Math.floor(chartData.length / 6));
+  const waterF = water.data?.current_f ?? null;
+  const airF = air.data?.current_f ?? null;
 
   return (
     <div className="border-2 border-navy/20 rounded-xl p-4 bg-white">
       <div className="grid grid-cols-2 gap-2">
-        {loading ? (
-          <div className="flex flex-col items-center justify-center rounded-xl bg-navy/10 py-2">
-            <span className="text-navy text-[11px] font-black uppercase tracking-wide">Water temp</span>
-            <span className="text-navy opacity-40 text-sm">Loading...</span>
-          </div>
-        ) : data?.current_f ? (
-          <button
-            onClick={() => setExpanded((e) => !e)}
-            className="flex flex-col items-center justify-center text-white rounded-xl py-2 hover:opacity-80 transition-opacity"
-            style={{ backgroundColor: tempColor(data.current_f) }}
-            title={`${tempFeel(data.current_f).label} · tap for history`}
-          >
-            <span className="text-[11px] font-black uppercase tracking-wide opacity-90">Water temp</span>
-            <span className="flex items-center gap-1.5 font-black text-2xl leading-tight">
-            {data.current_f}°F
-            {expanded ? (
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 opacity-80" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414l-5 5a1 1 0 01-1.414 0l-5-5a1 1 0 010-1.414z" clipRule="evenodd" />
-              </svg>
-            ) : (
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 opacity-80" viewBox="0 0 20 20" fill="currentColor">
-                <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zm6-4a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zm6-3a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
-              </svg>
-            )}
-            </span>
-          </button>
-        ) : (
-          <div className="flex flex-col items-center justify-center rounded-xl bg-navy/10 py-2">
-            <span className="text-navy text-[11px] font-black uppercase tracking-wide">Water temp</span>
-            <span className="text-navy opacity-40 text-sm">Unavailable</span>
-          </div>
-        )}
-
-        {airF != null ? (
-          <div
-            className="flex flex-col items-center justify-center rounded-xl py-2 text-white"
-            style={{ backgroundColor: airBand(airF).color }}
-            title={airBand(airF).label}
-          >
-            <span className="text-[11px] font-black uppercase tracking-wide opacity-90">Air temp</span>
-            <span className="font-black text-2xl leading-tight">{airF}°F</span>
-          </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center rounded-xl bg-navy/10 py-2">
-            <span className="text-navy text-[11px] font-black uppercase tracking-wide">Air temp</span>
-            <span className="text-navy opacity-40 text-sm">{airLoading ? 'Loading...' : 'Unavailable'}</span>
-          </div>
-        )}
+        <TempTile
+          label="Water temp"
+          value={waterF}
+          loading={water.loading}
+          color={waterF != null ? tempColor(waterF) : null}
+          title={waterF != null ? tempFeel(waterF).label : ''}
+          open={open === 'water'}
+          canOpen={(water.data?.history?.length ?? 0) > 0}
+          onClick={() => toggle('water')}
+        />
+        <TempTile
+          label="Air temp"
+          value={airF}
+          loading={air.loading}
+          color={airF != null ? airBand(airF).color : null}
+          title={airF != null ? airBand(airF).label : ''}
+          open={open === 'air'}
+          canOpen={(air.data?.history?.length ?? 0) > 0}
+          onClick={() => toggle('air')}
+        />
       </div>
 
-      {expanded && chartData.length > 0 && (
-        <div className="mt-6">
-          <div className="flex gap-1 mb-4 justify-end">
-            {RANGES.map((r) => (
-              <button
-                key={r}
-                onClick={() => setRange(r)}
-                className={`px-2.5 py-1 rounded text-xs font-black uppercase tracking-wider transition-colors ${
-                  range === r
-                    ? 'bg-navy text-white'
-                    : 'bg-navy/10 text-navy hover:bg-navy/20'
-                }`}
-              >
-                {RANGE_LABELS[r]}
-              </button>
-            ))}
-          </div>
-          <ResponsiveContainer width="100%" height={200}>
-            <LineChart data={chartData} margin={{ top: 4, right: 16, left: 0, bottom: 0 }}>
-              <XAxis
-                dataKey="label"
-                tick={{ fill: '#1B2A4A', fontSize: 11 }}
-                axisLine={{ stroke: '#1B2A4A', strokeOpacity: 0.3 }}
-                tickLine={false}
-                interval={tickInterval}
-              />
-              <YAxis
-                tick={{ fill: '#1B2A4A', fontSize: 11, opacity: 0.6 }}
-                axisLine={{ stroke: '#1B2A4A', strokeOpacity: 0.3 }}
-                tickLine={false}
-                tickFormatter={(v) => `${v}°`}
-                /* Pad the range so the historical-average line never sits flat on the
-                   axis, where it reads as a chart artifact rather than a real value. */
-                domain={[
-                  (dataMin: number) => Math.floor(dataMin - 2),
-                  (dataMax: number) => Math.ceil(dataMax + 2),
-                ]}
-              />
-              <Tooltip
-                contentStyle={{
-                  background: '#fff',
-                  border: '2px solid #1B2A4A',
-                  color: '#1B2A4A',
-                  borderRadius: 8,
-                  fontSize: 13,
-                }}
-                formatter={(value: number | undefined, name: string | undefined) => [
-                  `${value ?? '—'}°F`,
-                  name === 'temp_f' ? 'Actual' : 'Historical Avg',
-                ]}
-              />
-              <Line
-                type="monotone"
-                dataKey="temp_f"
-                stroke="#5B8DB8"
-                strokeWidth={2.5}
-                dot={{ fill: '#5B8DB8', r: 3 }}
-                activeDot={{ r: 5 }}
-                name="temp_f"
-              />
-              <Line
-                type="monotone"
-                dataKey="norm_f"
-                stroke="#C4532A"
-                strokeWidth={1.5}
-                strokeDasharray="5 4"
-                dot={false}
-                name="norm_f"
-              />
-            </LineChart>
-          </ResponsiveContainer>
+      {open === 'water' && <TempChart history={water.data?.history ?? []} heading="Water temp · daily" actualColor="#5B8DB8" />}
+      {open === 'air' && <TempChart history={air.data?.history ?? []} heading="Air temp · daily high" actualColor="#C9922A" />}
+    </div>
+  );
+}
 
-          <div className="flex gap-5 mt-3 justify-center">
-            <div className="flex items-center gap-1.5 text-xs text-navy opacity-60">
-              <div className="w-5 h-0.5 bg-sky rounded" />
-              Actual
-            </div>
-            <div className="flex items-center gap-1.5 text-xs text-navy opacity-60">
-              <svg width="20" height="6">
-                <line x1="0" y1="3" x2="20" y2="3" stroke="#C4532A" strokeWidth="1.5" strokeDasharray="5 4" />
-              </svg>
-              Historical Avg
-            </div>
-          </div>
+function useTempData(url: string) {
+  const [data, setData] = useState<OceanTempData | null>(null);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch(url, { signal: controller.signal })
+      .then((r) => r.json())
+      .then((d) => { setData(d); setLoading(false); })
+      .catch((e) => { if (e.name !== 'AbortError') setLoading(false); });
+    return () => controller.abort();
+  }, [url]);
+  return { data, loading };
+}
+
+function TempTile({ label, value, loading, color, title, open, canOpen, onClick }: {
+  label: string; value: number | null; loading: boolean; color: string | null;
+  title: string; open: boolean; canOpen: boolean; onClick: () => void;
+}) {
+  if (value == null || !color) {
+    return (
+      <div className="flex flex-col items-center justify-center rounded-xl bg-navy/10 py-2">
+        <span className="text-navy text-[11px] font-black uppercase tracking-wide">{label}</span>
+        <span className="text-navy opacity-40 text-sm">{loading ? 'Loading...' : 'Unavailable'}</span>
+      </div>
+    );
+  }
+  return (
+    <button
+      type="button"
+      onClick={canOpen ? onClick : undefined}
+      aria-expanded={canOpen ? open : undefined}
+      className={`flex flex-col items-center justify-center text-white rounded-xl py-2 transition-opacity ${canOpen ? 'hover:opacity-80' : 'cursor-default'}`}
+      style={{ backgroundColor: color }}
+      title={canOpen ? `${title} · tap for history` : title}
+    >
+      <span className="text-[11px] font-black uppercase tracking-wide opacity-90">{label}</span>
+      <span className="flex items-center gap-1.5 font-black text-2xl leading-tight">
+        {value}°F
+        {canOpen && (open ? (
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 opacity-80" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414l-5 5a1 1 0 01-1.414 0l-5-5a1 1 0 010-1.414z" clipRule="evenodd" />
+          </svg>
+        ) : (
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 opacity-80" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zm6-4a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zm6-3a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
+          </svg>
+        ))}
+      </span>
+    </button>
+  );
+}
+
+function TempChart({ history, heading, actualColor }: { history: DayEntry[]; heading: string; actualColor: string }) {
+  const [range, setRange] = useState<Range>(30);
+  const chartData = history.map((d) => ({ ...d, label: formatLabel(d.date) })).slice(-range);
+  const tickInterval = Math.max(1, Math.floor(chartData.length / 6));
+  if (chartData.length === 0) return null;
+
+  return (
+    <div className="mt-6">
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+        <p className="text-navy text-xs font-black uppercase tracking-wider opacity-60">{heading}</p>
+        <div className="flex gap-1">
+          {RANGES.map((r) => (
+            <button
+              key={r}
+              onClick={() => setRange(r)}
+              className={`px-2.5 py-1 rounded text-xs font-black uppercase tracking-wider transition-colors ${
+                range === r
+                  ? 'bg-navy text-white'
+                  : 'bg-navy/10 text-navy hover:bg-navy/20'
+              }`}
+            >
+              {RANGE_LABELS[r]}
+            </button>
+          ))}
         </div>
-      )}
+      </div>
+      <ResponsiveContainer width="100%" height={200}>
+        <LineChart data={chartData} margin={{ top: 4, right: 16, left: 0, bottom: 0 }}>
+          <XAxis
+            dataKey="label"
+            tick={{ fill: '#1B2A4A', fontSize: 11 }}
+            axisLine={{ stroke: '#1B2A4A', strokeOpacity: 0.3 }}
+            tickLine={false}
+            interval={tickInterval}
+          />
+          <YAxis
+            tick={{ fill: '#1B2A4A', fontSize: 11, opacity: 0.6 }}
+            axisLine={{ stroke: '#1B2A4A', strokeOpacity: 0.3 }}
+            tickLine={false}
+            tickFormatter={(v) => `${v}°`}
+            /* Pad the range so the historical-average line never sits flat on the
+               axis, where it reads as a chart artifact rather than a real value. */
+            domain={[
+              (dataMin: number) => Math.floor(dataMin - 2),
+              (dataMax: number) => Math.ceil(dataMax + 2),
+            ]}
+          />
+          <Tooltip
+            contentStyle={{
+              background: '#fff',
+              border: '2px solid #1B2A4A',
+              color: '#1B2A4A',
+              borderRadius: 8,
+              fontSize: 13,
+            }}
+            formatter={(value: number | undefined, name: string | undefined) => [
+              `${value ?? '—'}°F`,
+              name === 'temp_f' ? 'Actual' : 'Historical Avg',
+            ]}
+          />
+          <Line
+            type="monotone"
+            dataKey="temp_f"
+            stroke={actualColor}
+            strokeWidth={2.5}
+            dot={{ fill: actualColor, r: 3 }}
+            activeDot={{ r: 5 }}
+            name="temp_f"
+          />
+          <Line
+            type="monotone"
+            dataKey="norm_f"
+            stroke="#C4532A"
+            strokeWidth={1.5}
+            strokeDasharray="5 4"
+            dot={false}
+            name="norm_f"
+          />
+        </LineChart>
+      </ResponsiveContainer>
+
+      <div className="flex gap-5 mt-3 justify-center">
+        <div className="flex items-center gap-1.5 text-xs text-navy opacity-60">
+          <div className="w-5 h-0.5 rounded" style={{ backgroundColor: actualColor }} />
+          Actual
+        </div>
+        <div className="flex items-center gap-1.5 text-xs text-navy opacity-60">
+          <svg width="20" height="6">
+            <line x1="0" y1="3" x2="20" y2="3" stroke="#C4532A" strokeWidth="1.5" strokeDasharray="5 4" />
+          </svg>
+          Historical Avg
+        </div>
+      </div>
     </div>
   );
 }
