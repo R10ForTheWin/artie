@@ -57,8 +57,9 @@ function podium(rows: VolumeRow[]): (VolumeRow & { medal: number })[] {
   const tenths = (m: number) => Math.round((m / 1609.344) * 10);
   const sorted = [...rows].sort((a, b) => b.meters - a.meters);
   const out: (VolumeRow & { medal: number })[] = [];
+  let medal = 0;
   sorted.forEach((r, i) => {
-    const medal = i > 0 && tenths(r.meters) === tenths(sorted[i - 1].meters) ? out[i - 1].medal : i;
+    if (i > 0 && tenths(r.meters) !== tenths(sorted[i - 1].meters)) medal = i;
     if (medal < 3) out.push({ ...r, medal });
   });
   return out;
