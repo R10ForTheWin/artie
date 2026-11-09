@@ -95,15 +95,18 @@ export default async function DashboardPage() {
 
       <div className="flex-1 px-6 pt-10 pb-0 max-w-5xl mx-auto w-full">
         {/* Header */}
-        <div className="flex items-center gap-2 mb-6">
-          <Link href="/" className="border-2 border-navy/20 text-navy font-black uppercase tracking-wider text-xs px-3 sm:px-4 py-2.5 rounded-lg hover:border-navy/60 transition-colors whitespace-nowrap">
+        {/* Three equal buttons: same width, and stretched to the same height
+            when the longer labels wrap to two lines on a phone */}
+        <div className="grid grid-cols-3 gap-2 mb-6 sm:flex sm:items-stretch">
+          <Link href="/" className="flex items-center justify-center border-2 border-navy/20 text-navy font-black uppercase tracking-wider text-xs px-3 sm:px-4 py-2 rounded-lg hover:border-navy/60 transition-colors text-center leading-tight">
             ← Home
           </Link>
-          <div className="flex-1" />
-          <Link href="/upload" className="bg-navy text-white font-black uppercase tracking-wider text-xs px-3 sm:px-4 py-2.5 rounded-lg hover:bg-terracotta transition-colors text-center leading-tight">
+          {/* On wider screens the buttons sit at their natural width, Home on the left */}
+          <div className="hidden sm:block sm:flex-1" />
+          <Link href="/upload" className="flex items-center justify-center border-2 border-transparent bg-navy text-white font-black uppercase tracking-wider text-xs px-3 sm:px-4 py-2 rounded-lg hover:bg-terracotta transition-colors text-center leading-tight">
             Add workout manually
           </Link>
-          <Link href="/strava" className="bg-terracotta text-white font-black uppercase tracking-wider text-xs px-3 sm:px-4 py-2.5 rounded-lg hover:bg-gold transition-colors text-center leading-tight">
+          <Link href="/strava" className="flex items-center justify-center border-2 border-transparent bg-terracotta text-white font-black uppercase tracking-wider text-xs px-3 sm:px-4 py-2 rounded-lg hover:bg-gold transition-colors text-center leading-tight">
             Link with Strava
           </Link>
         </div>

@@ -22,7 +22,7 @@ export default function HomePage() {
           </Link>
           <Link
             href="/races"
-            className="bg-sky text-white font-bold uppercase tracking-widest text-center py-2 px-6 rounded-lg text-xs hover:opacity-80 transition-opacity"
+            className="bg-sky text-white font-bold uppercase tracking-widest text-center py-3 px-6 rounded-lg text-xs hover:opacity-80 transition-opacity"
           >
             Races
           </Link>
