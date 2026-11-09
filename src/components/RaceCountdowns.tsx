@@ -81,7 +81,9 @@ function contextRows(finishers: Finisher[], matchers: Matcher[]): (Finisher | nu
   return result;
 }
 
-export default function RaceCountdowns({ races, matchers, workoutLinks = {} }: { races: Race[]; matchers: Matcher[]; workoutLinks?: Record<string, Record<string, number>> }) {
+export type RaceView = 'upcoming' | 'previous';
+
+export default function RaceCountdowns({ races, matchers, workoutLinks = {}, view = 'upcoming' }: { races: Race[]; matchers: Matcher[]; workoutLinks?: Record<string, Record<string, number>>; view?: RaceView }) {
   const upcoming = races.filter((r) => daysUntil(r.race_date) >= 0);
   const past = races.filter((r) => daysUntil(r.race_date) < 0).sort((a, b) => b.race_date.localeCompare(a.race_date));
 
@@ -98,8 +100,26 @@ export default function RaceCountdowns({ races, matchers, workoutLinks = {} }: {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
+      {/* Upcoming / Previous toggle — a link, so the page stays server-rendered */}
+      <div className="grid grid-cols-2 gap-1 p-1 rounded-xl bg-navy/10" role="tablist">
+        {([['upcoming', 'Upcoming', upcoming.length, '/races'], ['previous', 'Previous', past.length, '/races?view=previous']] as const).map(([key, label, count, href]) => (
+          <a
+            key={key}
+            href={href}
+            role="tab"
+            aria-selected={view === key}
+            className={`text-center py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-colors ${
+              view === key ? 'bg-navy text-white' : 'text-navy hover:bg-navy/10'
+            }`}
+          >
+            {label} <span className="opacity-60">({count})</span>
+          </a>
+        ))}
+      </div>
+
       {/* Upcoming Races */}
+      {view === 'upcoming' && (
       <div className="border-2 border-navy border-opacity-20 rounded-lg p-6 bg-white">
         <div className="flex justify-between items-center mb-5">
           <h2 className="text-navy font-black uppercase tracking-widest text-lg">Upcoming Races</h2>
@@ -194,11 +214,13 @@ export default function RaceCountdowns({ races, matchers, workoutLinks = {} }: {
           })}
         </div>
       </div>
+      )}
 
       {/* Previous Races */}
-      {past.length > 0 && (
+      {view === 'previous' && (
         <div className="border-2 border-navy border-opacity-20 rounded-lg p-6 bg-white">
           <h2 className="text-navy font-black uppercase tracking-widest text-lg mb-5">Previous Races</h2>
+          {past.length === 0 && <p className="text-navy opacity-40 text-sm">No previous races yet.</p>}
           <div className="space-y-6">
             {past.map((race, raceIdx) => (
               /* <details> keeps this a server component — no client JS needed to collapse */

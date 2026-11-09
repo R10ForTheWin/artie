@@ -1,5 +1,5 @@
 import { pool, initSchema } from '@/lib/db';
-import RaceCountdowns from '@/components/RaceCountdowns';
+import RaceCountdowns, { type RaceView } from '@/components/RaceCountdowns';
 import { buildMatchers } from '@/lib/nameMatch';
 import StripeBar from '@/components/StripeBar';
 import Link from 'next/link';
@@ -22,7 +22,8 @@ interface Race {
   prior_paddleguru_url?: string | null;
 }
 
-export default async function RacesPage() {
+export default async function RacesPage({ searchParams }: { searchParams: Promise<{ view?: string }> }) {
+  const view: RaceView = (await searchParams).view === 'previous' ? 'previous' : 'upcoming';
   await initSchema();
   const result = await pool.query('SELECT * FROM races ORDER BY race_date ASC');
   const races = result.rows as Race[];
@@ -72,7 +73,7 @@ export default async function RacesPage() {
             Live Race Video Feed
           </Link>
         </div>
-        <RaceCountdowns races={races} matchers={matchers} workoutLinks={workoutLinks} />
+        <RaceCountdowns races={races} matchers={matchers} workoutLinks={workoutLinks} view={view} />
       </div>
       <StripeBar side="bottom" />
     </main>
