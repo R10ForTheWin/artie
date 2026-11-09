@@ -25,6 +25,13 @@ interface Race {
   prior_paddleguru_url?: string | null;
 }
 
+/** 1 → "1st", 22 → "22nd", 13 → "13th" */
+function ordinal(n: number): string {
+  const tens = n % 100;
+  if (tens >= 11 && tens <= 13) return `${n}th`;
+  return `${n}${['th', 'st', 'nd', 'rd'][n % 10] ?? 'th'}`;
+}
+
 function isTeammate(name: string, matchers: Matcher[]): boolean {
   return matchPerson(name, matchers) !== null;
 }
@@ -238,6 +245,22 @@ export default function RaceCountdowns({ races, matchers, workoutLinks = {}, vie
                     <p className="text-navy font-bold text-base">{race.name}</p>
                     {race.location && <p className="text-navy text-xs opacity-50">{race.location}</p>}
                     <p className="text-navy text-xs opacity-40">{formatDate(race.race_date)}</p>
+                    {(() => {
+                      const finishes = (race.results ?? [])
+                        .map((f) => ({ f, person: matchPerson(f.name, matchers) }))
+                        .filter((x): x is { f: Finisher; person: string } => x.person !== null);
+                      if (finishes.length === 0) return null;
+                      return (
+                        <ul className="flex flex-wrap gap-1.5 mt-1.5">
+                          {finishes.map(({ f, person }) => (
+                            <li key={`${person}-${f.division ?? ''}-${f.place}`} className="px-2 py-0.5 rounded-full bg-gold/20 text-navy text-xs">
+                              <span className="font-bold">{person}</span> {ordinal(f.place)}
+                              {f.division && <span className="opacity-50"> · {f.division}</span>}
+                            </li>
+                          ))}
+                        </ul>
+                      );
+                    })()}
                   </div>
                 </summary>
 

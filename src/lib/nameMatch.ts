@@ -41,8 +41,21 @@ export function buildMatchers(people: { name: string; last_name: string | null }
   return [...crew, ...joiners];
 }
 
-/** The crew member a finisher's name belongs to, if any. */
+/**
+ * The crew member a finisher's name belongs to, if any. When more than one
+ * fits, the most specific match wins: "Dallas Nurre" is Dallas (first + last)
+ * rather than DJ (last name only).
+ */
 export function matchPerson(finisher: string, matchers: Matcher[]): string | null {
-  const hit = matchers.find((m) => m.groups.some((g) => g.every((w) => wordMatch(finisher, w))));
-  return hit ? hit.name : null;
+  let best: string | null = null;
+  let bestWords = 0;
+  for (const m of matchers) {
+    for (const g of m.groups) {
+      if (g.length > bestWords && g.every((w) => wordMatch(finisher, w))) {
+        best = m.name;
+        bestWords = g.length;
+      }
+    }
+  }
+  return best;
 }

@@ -7,14 +7,16 @@ export const TEAMMATE_ALIASES: Partial<Record<Teammate, string[]>> = {
   Zach:  ['Jirkovsky'],
   Andy:  ['Hoover'],
   Matt:  ['Ruane'],
-  Brent: ['Blackman'],
 };
 
-// Crew known by their last name. Matching needs the full name, so another
-// Adams or Glick in a results list isn't taken for ours.
+// Matching needs the full name, so another Adams or Glick in a results list
+// isn't taken for ours. Brent too: "Blackman" alone caught Bella Blackman.
+// Dallas Nurre would otherwise be claimed by DJ's "Nurre".
 export const FULL_NAMES: Partial<Record<Teammate, string>> = {
   Adams: 'Jake Adams',
   Glick: 'Jake Glick',
+  Brent: 'Brent Blackman',
+  Dallas: 'Dallas Nurre',
 };
 
 // First names too common to match on alone — only match via aliases above
