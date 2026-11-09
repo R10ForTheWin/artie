@@ -82,7 +82,7 @@ export default function BreakCarousel() {
               {b.snapshot
                 ? <WebcamSnapshot {...b.snapshot} />
                 : b.webcam && <WebcamEmbed src={b.webcam} />}
-              <OceanTempCard buoy={b.buoy} buoyLabel={b.buoyLabel} />
+              <OceanTempCard buoy={b.buoy} lat={b.lat} lon={b.lon} />
               <SurfCard lat={b.lat} lon={b.lon} buoy={b.buoy} spotLabel={b.spotLabel} />
             </div>
           </div>

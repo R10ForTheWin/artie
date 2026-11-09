@@ -62,11 +62,25 @@ const RANGE_LABELS: Record<Range, string> = { 7: '7D', 30: '1M', 90: '3M', 180: 
 
 interface OceanTempCardProps {
   buoy?: string;
-  buoyLabel?: string;
+  /** Where to read the air temperature (the break itself) */
+  lat?: number;
+  lon?: number;
 }
 
-export default function OceanTempCard({ buoy, buoyLabel = 'MB' }: OceanTempCardProps = {}) {
+export default function OceanTempCard({ buoy, lat, lon }: OceanTempCardProps = {}) {
   const tempUrl = buoy ? `/api/ocean-temp?buoy=${buoy}` : '/api/ocean-temp';
+  const airUrl = lat != null && lon != null ? `/api/air-temp?lat=${lat}&lon=${lon}` : '/api/air-temp';
+  const [airF, setAirF] = useState<number | null>(null);
+  const [airLoading, setAirLoading] = useState(true);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch(airUrl, { signal: controller.signal })
+      .then((r) => r.json())
+      .then((d) => { setAirF(typeof d.current_f === 'number' ? d.current_f : null); setAirLoading(false); })
+      .catch((e) => { if (e.name !== 'AbortError') setAirLoading(false); });
+    return () => controller.abort();
+  }, [airUrl]);
   const [data, setData] = useState<OceanTempData | null>(null);
   const [expanded, setExpanded] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -87,21 +101,21 @@ export default function OceanTempCard({ buoy, buoyLabel = 'MB' }: OceanTempCardP
 
   return (
     <div className="border-2 border-navy/20 rounded-xl p-4 bg-white">
-      <div className="flex items-center justify-between gap-2">
-        <div>
-          <p className="text-navy font-bold text-sm whitespace-nowrap">Water Temp</p>
-          <p className="text-navy opacity-40 text-xs mt-0.5">{buoyLabel} · NOAA Buoy {buoy ?? '46222'}</p>
-        </div>
-
+      <div className="grid grid-cols-2 gap-2">
         {loading ? (
-          <div className="text-navy opacity-40 text-sm">Loading...</div>
+          <div className="flex flex-col items-center justify-center rounded-xl bg-navy/10 py-2">
+            <span className="text-navy text-[11px] font-black uppercase tracking-wide">Water temp</span>
+            <span className="text-navy opacity-40 text-sm">Loading...</span>
+          </div>
         ) : data?.current_f ? (
           <button
             onClick={() => setExpanded((e) => !e)}
-            className="flex items-center gap-2 text-white font-black text-2xl px-4 py-2 rounded-xl hover:opacity-80 transition-opacity"
+            className="flex flex-col items-center justify-center text-white rounded-xl py-2 hover:opacity-80 transition-opacity"
             style={{ backgroundColor: tempColor(data.current_f) }}
-            title={tempFeel(data.current_f).label}
+            title={`${tempFeel(data.current_f).label} · tap for history`}
           >
+            <span className="text-[11px] font-black uppercase tracking-wide opacity-90">Water temp</span>
+            <span className="flex items-center gap-1.5 font-black text-2xl leading-tight">
             <span aria-label={tempFeel(data.current_f).label} role="img">{tempFeel(data.current_f).emoji}</span>
             {data.current_f}°F
             {expanded ? (
@@ -113,10 +127,21 @@ export default function OceanTempCard({ buoy, buoyLabel = 'MB' }: OceanTempCardP
                 <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zm6-4a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zm6-3a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
               </svg>
             )}
+            </span>
           </button>
         ) : (
-          <div className="text-navy opacity-40 text-sm">Unavailable</div>
+          <div className="flex flex-col items-center justify-center rounded-xl bg-navy/10 py-2">
+            <span className="text-navy text-[11px] font-black uppercase tracking-wide">Water temp</span>
+            <span className="text-navy opacity-40 text-sm">Unavailable</span>
+          </div>
         )}
+
+        <div className="flex flex-col items-center justify-center rounded-xl bg-navy/10 py-2">
+          <span className="text-navy text-[11px] font-black uppercase tracking-wide">Air temp</span>
+          <span className="text-navy font-black text-2xl leading-tight">
+            {airF != null ? `${airF}°F` : <span className="opacity-40 text-sm font-normal">{airLoading ? 'Loading...' : 'Unavailable'}</span>}
+          </span>
+        </div>
       </div>
 
       {expanded && chartData.length > 0 && (

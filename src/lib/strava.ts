@@ -1,5 +1,6 @@
 import { pool, isCrossSourceDuplicate } from './db';
 import { classifyActivity } from './activity';
+import { nearestSpot } from './courses';
 
 const CLIENT_ID = process.env.STRAVA_CLIENT_ID!;
 const CLIENT_SECRET = process.env.STRAVA_CLIENT_SECRET!;
@@ -289,8 +290,8 @@ export async function importStravaActivity(athleteId: number, activityId: number
   const mile_splits = await mileSplitsFor(activityId, token.access_token);
 
   await pool.query(
-    `INSERT INTO workouts (name, file_name, file_type, workout_date, duration_s, distance_m, avg_speed_ms, max_speed_ms, avg_hr, max_hr, calories, mile_splits, activity)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
+    `INSERT INTO workouts (name, file_name, file_type, workout_date, duration_s, distance_m, avg_speed_ms, max_speed_ms, avg_hr, max_hr, calories, mile_splits, activity, location)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
     [
       token.name,
       `strava-${activityId}`,
@@ -305,6 +306,7 @@ export async function importStravaActivity(athleteId: number, activityId: number
       act.calories ?? null,
       mile_splits ? JSON.stringify(mile_splits) : null,
       activity,
+      activity === 'paddle' ? nearestSpot(act.start_latlng) : null,
     ]
   );
 
