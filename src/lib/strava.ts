@@ -53,21 +53,24 @@ export async function backfillSplitsFromStrava(name: string): Promise<number> {
   let token = tokenRow.rows[0] as StravaToken;
   token = await refreshIfNeeded(token);
 
-  // Workouts for this athlete with no splits, excluding Strava-imported ones
+  // Paddles with no splits, or fewer than the distance calls for (a screenshot
+  // that caught only some laps), however far back. More splits = more chances
+  // at a record.
   const workoutsRes = await pool.query(
     `SELECT id, workout_date, distance_m FROM workouts
-     WHERE name = $1 AND mile_splits IS NULL AND file_name NOT LIKE 'strava-%'
-       AND workout_date >= '2026-03-01'`,
+     WHERE name = $1 AND file_name NOT LIKE 'strava-%' AND distance_m IS NOT NULL
+       AND (activity = 'paddle' OR activity IS NULL)
+       AND (mile_splits IS NULL OR jsonb_array_length(mile_splits) < FLOOR(distance_m / 1609.344) - 1)`,
     [name]
   );
   if (workoutsRes.rows.length === 0) return 0;
 
-  // Fetch all recent paddle activities from Strava
+  // Every paddle in their Strava history (capped at 3,000 activities)
   const activities: any[] = [];
   let page = 1;
-  while (true) {
+  while (page <= 30) {
     const res = await fetch(
-      `https://www.strava.com/api/v3/athlete/activities?per_page=100&page=${page}&after=1740787200`,
+      `https://www.strava.com/api/v3/athlete/activities?per_page=100&page=${page}`,
       { headers: { Authorization: `Bearer ${token.access_token}` } }
     );
     if (!res.ok) break;
