@@ -26,6 +26,7 @@ const STRAVA_SPORT_LABELS: Record<string, string> = {
   Kayaking: 'Kayak',
   Rowing: 'Row',
   Paddling: 'Paddle',
+  Workout: 'Paddle', // Garmin generic activity with GPS
 };
 
 // Garmin and Strava have no prone activity, so the team logs as stand up.

@@ -12,6 +12,25 @@ const SWIM_SPORTS = new Set(['Swim']);
 
 const IMPORTED_SPORTS = new Set([...PADDLE_SPORTS, ...SWIM_SPORTS]);
 
+/**
+ * Garmin has no prone profile, so some teammates (Zach) record paddles as a
+ * generic activity that reaches Strava as "Workout". A Workout with GPS and real
+ * distance is a paddle; gym sessions have neither.
+ */
+function isGpsWorkout(a: any): boolean {
+  return a?.sport_type === 'Workout'
+    && Array.isArray(a.start_latlng) && a.start_latlng.length === 2
+    && (a.distance ?? 0) >= 400;
+}
+
+function isPaddle(a: any): boolean {
+  return PADDLE_SPORTS.has(a?.sport_type) || isGpsWorkout(a);
+}
+
+function isImported(a: any): boolean {
+  return IMPORTED_SPORTS.has(a?.sport_type) || isGpsWorkout(a);
+}
+
 const MILE_M = 1609.344;
 
 interface StravaToken {
@@ -76,7 +95,7 @@ export async function backfillSplitsFromStrava(name: string): Promise<number> {
     if (!res.ok) break;
     const batch = await res.json();
     if (!Array.isArray(batch) || batch.length === 0) break;
-    activities.push(...batch.filter((a: any) => PADDLE_SPORTS.has(a.sport_type)));
+    activities.push(...batch.filter(isPaddle));
     if (batch.length < 100) break;
     page++;
   }
@@ -194,7 +213,7 @@ export async function importStravaActivity(athleteId: number, activityId: number
   if (!actRes.ok) throw new Error(`Strava API error: ${actRes.status}`);
   const act = await actRes.json();
 
-  if (!IMPORTED_SPORTS.has(act.sport_type)) return 'skipped';
+  if (!isImported(act)) return 'skipped';
 
   const activity = classifyActivity(act.sport_type);
 
@@ -265,7 +284,7 @@ export async function importRecentFromStrava(name: string, sinceIso: string): Pr
   if (row.rows.length === 0) return 0;
   const token = await refreshIfNeeded(row.rows[0] as StravaToken);
   const after = Math.floor(Date.parse(`${sinceIso}T00:00:00-08:00`) / 1000);
-  const acts: { id: number; sport_type: string }[] = [];
+  const acts: any[] = [];
   for (let page = 1; page <= 10; page++) {
     const res = await fetch(`https://www.strava.com/api/v3/athlete/activities?per_page=100&page=${page}&after=${after}`, {
       headers: { Authorization: `Bearer ${token.access_token}` },
@@ -278,7 +297,7 @@ export async function importRecentFromStrava(name: string, sinceIso: string): Pr
   }
   let imported = 0;
   for (const a of acts) {
-    if (!IMPORTED_SPORTS.has(a.sport_type)) continue;
+    if (!isImported(a)) continue;
     if ((await importStravaActivity(token.athlete_id, a.id)) === 'imported') imported++;
   }
   return imported;
